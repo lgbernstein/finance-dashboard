@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Larry's Economic Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 18px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 { font-size: 22px; font-weight: 600; letter-spacing: 0.3px; }
+    header p { font-size: 13px; color: #a0aec0; margin-top: 3px; }
+    #clock { font-size: 14px; color: #a0aec0; text-align: right; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #718096;
+      margin-bottom: 12px;
+      margin-top: 32px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+    }
+
+    .section-title:first-child { margin-top: 0; }
+
+    .explainer {
+      font-size: 13px;
+      color: #718096;
+      margin-bottom: 14px;
+      max-width: 800px;
+    }
+
+    /* Widget containers */
+    .widget-box {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    /* FRED charts grid */
+    .fred-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .fred-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 14px 16px 10px;
+    }
+
+    .fred-card h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 2px;
+    }
+
+    .fred-card .fred-subtitle {
+      font-size: 11px;
+      color: #a0aec0;
+      margin-bottom: 10px;
+    }
+
+    .fred-card img {
+      width: 100%;
+      border-radius: 4px;
+      display: block;
+    }
+
+    .fred-card a {
+      display: block;
+      text-align: right;
+      font-size: 11px;
+      color: #4299e1;
+      text-decoration: none;
+      margin-top: 6px;
+    }
+
+    .fred-card a:hover { text-decoration: underline; }
+
+    /* Briefings list */
+    .briefings-list {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    .briefing-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f0f4f8;
+      text-decoration: none;
+      color: #1a1a2e;
+      transition: background 0.15s;
+    }
+
+    .briefing-item:last-child { border-bottom: none; }
+    .briefing-item:hover { background: #f7fafc; }
+
+    .briefing-date {
+      font-size: 12px;
+      color: #a0aec0;
+      min-width: 110px;
+    }
+
+    .briefing-title {
+      font-size: 14px;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .briefing-badge {
+      font-size: 11px;
+      background: #ebf8ff;
+      color: #2b6cb0;
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-weight: 600;
+    }
+
+    /* What to watch */
+    .watch-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .watch-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border-left: 4px solid #e53e3e;
+      cursor: pointer;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+
+    .watch-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.13); }
+    .watch-card.yellow { border-left-color: #d69e2e; }
+    .watch-card.green { border-left-color: #38a169; }
+    .watch-card.blue { border-left-color: #3182ce; }
+
+    .watch-card-header {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .watch-card-header-text { flex: 1; }
+    .watch-card-header-text h4 { font-size: 14px; font-weight: 700; margin-bottom: 3px; color: #1a1a2e; }
+    .watch-card-header-text p { font-size: 13px; color: #718096; margin: 0; }
+
+    .watch-card-arrow {
+      font-size: 18px;
+      color: #a0aec0;
+      flex-shrink: 0;
+      margin-top: 1px;
+      transition: transform 0.25s;
+      line-height: 1;
+    }
+
+    .watch-card.open .watch-card-arrow { transform: rotate(180deg); }
+
+    .watch-card-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.2s;
+      background: #f7fafc;
+      font-size: 14px;
+      color: #2d3748;
+      line-height: 1.75;
+      padding: 0 20px;
+      border-top: 0px solid #e2e8f0;
+    }
+
+    .watch-card.open .watch-card-detail {
+      max-height: 1000px;
+      padding: 16px 20px 20px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .watch-card-detail p { margin-bottom: 12px; }
+    .watch-card-detail p:last-child { margin-bottom: 0; }
+    .watch-card-detail strong { color: #1a1a2e; }
+
+    /* Disclaimer */
+    .disclaimer {
+      font-size: 12px;
+      color: #a0aec0;
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    /* Glossary tooltips on causation chain */
+    .term {
+      border-bottom: 2px dotted #4299e1;
+      cursor: help;
+      position: relative;
+      display: inline;
+    }
+
+    .term .tip {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a2e;
+      color: #e2e8f0;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.6;
+      width: 270px;
+      padding: 12px 15px;
+      border-radius: 9px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+      z-index: 999;
+      transition: opacity 0.18s;
+      white-space: normal;
+      text-align: left;
+      pointer-events: none;
+    }
+
+    .term .tip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 7px solid transparent;
+      border-top-color: #1a1a2e;
+    }
+
+    .term:hover .tip,
+    .term:focus .tip {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .tip-label {
+      display: block;
+      font-weight: 700;
+      color: #90cdf4;
+      margin-bottom: 5px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Larry's Economic Dashboard</h1>
+    <p>Markets, macro indicators, and briefings — updated live</p>
+  </div>
+  <div id="clock"></div>
+</header>
+
+<div class="container">
+
+  <!-- WHAT TO WATCH -->
+  <div class="section-title">What to Watch Right Now — May 2026</div>
+  <p class="explainer">
+    These are the specific pressure points flagged in the current briefing. Updated when a new briefing is issued.
+  </p>
+
+  <p class="explainer" style="margin-bottom:12px; font-style:italic;">Click any card to expand it.</p>
+  <div class="watch-grid">
+
+    <div class="watch-card" onclick="toggleCard(this)">
+      <div class="watch-card-header">
+        <div class="watch-card-header-text">
+          <h4>30-Year Yield at 5.12%</h4>
+          <p>Bond values are down. Stocks under pressure.</p>
+        </div>
+        <div class="watch-card-arrow">&#8964;</div>
+      </div>
+      <div class="watch-card-detail">
+        <p>The 30-year Treasury yield is the interest rate the US government pays to borrow money for 30 years. When it rises, two things happen: the value of existing bonds falls (because new bonds pay more), and investors start moving money out of stocks into bonds since bonds now offer a competitive, low-risk return.</p>
+        <p><strong>Why 5.12% matters:</strong> For most of the last decade, the 30-year yield sat between 2-4%. Crossing 5% is a psychological and practical threshold — it signals that the bond market no longer trusts that inflation will stay low. It also makes mortgages, car loans, and corporate borrowing more expensive across the board.</p>
+        <p><strong>Historical context:</strong> The last time the 30-year yield was consistently above 5% was before the 2008 financial crisis. Before that, it was above 5% for most of the 1990s. So we are not in unprecedented territory — but we have re-entered a higher-rate era that many investors have never actually navigated.</p>
+        <p><strong>What to watch:</strong> If the 30-year yield pushes past 5.5%, expect significant pressure on stock valuations. If it pulls back below 4.75%, that would be a signal that inflation fears are easing.</p>
+      </div>
+    </div>
+
+    <div class="watch-card yellow" onclick="toggleCard(this)">
+      <div class="watch-card-header">
+        <div class="watch-card-header-text">
+          <h4>Strait of Hormuz Closed</h4>
+          <p>20% of global oil blocked. Prices elevated.</p>
+        </div>
+        <div class="watch-card-arrow">&#8964;</div>
+      </div>
+      <div class="watch-card-detail">
+        <p>The Strait of Hormuz is a narrow waterway — about 21 miles wide at its narrowest point — between Iran and Oman. It connects the Persian Gulf to the open ocean. Roughly 20% of all the world's traded oil, plus large amounts of liquefied natural gas, passes through it every day.</p>
+        <p><strong>Why it matters to you:</strong> When oil supply is constrained, oil prices rise. Higher oil prices mean higher gas prices, higher shipping costs, higher manufacturing costs, and ultimately higher prices for almost everything you buy. This feeds directly into the CPI inflation number the Fed watches most closely.</p>
+        <p><strong>The geopolitical angle:</strong> Iran has historically used the threat of closing the Strait as leverage in negotiations. The current closure is tied to the broader Middle East conflict. A diplomatic resolution or de-escalation could reopen it quickly — and oil prices would drop fast in response, easing inflation fears almost immediately.</p>
+        <p><strong>What to watch:</strong> Any news about diplomatic talks involving Iran, or about US or allied naval presence in the region, is a leading indicator of whether the Strait reopens. A reopening would likely trigger a significant rally in stocks and a drop in bond yields.</p>
+      </div>
+    </div>
+
+    <div class="watch-card yellow" onclick="toggleCard(this)">
+      <div class="watch-card-header">
+        <div class="watch-card-header-text">
+          <h4>Fed Rate Hike Being Priced In</h4>
+          <p>Markets expect rates to rise before end of 2026.</p>
+        </div>
+        <div class="watch-card-arrow">&#8964;</div>
+      </div>
+      <div class="watch-card-detail">
+        <p>The Federal Reserve sets a key interest rate called the Federal Funds Rate. Think of it as the master dial for the cost of money in the US economy. When the Fed raises this rate, borrowing becomes more expensive for everyone — banks, businesses, homebuyers, credit card users.</p>
+        <p><strong>What "priced in" means:</strong> Investors trade contracts called futures that bet on where the Fed rate will be at a future date. When we say a rate hike is "priced in," it means the majority of these bets now expect a hike. It does not mean the hike has happened — just that the market believes it will. Six months ago, the market was betting on rate cuts. That has completely reversed.</p>
+        <p><strong>Why this matters for your portfolio:</strong> Rate hikes make bonds more attractive relative to stocks. They also increase the cost of borrowing for companies, which squeezes profits and pushes stock prices down. A rate hike in late 2026 would likely cause short-term pain in both your stock and bond holdings.</p>
+        <p><strong>The silver lining:</strong> If you hold money market funds or short-term Treasury bills, a rate hike would increase the interest you earn on those. Currently paying around 5%, they would pay even more after a hike.</p>
+        <p><strong>What to watch:</strong> The Fed meets roughly every six weeks. Watch for statements from Fed Chair Jerome Powell — any language about "inflation remaining elevated" or "further tightening may be warranted" is a signal that a hike is coming.</p>
+      </div>
+    </div>
+
+    <div class="watch-card blue" onclick="toggleCard(this)">
+      <div class="watch-card-header">
+        <div class="watch-card-header-text">
+          <h4>Second Wave of Inflation</h4>
+          <p>Energy shock spreading into broader prices.</p>
+        </div>
+        <div class="watch-card-arrow">&#8964;</div>
+      </div>
+      <div class="watch-card-detail">
+        <p>The first wave of inflation hit 2021-2023, driven by COVID supply chain disruptions and government stimulus spending. The Fed raised rates aggressively — from near zero to over 5% — and inflation came down from a peak of around 9% to closer to 3%.</p>
+        <p><strong>What makes this wave different:</strong> This second wave appears driven by geopolitical disruption — the energy supply shock from the Middle East conflict — rather than excess demand or stimulus. That distinction matters because the Fed's main tool (raising rates) works well against demand-driven inflation but is less effective against supply shocks. You cannot raise interest rates to reopen the Strait of Hormuz.</p>
+        <p><strong>Headline vs. Core inflation:</strong> "Headline" CPI includes everything — food and energy. "Core" CPI strips those out because they are volatile. The Fed focuses on Core. Right now, headline inflation is spiking because of oil. If that bleeds into Core (meaning prices for services, rent, wages also start rising), the problem becomes much harder and slower to fix.</p>
+        <p><strong>Stagflation risk:</strong> If inflation stays high while the economy slows down at the same time, that is called stagflation. It is the hardest environment for a retirement portfolio because neither stocks nor bonds offer reliable shelter. The last major stagflation episode was the 1970s. It is not certain — but analysts are now taking it seriously.</p>
+        <p><strong>What to watch:</strong> The monthly CPI report. Specifically the Core CPI number — if it starts rising above 3.5%, the Fed has a serious problem on its hands.</p>
+      </div>
+    </div>
+
+    <div class="watch-card green" onclick="toggleCard(this)">
+      <div class="watch-card-header">
+        <div class="watch-card-header-text">
+          <h4>Maria Still Working</h4>
+          <p>Your household has an income cushion right now.</p>
+        </div>
+        <div class="watch-card-arrow">&#8964;</div>
+      </div>
+      <div class="watch-card-detail">
+        <p>This card is green because it is a genuine advantage in an otherwise difficult environment. Most of the other cards represent risks. This one represents protection.</p>
+        <p><strong>Why it matters:</strong> The biggest danger for a retired investor in a down market is being forced to sell assets at low prices to cover living expenses. If your stocks are down 20% and you need to pay your bills, you have to sell — locking in that loss permanently. Maria's income means you have the option to cover expenses without touching retirement accounts at all.</p>
+        <p><strong>Sequence-of-returns risk:</strong> Financial advisors call this "sequence-of-returns risk." A 35-year-old who loses 20% in a bad year still has decades of future contributions and growth ahead. A retiree who loses 20% in year one of retirement — and has to keep making withdrawals — may never fully recover. Maria's income is your defense against this specific risk.</p>
+        <p><strong>What this means practically:</strong> You have time. You do not need to panic-sell. If markets drop further, you can wait. If you have any cash reserves or short-term bond holdings, those can cover near-term needs while your longer-term holdings recover.</p>
+        <p><strong>Strategic opportunity:</strong> If markets do fall significantly, Maria's ongoing income could even allow you to buy more assets at lower prices — which is exactly the opposite of what most retirees are forced to do in a downturn.</p>
+      </div>
+    </div>
+
+    <div class="watch-card blue" onclick="toggleCard(this)">
+      <div class="watch-card-header">
+        <div class="watch-card-header-text">
+          <h4>RMDs Start in ~5 Years</h4>
+          <p>Planning window is open. Use it now.</p>
+        </div>
+        <div class="watch-card-arrow">&#8964;</div>
+      </div>
+      <div class="watch-card-detail">
+        <p>RMD stands for Required Minimum Distribution. At age 73, the IRS requires you to withdraw a minimum amount from traditional IRAs and 401k accounts every year — whether you need the money or not — and pay income tax on it. The amount increases each year as you get older. You cannot skip it or delay it without facing a penalty.</p>
+        <p><strong>Why this is a planning issue, not just a tax issue:</strong> If markets are down when RMDs begin, you are forced to sell assets at lower prices to meet the requirement. You have no choice. The five years before RMDs start are your window to restructure things so this hurts less.</p>
+        <p><strong>Roth conversion strategy:</strong> One option is to convert some money from a traditional IRA to a Roth IRA now. You pay income tax on the converted amount today, but Roth accounts have no RMDs and grow tax-free forever. The question is whether your current tax rate is lower than what you expect it to be during RMD years. With Maria still working, your household income is relatively high right now — so your tax advisor needs to weigh in on the timing.</p>
+        <p><strong>Bucket strategy:</strong> Another approach is to set aside 2-3 years of expected RMD amounts in short-term bonds or money market funds now. That way, even if markets drop when you turn 73, you are pulling from the "cash bucket" rather than forced to sell stocks at a loss.</p>
+        <p><strong>What to ask your advisor:</strong> "Given where we are now, should we be doing Roth conversions? And have we modeled out what our RMD amounts will look like starting in 2031?"</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BRIEFINGS -->
+  <div class="section-title">Your Briefings</div>
+  <p class="explainer">Plain-English analysis written for your specific situation. New briefings added weekly and after major events.</p>
+
+  <div class="briefings-list">
+    <a class="briefing-item" href="Market_Briefing_2026-05-17.html">
+      <span class="briefing-date">May 17, 2026</span>
+      <span class="briefing-title">Bond Yields Spike: 30-Year Hits 5.12%, What It Means for Your Portfolio</span>
+      <span class="briefing-badge">Latest</span>
+    </a>
+  </div>
+
+  <!-- HOW IT CONNECTS -->
+  <div class="section-title">How These Indicators Connect to Each Other</div>
+  <p class="explainer">
+    This is the part that feels complex but follows a logic. Here is the basic chain as it stands right now:
+  </p>
+
+  <p class="explainer" style="margin-bottom:10px; font-style:italic;">Hover over any underlined term for a plain-English explanation.</p>
+  <div class="widget-box" style="padding: 22px 26px; line-height: 2.4;">
+    <p style="font-size:14px; color:#4a5568;">
+      <strong style="color:#e53e3e;">Strait of Hormuz closed</strong>
+      &rarr; oil supply restricted
+      &rarr; <strong style="color:#e53e3e;">oil price rises</strong>
+      &rarr; transportation and manufacturing costs go up
+      &rarr; <span class="term"><strong style="color:#d69e2e;">CPI (inflation) rises</strong><span class="tip"><span class="tip-label">CPI — Consumer Price Index</span>A monthly government report measuring how much prices have risen for everyday goods: groceries, gas, rent, medical care. The Fed targets 2% annual inflation. When CPI runs above that — especially when driven by oil — the Fed feels pressure to raise interest rates to cool things down.</span></span>
+      &rarr; <span class="term">bond investors demand higher yields<span class="tip"><span class="tip-label">Who are bond investors?</span>Anyone who lends money to the government by buying Treasury bonds — including pension funds, insurance companies, foreign governments, and retirement accounts like yours. When inflation is high, they demand a higher interest rate to compensate, otherwise inflation erodes the value of their fixed payments.</span></span>
+      &rarr; <span class="term"><strong style="color:#e53e3e;">bond yields rise</strong><span class="tip"><span class="tip-label">What is a bond yield?</span>The yield is the annual interest rate a bond pays relative to its current price. Yields and prices move in opposite directions — when new bonds pay more, older bonds paying less become worth less. So "yields rising" always means "bond prices falling."</span></span>
+      &rarr; <span class="term">bond values fall<span class="tip"><span class="tip-label">Why do bond values fall?</span>If you own a bond paying 3% and new bonds now pay 5%, nobody will pay full price for yours. Its market value drops until the effective return matches the new 5% rate. This is a paper loss — if you hold the bond to maturity, you still get back the full face value.</span></span>
+      &rarr; <span class="term">stocks become less attractive vs. bonds<span class="tip"><span class="tip-label">The stocks vs. bonds tradeoff</span>Investors are always comparing: "Is the risk of owning stocks worth it, compared to the safe return from bonds?" When bonds pay 5% with almost no risk, stocks have to offer significantly more upside to compete. Many investors shift money from stocks into bonds, pushing stock prices down.</span></span>
+      &rarr; <strong style="color:#e53e3e;">stock prices fall</strong>
+      &rarr; <span class="term">Fed considers raising rates<span class="tip"><span class="tip-label">What does the Fed do?</span>The Federal Reserve is the US central bank. Its main tool is the Federal Funds Rate — the base interest rate for the entire economy. Raising it makes borrowing more expensive, which slows spending and investment, which eventually cools inflation. But it also slows economic growth and hurts stock and bond prices in the short term.</span></span>
+      &rarr; <span class="term"><strong style="color:#e53e3e;">borrowing costs rise further</strong><span class="tip"><span class="tip-label">Who gets affected by higher borrowing costs?</span>Everyone who borrows money: homebuyers (mortgage rates go up), car buyers (auto loan rates go up), companies (business loan rates go up), and the US government itself (it pays more on new Treasury debt). Higher borrowing costs slow the entire economy — which is exactly the Fed's intention when fighting inflation.</span></span>
+      &rarr; <span class="term">housing slows<span class="tip"><span class="tip-label">Why does housing matter to the economy?</span>Housing is one of the largest sectors of the US economy. When mortgage rates rise, fewer people buy homes. That slows construction, furniture sales, appliance purchases, and local government tax revenue. A housing slowdown is often one of the first visible signs that rate hikes are biting into the broader economy.</span></span>, consumer spending slows, corporate profits squeezed.
+    </p>
+    <p style="font-size:13px; color:#a0aec0; margin-top:14px;">
+      The chain can reverse too. If the Strait reopens, oil drops, inflation fears ease, bond yields fall, stocks recover. That is why geopolitical news moves markets so fast.
+    </p>
+  </div>
+
+  <!-- MARKETS & YIELDS -->
+  <div class="section-title">Markets and Bond Yields</div>
+  <p class="explainer">
+    Stock indexes show how the overall market is doing. Bond yields show what the US government pays to borrow money — when yields rise, bond values fall and borrowing costs go up for everyone. Watch for the 10-year and 30-year yields especially.
+  </p>
+  <div class="widget-box">
+    <div class="tradingview-widget-container" style="height:500px">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+      {
+        "colorTheme": "light",
+        "dateRange": "3M",
+        "showChart": true,
+        "locale": "en",
+        "width": "100%",
+        "height": 500,
+        "isTransparent": false,
+        "showSymbolLogo": false,
+        "showFloatingTooltip": false,
+        "plotLineColorGrowing": "rgba(41, 98, 255, 1.0)",
+        "plotLineColorFalling": "rgba(220, 50, 50, 1.0)",
+        "gridLineColor": "rgba(240, 243, 250, 0)",
+        "scaleFontColor": "rgba(106, 109, 120, 1.0)",
+        "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.08)",
+        "belowLineFillColorFalling": "rgba(220, 50, 50, 0.08)",
+        "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)",
+        "belowLineFillColorFallingBottom": "rgba(220, 50, 50, 0)",
+        "symbolActiveColor": "rgba(41, 98, 255, 0.12)",
+        "tabs": [
+          {
+            "title": "Stocks",
+            "symbols": [
+              {"s": "FOREXCOM:SPXUSD", "d": "S&P 500 (500 largest US companies)"},
+              {"s": "AMEX:DIA", "d": "Dow Jones ETF — tracks the 30 major companies"},
+              {"s": "FOREXCOM:NSXUSD", "d": "NASDAQ 100 (tech-heavy index)"}
+            ],
+            "originalTitle": "Stocks"
+          }
+        ]
+      }
+      </script>
+    </div>
+  </div>
+
+  <!-- BOND YIELDS -->
+  <div class="section-title">Bond Yields</div>
+  <p class="explainer">
+    When yields rise, the value of bonds you own falls — and stocks come under pressure too. The 10-year and 30-year yields are the most important to watch. These charts update daily from the Federal Reserve.
+  </p>
+  <div class="fred-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+
+    <div class="fred-card">
+      <h3>10-Year Treasury Yield</h3>
+      <div class="fred-subtitle">The most-watched rate in the world. Drives mortgage rates, stock valuations, and borrowing costs. Currently elevated at 4.59%.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=DGS10&cosd=2022-01-01&width=460&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11&line_color=%23e53e3e" alt="10-Year Treasury Yield" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank">View full chart on FRED</a>
+    </div>
+
+    <div class="fred-card">
+      <h3>30-Year Treasury Yield</h3>
+      <div class="fred-subtitle">Crossed 5.12% this week — a multi-year high. Reflects long-term inflation expectations. Bond values fall when this rises.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=DGS30&cosd=2022-01-01&width=460&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11&line_color=%23e53e3e" alt="30-Year Treasury Yield" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/DGS30" target="_blank">View full chart on FRED</a>
+    </div>
+
+    <div class="fred-card">
+      <h3>2-Year Treasury Yield</h3>
+      <div class="fred-subtitle">Tracks near-term Fed rate expectations most closely. When this is higher than the 10-year yield, it signals a recession may be coming.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=DGS2&cosd=2022-01-01&width=460&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11&line_color=%23d69e2e" alt="2-Year Treasury Yield" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/DGS2" target="_blank">View full chart on FRED</a>
+    </div>
+
+  </div>
+
+  <!-- COMMODITIES -->
+  <div class="section-title">Commodities</div>
+  <p class="explainer">
+    Commodities are raw materials that feed into the prices of almost everything else. Oil affects transportation and manufacturing costs. Natural gas affects heating and electricity bills. Wheat and corn affect food prices. Gold is a traditional "store of value" investors buy when nervous. Rising commodity prices usually feed into inflation.
+  </p>
+  <div class="widget-box">
+    <div class="tradingview-widget-container" style="height:500px">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+      {
+        "colorTheme": "light",
+        "dateRange": "3M",
+        "showChart": true,
+        "locale": "en",
+        "width": "100%",
+        "height": 500,
+        "isTransparent": false,
+        "showSymbolLogo": false,
+        "showFloatingTooltip": false,
+        "plotLineColorGrowing": "rgba(41, 98, 255, 1.0)",
+        "plotLineColorFalling": "rgba(220, 50, 50, 1.0)",
+        "gridLineColor": "rgba(240, 243, 250, 0)",
+        "scaleFontColor": "rgba(106, 109, 120, 1.0)",
+        "belowLineFillColorGrowing": "rgba(41, 98, 255, 0.08)",
+        "belowLineFillColorFalling": "rgba(220, 50, 50, 0.08)",
+        "belowLineFillColorGrowingBottom": "rgba(41, 98, 255, 0)",
+        "belowLineFillColorFallingBottom": "rgba(220, 50, 50, 0)",
+        "symbolActiveColor": "rgba(41, 98, 255, 0.12)",
+        "tabs": [
+          {
+            "title": "Energy",
+            "symbols": [
+              {"s": "TVC:USOIL", "d": "WTI Crude Oil (US benchmark, per barrel)"},
+              {"s": "TVC:UKOIL", "d": "Brent Crude (global benchmark, per barrel)"},
+              {"s": "TVC:NATGAS", "d": "Natural Gas (per million BTU)"}
+            ],
+            "originalTitle": "Energy"
+          },
+          {
+            "title": "Agriculture",
+            "symbols": [
+              {"s": "AMEX:WEAT", "d": "Wheat ETF — tracks wheat price (bread, pasta)"},
+              {"s": "AMEX:CORN", "d": "Corn ETF — tracks corn price (food, fuel, feed)"},
+              {"s": "AMEX:SOYB", "d": "Soybean ETF — tracks soy price (food, animal feed)"}
+            ],
+            "originalTitle": "Agriculture"
+          },
+          {
+            "title": "Metals",
+            "symbols": [
+              {"s": "TVC:GOLD", "d": "Gold (safe-haven, tracks uncertainty)"},
+              {"s": "TVC:SILVER", "d": "Silver (industrial and safe-haven)"},
+              {"s": "COMEX:HG1!", "d": "Copper (tracks global economic activity)"}
+            ],
+            "originalTitle": "Metals"
+          }
+        ]
+      }
+      </script>
+    </div>
+  </div>
+
+  <!-- MACRO INDICATORS -->
+  <div class="section-title">Key Economic Indicators (Federal Reserve Data)</div>
+  <p class="explainer">
+    These charts come directly from the Federal Reserve and update automatically when new data is released. They are published monthly or quarterly — not daily — so they show trends rather than daily moves. CPI and the unemployment rate are the two the Fed watches most closely when deciding whether to raise or lower interest rates.
+  </p>
+
+  <div class="fred-grid">
+
+    <div class="fred-card">
+      <h3>Inflation (CPI)</h3>
+      <div class="fred-subtitle">Consumer Price Index — how fast prices are rising. Above 2% means the Fed is watching closely.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=CPIAUCSL&cosd=2020-01-01&width=400&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11" alt="CPI Chart" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/CPIAUCSL" target="_blank">View full chart on FRED</a>
+    </div>
+
+    <div class="fred-card">
+      <h3>Core Inflation (ex-Food and Energy)</h3>
+      <div class="fred-subtitle">Strips out volatile food and energy prices. This is the number the Fed cares about most.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=CPILFESL&cosd=2020-01-01&width=400&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11" alt="Core CPI Chart" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/CPILFESL" target="_blank">View full chart on FRED</a>
+    </div>
+
+    <div class="fred-card">
+      <h3>Unemployment Rate</h3>
+      <div class="fred-subtitle">Percentage of people looking for work but not finding it. A strong job market gives the Fed room to raise rates.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=UNRATE&cosd=2020-01-01&width=400&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11" alt="Unemployment Chart" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/UNRATE" target="_blank">View full chart on FRED</a>
+    </div>
+
+    <div class="fred-card">
+      <h3>Federal Funds Rate</h3>
+      <div class="fred-subtitle">The interest rate the Fed sets. This is the master switch — it ripples through mortgages, car loans, bond yields, and savings rates.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=FEDFUNDS&cosd=2020-01-01&width=400&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11" alt="Fed Funds Rate Chart" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/FEDFUNDS" target="_blank">View full chart on FRED</a>
+    </div>
+
+    <div class="fred-card">
+      <h3>10-Year Treasury Yield</h3>
+      <div class="fred-subtitle">What the US government pays to borrow money for 10 years. When this rises, stocks often fall and bond values drop.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=DGS10&cosd=2020-01-01&width=400&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11" alt="10Y Treasury Chart" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank">View full chart on FRED</a>
+    </div>
+
+    <div class="fred-card">
+      <h3>Housing Starts</h3>
+      <div class="fred-subtitle">New homes being built each month. A leading indicator — when this falls, it signals builders expect slower demand and higher borrowing costs ahead.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=HOUST&cosd=2020-01-01&width=400&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11" alt="Housing Starts Chart" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/HOUST" target="_blank">View full chart on FRED</a>
+    </div>
+
+    <div class="fred-card">
+      <h3>30-Year Mortgage Rate</h3>
+      <div class="fred-subtitle">What homebuyers pay to borrow. Closely tracks the 10-year Treasury yield. High rates slow housing, which ripples through the broader economy.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=MORTGAGE30US&cosd=2020-01-01&width=400&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11" alt="Mortgage Rate Chart" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/MORTGAGE30US" target="_blank">View full chart on FRED</a>
+    </div>
+
+    <div class="fred-card">
+      <h3>US Dollar Index (DXY)</h3>
+      <div class="fred-subtitle">Measures the dollar's strength against other currencies. A strong dollar makes US exports more expensive, hurts multinational company profits, and pushes commodity prices down globally.</div>
+      <img src="https://fred.stlouisfed.org/graph/fredgraph.png?id=DTWEXBGS&cosd=2020-01-01&width=400&height=220&bgcolor=%23ffffff&graph_bgcolor=%23ffffff&fo=Open%20Sans&ts=11&tts=11" alt="Dollar Index Chart" loading="lazy">
+      <a href="https://fred.stlouisfed.org/series/DTWEXBGS" target="_blank">View full chart on FRED</a>
+    </div>
+
+  </div>
+
+  <div class="disclaimer">
+    Market data is live via TradingView. Economic charts update from the Federal Reserve (FRED) when new data is released.
+    This dashboard is for informational purposes only. It is not financial advice. Discuss all investment decisions with your financial advisor.
+  </div>
+
+</div>
+
+<script>
+  // Expandable watch cards
+  function toggleCard(card) {
+    const isOpen = card.classList.contains('open');
+    // Close all cards first
+    document.querySelectorAll('.watch-card').forEach(c => c.classList.remove('open'));
+    // If it wasn't open, open it
+    if (!isOpen) card.classList.add('open');
+  }
+
+  // Live clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').innerHTML =
+      now.toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'}) +
+      '<br>' + now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+  }
+  updateClock();
+  setInterval(updateClock, 30000);
+</script>
+
+</body>
+</html>

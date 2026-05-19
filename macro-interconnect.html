@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Macro Interconnect Explorer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0f1419;
+    color: #e6e9ef;
+    padding: 16px 20px;
+    font-size: 14px;
+  }
+  header { margin-bottom: 10px; }
+  h1 { font-size: 20px; font-weight: 600; color: #fff; }
+  .subtitle { color: #8b95a7; font-size: 12px; margin-top: 2px; }
+
+  /* ── Tabs ───────────────────────────────────────── */
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid #1f2937; margin: 12px 0; }
+  .tab { padding: 8px 16px; background: none; border: none; color: #8b95a7; cursor: pointer; font-size: 13px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.15s; }
+  .tab:hover { color: #e6e9ef; }
+  .tab.active { color: #4ade80; border-bottom-color: #4ade80; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── Explorer layout ────────────────────────────── */
+  .explorer-layout { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
+
+  .diagram-wrap { background: #131923; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; }
+  svg { width: 100%; height: 500px; }
+
+  .node circle { fill: #1f2937; stroke: #4ade80; stroke-width: 2; cursor: pointer; transition: all 0.2s; }
+  .node.active circle { fill: #4ade80; }
+  .node.dim circle { opacity: 0.25; }
+  .node text { fill: #e6e9ef; font-size: 11px; text-anchor: middle; pointer-events: none; font-weight: 500; }
+  .node.active text { fill: #0f1419; font-weight: 700; }
+  .link { fill: none; stroke: #374151; stroke-width: 1.5; opacity: 0.35; transition: all 0.2s; }
+  .link.highlight { opacity: 1; stroke-width: 2.5; }
+  .link.positive { stroke: #4ade80; }
+  .link.negative { stroke: #f87171; }
+  .link-label { fill: #8b95a7; font-size: 10px; opacity: 0; transition: opacity 0.2s; }
+  .link-label.show { opacity: 1; fill: #e6e9ef; }
+
+  /* ── Right panel ────────────────────────────────── */
+  .right-panel { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 760px; }
+
+  .panel-card { background: #131923; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; }
+  .panel-card h3 { font-size: 11px; color: #4ade80; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .panel-card p { font-size: 12px; color: #c4cad6; line-height: 1.55; margin-bottom: 6px; }
+
+  .effect-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #1f2937; font-size: 12px; }
+  .effect-row:last-child { border: none; }
+  .arrow-up { color: #4ade80; font-weight: 600; }
+  .arrow-down { color: #f87171; font-weight: 600; }
+  .arrow-neutral { color: #fbbf24; font-weight: 600; }
+
+  /* ── Scenario presets ───────────────────────────── */
+  .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+  .preset-btn {
+    padding: 6px 8px; background: #1f2937; color: #c4cad6;
+    border: 1px solid #374151; border-radius: 5px; cursor: pointer;
+    font-size: 11px; text-align: center; transition: all 0.15s;
+  }
+  .preset-btn:hover { background: #374151; color: #fff; }
+  .preset-btn.active { background: rgba(74,222,128,0.15); border-color: #4ade80; color: #4ade80; }
+
+  /* ── Sliders ────────────────────────────────────── */
+  .slider-group { margin-bottom: 12px; }
+  .slider-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; margin-bottom: 4px; color: #c4cad6; }
+  .slider-current { color: #4ade80; font-family: monospace; font-size: 12px; font-weight: 600; }
+  .slider-range { font-size: 10px; color: #6b7585; }
+
+  input[type=range] {
+    width: 100%; -webkit-appearance: none; height: 4px;
+    background: #1f2937; border-radius: 2px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 13px; height: 13px;
+    background: #4ade80; border-radius: 50%; cursor: pointer;
+    box-shadow: 0 0 4px rgba(74,222,128,0.5);
+  }
+
+  /* ── Simulation output ──────────────────────────── */
+  .sim-output { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .sim-card { background: #0f1419; border-radius: 6px; padding: 8px 10px; border: 1px solid #1f2937; }
+  .sim-card .sim-label { font-size: 10px; color: #8b95a7; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
+  .sim-card .sim-value { font-size: 16px; font-weight: 600; color: #fff; }
+  .sim-card .sim-delta { font-size: 10px; margin-left: 4px; }
+  .sim-card .sim-signal { font-size: 11px; font-weight: 600; margin-top: 2px; }
+  .sig-hike       { color: #f87171; }
+  .sig-cut        { color: #4ade80; }
+  .sig-hold       { color: #fbbf24; }
+  .sig-stagflation{ color: #fb923c; }
+  .sig-inverted   { color: #f87171; }
+  .sig-normal     { color: #4ade80; }
+  .sig-flat       { color: #fbbf24; }
+  .delta-pos { color: #4ade80; }
+  .delta-neg { color: #f87171; }
+  .delta-neu { color: #8b95a7; }
+
+  /* ── Correlation table ──────────────────────────── */
+  .corr-wrap { overflow-x: auto; }
+  .corr-wrap .corr-note { font-size: 10px; color: #6b7585; margin-bottom: 8px; }
+  .corr-table { width: 100%; border-collapse: collapse; font-size: 10px; min-width: 380px; }
+  .corr-table th, .corr-table td { padding: 4px 6px; text-align: center; border: 1px solid #1f2937; }
+  .corr-table th { color: #8b95a7; font-weight: 500; }
+
+  /* ── Story mode ─────────────────────────────────── */
+  .story-card { background: #131923; border: 1px solid #1f2937; border-radius: 8px; padding: 20px; }
+  .story-step  { color: #4ade80; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .story-title { font-size: 20px; color: #fff; margin-bottom: 12px; }
+  .story-body  { font-size: 14px; line-height: 1.7; color: #c4cad6; margin-bottom: 16px; }
+  .story-chain { background: #0f1419; padding: 12px 14px; border-radius: 6px; border-left: 3px solid #4ade80; font-family: monospace; font-size: 12px; color: #4ade80; margin-bottom: 16px; }
+  .story-nav   { display: flex; justify-content: space-between; align-items: center; }
+  .nav-btn { padding: 8px 18px; background: #1f2937; color: #e6e9ef; border: 1px solid #374151; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .nav-btn:hover:not(:disabled) { background: #374151; }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .step-indicator { color: #8b95a7; font-size: 12px; }
+
+  @media (max-width: 700px) { .explorer-layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div>
+  <header>
+    <h1>Macro Economics Explorer</h1>
+    <div class="subtitle">How interest rates, inflation, bonds, stocks, employment, and oil push and pull each other.</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-panel="explorer">Explorer</button>
+    <button class="tab" data-panel="story">Story Mode</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       EXPLORER PANEL
+  ═══════════════════════════════════════════════════════ -->
+  <div id="explorer" class="panel active">
+    <div class="explorer-layout">
+
+      <!-- Diagram -->
+      <div class="diagram-wrap">
+        <svg id="diagram" viewBox="0 0 700 500"></svg>
+      </div>
+
+      <!-- Right panel: node info + sliders + simulation + correlations -->
+      <div class="right-panel">
+
+        <!-- Node info -->
+        <div class="panel-card" id="node-info-card">
+          <h3 id="info-title">Click a node to explore</h3>
+          <p id="info-desc">Tap any indicator to see what it drives up or down, and how it is influenced by other forces.</p>
+          <div id="effects"></div>
+        </div>
+
+        <!-- Scenario presets -->
+        <div class="panel-card">
+          <h3>Scenario Presets</h3>
+          <div class="preset-grid">
+            <button class="preset-btn active" id="preset-baseline"  onclick="applyPreset('baseline')">Today (baseline)</button>
+            <button class="preset-btn"         id="preset-stagflation" onclick="applyPreset('stagflation')">Stagflation</button>
+            <button class="preset-btn"         id="preset-recession"   onclick="applyPreset('recession')">Deep Recession</button>
+            <button class="preset-btn"         id="preset-softlanding" onclick="applyPreset('softlanding')">Soft Landing</button>
+            <button class="preset-btn"         id="preset-ratehike"    onclick="applyPreset('ratehike')">Aggressive Hike</button>
+            <button class="preset-btn"         id="preset-oilshock"    onclick="applyPreset('oilshock')">Oil Shock</button>
+          </div>
+
+          <!-- Sliders — actual current values, not deltas from zero -->
+          <div id="sliders">
+
+            <div class="slider-group">
+              <div class="slider-label">
+                <span>Fed Funds Rate</span>
+                <span class="slider-current" id="v-fedrate">4.33%</span>
+              </div>
+              <input type="range" id="s-fedrate" min="0" max="10" step="0.25" value="4.33">
+              <div class="slider-range">Range: 0% → 10%  |  Baseline: 4.33%</div>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-label">
+                <span>CPI (YoY Inflation %)</span>
+                <span class="slider-current" id="v-cpi">3.2%</span>
+              </div>
+              <input type="range" id="s-cpi" min="0" max="12" step="0.25" value="3.2">
+              <div class="slider-range">Range: 0% → 12%  |  Baseline: 3.2%</div>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-label">
+                <span>Unemployment Rate</span>
+                <span class="slider-current" id="v-unemp">4.1%</span>
+              </div>
+              <input type="range" id="s-unemp" min="2" max="14" step="0.1" value="4.1">
+              <div class="slider-range">Range: 2% → 14%  |  Baseline: 4.1%</div>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-label">
+                <span>10-Year Treasury Yield</span>
+                <span class="slider-current" id="v-yield">4.59%</span>
+              </div>
+              <input type="range" id="s-yield" min="0.5" max="9" step="0.25" value="4.59">
+              <div class="slider-range">Range: 0.5% → 9%  |  Baseline: 4.59%</div>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-label">
+                <span>Oil Price ($/barrel)</span>
+                <span class="slider-current" id="v-oil">$105</span>
+              </div>
+              <input type="range" id="s-oil" min="30" max="160" step="5" value="105">
+              <div class="slider-range">Range: $30 → $160  |  Baseline: $105</div>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-label">
+                <span>S&amp;P 500 Level</span>
+                <span class="slider-current" id="v-sp500">5,820</span>
+              </div>
+              <input type="range" id="s-sp500" min="1500" max="8500" step="100" value="5820">
+              <div class="slider-range">Range: 1,500 → 8,500  |  Baseline: 5,820</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Simulation output -->
+        <div class="panel-card">
+          <h3>Projected Impacts</h3>
+          <div class="sim-output" id="sim-output">
+            <!-- filled by JS -->
+          </div>
+          <p style="font-size:10px; color:#6b7585; margin-top:8px;">Estimates based on 5-year rolling correlations and 10Y bond duration ≈ 7.5. Real-world effects have lags and non-linear dynamics.</p>
+        </div>
+
+        <!-- Correlations -->
+        <div class="panel-card">
+          <h3>Historical Correlations (5-Year Rolling)</h3>
+          <div class="corr-wrap">
+            <div class="corr-note">-1 = move opposite each other. +1 = move together. Explains why stocks and bonds can both fall during an inflation shock (highlighted in red/green).</div>
+            <table class="corr-table">
+              <thead>
+                <tr><th></th><th>Fed Rate</th><th>CPI</th><th>10Y Yield</th><th>Bond Px</th><th>S&amp;P</th><th>Unempl</th></tr>
+              </thead>
+              <tbody>
+                <tr><th>Fed Rate</th>  <td style="background:#374151">1.00</td><td style="background:#4ade8033">+0.62</td><td style="background:#4ade8055">+0.85</td><td style="background:#f8717155">-0.81</td><td style="background:#f8717133">-0.34</td><td style="background:#f8717133">-0.28</td></tr>
+                <tr><th>CPI</th>       <td style="background:#4ade8033">+0.62</td><td style="background:#374151">1.00</td><td style="background:#4ade8033">+0.55</td><td style="background:#f8717155">-0.71</td><td style="background:#f8717133">-0.42</td><td style="background:#f8717133">-0.31</td></tr>
+                <tr><th>10Y Yield</th> <td style="background:#4ade8055">+0.85</td><td style="background:#4ade8033">+0.55</td><td style="background:#374151">1.00</td><td style="background:#f8717155">-0.99</td><td style="background:#f8717155">-0.58</td><td style="background:#f8717133">-0.30</td></tr>
+                <tr><th>Bond Px</th>   <td style="background:#f8717155">-0.81</td><td style="background:#f8717155">-0.71</td><td style="background:#f8717155">-0.99</td><td style="background:#374151">1.00</td><td style="background:#4ade8033">+0.51</td><td style="background:#4ade8033">+0.39</td></tr>
+                <tr><th>S&amp;P</th>   <td style="background:#f8717133">-0.34</td><td style="background:#f8717133">-0.42</td><td style="background:#f8717155">-0.58</td><td style="background:#4ade8033">+0.51</td><td style="background:#374151">1.00</td><td style="background:#f8717155">-0.68</td></tr>
+                <tr><th>Unempl</th>    <td style="background:#f8717133">-0.28</td><td style="background:#f8717133">-0.31</td><td style="background:#f8717133">-0.30</td><td style="background:#4ade8033">+0.39</td><td style="background:#f8717155">-0.68</td><td style="background:#374151">1.00</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /.right-panel -->
+    </div><!-- /.explorer-layout -->
+  </div><!-- /#explorer -->
+
+  <!-- ═══════════════════════════════════════════════════════
+       STORY MODE PANEL
+  ═══════════════════════════════════════════════════════ -->
+  <div id="story" class="panel">
+    <div class="story-card">
+      <div class="story-step" id="story-step-label">Step 1 of 6</div>
+      <div class="story-title" id="story-title"></div>
+      <div class="story-body"  id="story-body"></div>
+      <div class="story-chain" id="story-chain"></div>
+      <div class="story-nav">
+        <button class="nav-btn" id="prev-btn" onclick="storyPrev()">&#8592; Previous</button>
+        <div class="step-indicator" id="step-indicator"></div>
+        <button class="nav-btn" id="next-btn" onclick="storyNext()">Next &#8594;</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.panel).classList.add('active');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// NODE-LINK DIAGRAM
+// ═══════════════════════════════════════════════════════════
+const nodes = [
+  { id: 'rate',       label: 'Fed Funds\nRate',  x: 350, y: 65,  desc: 'The benchmark interest rate set by the Federal Reserve. The lever the Fed pulls to cool or stimulate the economy. Currently 4.33%.' },
+  { id: 'cpi',        label: 'CPI /\nInflation', x: 110, y: 175, desc: 'Consumer Price Index — the official measure of inflation. Tracks price changes in a basket of everyday goods. Currently 3.2% YoY, pushed up by oil from the Strait of Hormuz closure.' },
+  { id: 'oil',        label: 'Oil\nPrice',       x: 110, y: 340, desc: 'Crude oil price per barrel. Currently ~$105 due to Strait of Hormuz closure. Oil is a key inflation input — it affects transportation, manufacturing, and energy costs across the entire economy.' },
+  { id: 'yield',      label: 'Bond\nYields',     x: 590, y: 175, desc: 'Interest rates on US Treasury bonds. Currently 10Y at 4.59%, 30Y at 5.12%. Higher yields mean lower bond prices. They track Fed rates and inflation expectations.' },
+  { id: 'bond',       label: 'Bond\nPrices',     x: 590, y: 340, desc: 'Market prices of fixed-income bonds. Always move opposite to yields — when yields rise 1%, a 10-year bond price drops roughly 7-8%. Currently around 92.4 on the 10Y price index.' },
+  { id: 'stock',      label: 'Stock\nMarket',    x: 480, y: 460, desc: 'Equity prices reflecting company valuations and future earnings. Currently S&P 500 at 5,820. Higher rates raise the discount rate on future earnings, compressing valuations.' },
+  { id: 'emp',        label: 'Employment',       x: 240, y: 460, desc: 'Jobs and the unemployment rate. Currently 4.1%. Strong employment gives the Fed room to raise rates. Tight labor markets also drive wage inflation.' }
+];
+
+const links = [
+  { source: 'rate',  target: 'yield',  effect: 'positive', label: 'drives up',    desc: 'Fed rate hikes pull Treasury yields up across the whole curve' },
+  { source: 'rate',  target: 'stock',  effect: 'negative', label: 'pressures',    desc: 'Higher discount rates compress stock valuations; borrowing costs squeeze profits' },
+  { source: 'rate',  target: 'cpi',    effect: 'negative', label: 'cools (lag)',   desc: 'Higher rates slow borrowing and spending, eventually cooling inflation — but with a 12-18 month lag' },
+  { source: 'rate',  target: 'emp',    effect: 'negative', label: 'slows hiring', desc: 'Higher rates slow business investment and hiring decisions' },
+  { source: 'yield', target: 'bond',   effect: 'negative', label: 'inverse',      desc: 'When yields rise, existing bonds with lower coupons become less valuable — prices fall to match' },
+  { source: 'yield', target: 'stock',  effect: 'negative', label: 'competes',     desc: 'High bond yields pull capital from stocks — 5% Treasury with no risk vs. uncertain equity returns' },
+  { source: 'cpi',   target: 'rate',   effect: 'positive', label: 'triggers',     desc: 'High CPI prompts Fed to raise rates to slow demand and cool prices' },
+  { source: 'cpi',   target: 'yield',  effect: 'positive', label: 'pushes up',    desc: 'Bond investors demand higher yields to compensate for inflation eroding their fixed payments' },
+  { source: 'oil',   target: 'cpi',    effect: 'positive', label: 'feeds into',   desc: 'Oil prices feed directly into CPI through fuel, transportation, and manufacturing costs' },
+  { source: 'oil',   target: 'stock',  effect: 'negative', label: 'cost pressure',desc: 'High oil raises input costs for most companies, squeezing margins and weighing on earnings' },
+  { source: 'emp',   target: 'cpi',    effect: 'positive', label: 'wage pressure',desc: 'Tight labor markets drive wages up, which businesses pass on as higher prices' },
+  { source: 'emp',   target: 'stock',  effect: 'positive', label: 'consumer power',desc: 'More employment means more consumer spending and stronger corporate earnings' },
+  { source: 'stock', target: 'emp',    effect: 'positive', label: 'wealth effect',desc: 'Rising stock wealth boosts consumer spending and business confidence, supporting hiring' }
+];
+
+const svg = document.getElementById('diagram');
+const svgNS = 'http://www.w3.org/2000/svg';
+
+// Arrow markers
+const defs = document.createElementNS(svgNS, 'defs');
+[['default','#374151'], ['pos','#4ade80'], ['neg','#f87171']].forEach(([id, color]) => {
+  const m = document.createElementNS(svgNS, 'marker');
+  m.setAttribute('id', 'arrow-'+id);
+  m.setAttribute('viewBox', '0 0 10 10');
+  m.setAttribute('refX', '8'); m.setAttribute('refY', '5');
+  m.setAttribute('markerWidth', '6'); m.setAttribute('markerHeight', '6');
+  m.setAttribute('orient', 'auto-start-reverse');
+  const p = document.createElementNS(svgNS, 'path');
+  p.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+  p.setAttribute('fill', color);
+  m.appendChild(p); defs.appendChild(m);
+});
+svg.appendChild(defs);
+
+// Draw links
+const linkGroup = document.createElementNS(svgNS, 'g');
+svg.appendChild(linkGroup);
+links.forEach(link => {
+  const s = nodes.find(n => n.id === link.source);
+  const t = nodes.find(n => n.id === link.target);
+  const dx = t.x - s.x, dy = t.y - s.y;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const r = 40;
+  const sx = s.x + (dx/dist)*r, sy = s.y + (dy/dist)*r;
+  const tx = t.x - (dx/dist)*r, ty = t.y - (dy/dist)*r;
+  const mx = (sx+tx)/2 + dy*0.08, my = (sy+ty)/2 - dx*0.08;
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute('d', `M ${sx} ${sy} Q ${mx} ${my} ${tx} ${ty}`);
+  path.setAttribute('class', `link ${link.effect}`);
+  path.setAttribute('data-source', link.source);
+  path.setAttribute('data-target', link.target);
+  const markerId = link.effect === 'positive' ? 'pos' : link.effect === 'negative' ? 'neg' : 'default';
+  path.setAttribute('marker-end', `url(#arrow-${markerId})`);
+  linkGroup.appendChild(path);
+  const lbl = document.createElementNS(svgNS, 'text');
+  lbl.setAttribute('class', 'link-label');
+  lbl.setAttribute('x', mx); lbl.setAttribute('y', my);
+  lbl.setAttribute('data-source', link.source);
+  lbl.textContent = link.label;
+  linkGroup.appendChild(lbl);
+});
+
+// Draw nodes
+nodes.forEach(node => {
+  const g = document.createElementNS(svgNS, 'g');
+  g.setAttribute('class', 'node');
+  g.setAttribute('data-id', node.id);
+  g.setAttribute('transform', `translate(${node.x},${node.y})`);
+  const circle = document.createElementNS(svgNS, 'circle');
+  circle.setAttribute('r', '40');
+  g.appendChild(circle);
+  const lines = node.label.split('\n');
+  const text = document.createElementNS(svgNS, 'text');
+  text.setAttribute('y', '4');
+  if (lines.length > 1) {
+    lines.forEach((line, i) => {
+      const tspan = document.createElementNS(svgNS, 'tspan');
+      tspan.setAttribute('x', '0');
+      tspan.setAttribute('dy', i === 0 ? '-5' : '13');
+      tspan.textContent = line;
+      text.appendChild(tspan);
+    });
+  } else {
+    text.textContent = node.label;
+  }
+  g.appendChild(text);
+  g.addEventListener('click', () => selectNode(node.id));
+  svg.appendChild(g);
+});
+
+function selectNode(id) {
+  document.querySelectorAll('.node').forEach(n => {
+    n.classList.toggle('active', n.dataset.id === id);
+    n.classList.toggle('dim', n.dataset.id !== id);
+  });
+  document.querySelectorAll('.link').forEach(l => {
+    l.classList.toggle('highlight', l.dataset.source === id || l.dataset.target === id);
+  });
+  document.querySelectorAll('.link-label').forEach(l => {
+    l.classList.toggle('show', l.dataset.source === id);
+  });
+  const node = nodes.find(n => n.id === id);
+  document.getElementById('info-title').textContent = node.label.replace('\n', ' ');
+  document.getElementById('info-desc').textContent = node.desc;
+  const out = links.filter(l => l.source === id);
+  const inc = links.filter(l => l.target === id);
+  let html = '';
+  if (out.length) {
+    html += '<div style="font-size:10px;color:#4ade80;text-transform:uppercase;letter-spacing:0.5px;margin:8px 0 4px;">Pushes</div>';
+    out.forEach(l => {
+      const t = nodes.find(n => n.id === l.target);
+      const arrow = l.effect === 'positive' ? '<span class="arrow-up">UP</span>' : '<span class="arrow-down">DOWN</span>';
+      html += `<div class="effect-row"><span>${t.label.replace('\n',' ')}</span>${arrow}</div>`;
+    });
+  }
+  if (inc.length) {
+    html += '<div style="font-size:10px;color:#8b95a7;text-transform:uppercase;letter-spacing:0.5px;margin:8px 0 4px;">Influenced by</div>';
+    inc.forEach(l => {
+      const s = nodes.find(n => n.id === l.source);
+      html += `<div class="effect-row"><span>${s.label.replace('\n',' ')}</span><span style="color:#8b95a7;font-size:11px;">${l.label}</span></div>`;
+    });
+  }
+  document.getElementById('effects').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENARIO PRESETS (actual values)
+// ═══════════════════════════════════════════════════════════
+const BASELINE = { fedrate: 4.33, cpi: 3.2, unemp: 4.1, yield: 4.59, oil: 105, sp500: 5820 };
+
+const PRESETS = {
+  baseline:    { fedrate: 4.33, cpi: 3.2,  unemp: 4.1, yield: 4.59, oil: 105, sp500: 5820,
+                 name: 'Today (May 2026 baseline)' },
+  stagflation: { fedrate: 7.5,  cpi: 9.0,  unemp: 6.5, yield: 7.5,  oil: 145, sp500: 4100,
+                 name: 'Stagflation (high inflation + recession)' },
+  recession:   { fedrate: 1.0,  cpi: 1.5,  unemp: 9.0, yield: 2.0,  oil: 55,  sp500: 3200,
+                 name: 'Deep Recession (2008-style)' },
+  softlanding: { fedrate: 3.5,  cpi: 2.5,  unemp: 4.3, yield: 3.8,  oil: 80,  sp500: 6300,
+                 name: 'Soft Landing (inflation cools, no recession)' },
+  ratehike:    { fedrate: 6.5,  cpi: 4.5,  unemp: 4.5, yield: 5.75, oil: 115, sp500: 5100,
+                 name: 'Aggressive Rate Hike (Fed fights inflation hard)' },
+  oilshock:    { fedrate: 4.33, cpi: 6.5,  unemp: 4.2, yield: 5.5,  oil: 155, sp500: 4800,
+                 name: 'Severe Oil Shock (Strait stays closed + escalation)' }
+};
+
+function applyPreset(key) {
+  const p = PRESETS[key];
+  document.getElementById('s-fedrate').value = p.fedrate;
+  document.getElementById('s-cpi').value     = p.cpi;
+  document.getElementById('s-unemp').value   = p.unemp;
+  document.getElementById('s-yield').value   = p.yield;
+  document.getElementById('s-oil').value     = p.oil;
+  document.getElementById('s-sp500').value   = p.sp500;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('preset-'+key);
+  if (btn) btn.classList.add('active');
+  updateSim();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIMULATION MODEL
+// ═══════════════════════════════════════════════════════════
+function updateSim() {
+  const fedrate = parseFloat(document.getElementById('s-fedrate').value);
+  const cpi     = parseFloat(document.getElementById('s-cpi').value);
+  const unemp   = parseFloat(document.getElementById('s-unemp').value);
+  const yield10 = parseFloat(document.getElementById('s-yield').value);
+  const oil     = parseFloat(document.getElementById('s-oil').value);
+  const sp500   = parseFloat(document.getElementById('s-sp500').value);
+
+  // Display current slider values
+  document.getElementById('v-fedrate').textContent = fedrate.toFixed(2) + '%';
+  document.getElementById('v-cpi').textContent     = cpi.toFixed(1) + '%';
+  document.getElementById('v-unemp').textContent   = unemp.toFixed(1) + '%';
+  document.getElementById('v-yield').textContent   = yield10.toFixed(2) + '%';
+  document.getElementById('v-oil').textContent     = '$' + Math.round(oil);
+  document.getElementById('v-sp500').textContent   = sp500.toLocaleString();
+
+  // Deactivate preset button if manually changed
+  let matchesPreset = false;
+  for (const [key, p] of Object.entries(PRESETS)) {
+    if (Math.abs(p.fedrate - fedrate) < 0.01 && Math.abs(p.cpi - cpi) < 0.01 &&
+        Math.abs(p.unemp - unemp) < 0.01 && Math.abs(p.yield - yield10) < 0.01 &&
+        Math.abs(p.oil - oil) < 1 && Math.abs(p.sp500 - sp500) < 50) {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('preset-'+key);
+      if (btn) btn.classList.add('active');
+      matchesPreset = true; break;
+    }
+  }
+  if (!matchesPreset) {
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  }
+
+  // Deltas from baseline
+  const dRate  = fedrate - BASELINE.fedrate;
+  const dCPI   = cpi     - BASELINE.cpi;
+  const dUnemp = unemp   - BASELINE.unemp;
+  const dYield = yield10 - BASELINE.yield;
+  const dOil   = (oil - BASELINE.oil) / BASELINE.oil * 100;   // % change
+  const dSP500 = (sp500 - BASELINE.sp500) / BASELINE.sp500 * 100; // % change
+
+  // ── Derived outputs ──────────────────────────────────
+  // 1. Bond Price — duration ≈ 7.5 for 10Y, so 1% yield change ≈ -7.5% price
+  const bondPriceChange = -7.5 * dYield;
+  const bondPriceNow    = Math.max(0, 92.4 * (1 + bondPriceChange/100));
+
+  // 2. Projected mortgage rate = yield10y + spread (current spread ≈ 2.46%)
+  const mortgageRate = yield10 + 2.46;
+
+  // 3. Fed action signal
+  let fedSignal, fedClass;
+  if (cpi > 3.5 && unemp > 5.5) { fedSignal = 'STAGFLATION — hardest call'; fedClass = 'sig-stagflation'; }
+  else if (cpi > 3.5 && unemp <= 5.0) { fedSignal = 'LIKELY HIKE'; fedClass = 'sig-hike'; }
+  else if (cpi < 2.5 && unemp >= 5.0) { fedSignal = 'LIKELY CUT'; fedClass = 'sig-cut'; }
+  else if (cpi < 2.5 && unemp < 5.0)  { fedSignal = 'HOLD or mild cut'; fedClass = 'sig-hold'; }
+  else { fedSignal = 'HOLD — data-dependent'; fedClass = 'sig-hold'; }
+
+  // 4. Yield curve signal (using fedrate as proxy for 2Y yield)
+  let curveSignal, curveClass;
+  if (yield10 < fedrate - 0.3)   { curveSignal = 'INVERTED — recession risk'; curveClass = 'sig-inverted'; }
+  else if (yield10 > fedrate + 0.5) { curveSignal = 'NORMAL — growth signal'; curveClass = 'sig-normal'; }
+  else                               { curveSignal = 'FLAT — watch closely'; curveClass = 'sig-flat'; }
+
+  // 5. Portfolio impact estimate (60% stocks / 40% bonds)
+  const portImpact = 0.60 * dSP500 + 0.40 * bondPriceChange;
+
+  // 6. Oil-driven vs. core inflation
+  const oilCpiEffect = dOil * 0.025;  // rough: 10% oil rise ≈ 0.25% CPI
+  const coreCPI = Math.max(0, cpi - oilCpiEffect).toFixed(1);
+
+  // ── Format helpers ───────────────────────────────────
+  function fmtDelta(val, digits, unit) {
+    const sign = val >= 0 ? '+' : '';
+    const cls  = val > 0.05 ? 'delta-pos' : val < -0.05 ? 'delta-neg' : 'delta-neu';
+    return `<span class="${cls}">${sign}${val.toFixed(digits)}${unit}</span>`;
+  }
+
+  document.getElementById('sim-output').innerHTML = `
+    <div class="sim-card">
+      <div class="sim-label">Bond Price Index</div>
+      <div class="sim-value">${bondPriceNow.toFixed(1)} ${fmtDelta(bondPriceChange, 1, '%')}</div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-label">Mortgage Rate</div>
+      <div class="sim-value">${mortgageRate.toFixed(2)}% ${fmtDelta(mortgageRate - 7.05, 2, 'pp')}</div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-label">Fed Likely Action</div>
+      <div class="sim-signal ${fedClass}">${fedSignal}</div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-label">Yield Curve</div>
+      <div class="sim-signal ${curveClass}">${curveSignal}</div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-label">60/40 Portfolio Est.</div>
+      <div class="sim-value">${fmtDelta(portImpact, 1, '%')}</div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-label">Core CPI (ex-oil)</div>
+      <div class="sim-value">${coreCPI}% ${fmtDelta(parseFloat(coreCPI) - 3.1, 1, 'pp')}</div>
+    </div>
+  `;
+}
+
+// Attach slider listeners
+['s-fedrate','s-cpi','s-unemp','s-yield','s-oil','s-sp500'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateSim);
+});
+
+// Init
+updateSim();
+selectNode('rate');
+
+// ═══════════════════════════════════════════════════════════
+// STORY MODE
+// ═══════════════════════════════════════════════════════════
+const storySteps = [
+  {
+    title: 'Inflation starts rising',
+    body: 'Imagine the economy is running hot — or in our case, a geopolitical shock cuts oil supply. Either way, the CPI reading prints well above the Fed target of 2%. Today it is running at 3.2% and rising due to oil from the Strait of Hormuz closure.',
+    chain: 'Oil supply shock → Energy costs rise → Transportation & manufacturing costs rise → CPI prints above 3%'
+  },
+  {
+    title: 'The Fed responds with rate hikes',
+    body: 'The Federal Reserve raises the Federal Funds Rate to cool demand. Borrowing gets more expensive for everyone — mortgages, auto loans, business credit all reprice higher. This is the Fed\'s primary tool, and it works better against demand-driven inflation than supply shocks.',
+    chain: 'CPI above target → Fed raises rate → Mortgage rates UP → Car loans UP → Business loans UP'
+  },
+  {
+    title: 'Bond yields rise, bond prices fall',
+    body: 'Treasury yields move up as the market reprices for the new Fed rate and higher inflation expectations. Existing bonds with lower coupons become less attractive, so their prices drop. The 30-year yield is now at 5.12% — a 15-year high. For every 1% yield rise, a 10-year bond loses roughly 7-8% of its price value.',
+    chain: 'Rates UP → 10Y Yield at 4.59% → 30Y Yield at 5.12% → Existing bond prices DOWN'
+  },
+  {
+    title: 'Higher yields pressure stocks three ways',
+    body: 'First, future earnings get discounted at higher rates, shrinking what a stock is worth today. Second, risk-free Treasuries at 5%+ compete directly with stocks for your capital. Third, companies face higher borrowing costs, squeezing margins. Growth and tech stocks — where earnings are far in the future — suffer most.',
+    chain: 'Yields UP → Higher discount rate + Capital rotates to bonds + Borrowing costs UP → Stocks DOWN'
+  },
+  {
+    title: 'Employment softens',
+    body: 'Businesses facing higher borrowing costs slow hiring and in some cases trim payrolls. Unemployment ticks up. This is the Fed\'s intended effect — it reduces wage pressure and consumer spending, which helps cool inflation. But it hurts workers in the short run.',
+    chain: 'Rates UP → Business investment DOWN → Hiring slows → Unemployment UP → Wages cool'
+  },
+  {
+    title: 'The cycle completes (or stagflation takes hold)',
+    body: 'In the normal cycle, higher unemployment cools wage pressure, CPI returns toward 2%, and the Fed pauses or cuts rates. BUT — if inflation is supply-driven (oil shock) rather than demand-driven, the Fed\'s rate hikes slow the economy without fixing inflation. That is stagflation: high inflation AND slow growth. The 1970s is the last major example. That is why the Strait of Hormuz matters so much right now.',
+    chain: 'Normal: Unemployment UP → Wages cool → CPI falls → Fed cuts → Recovery\nStagnation: Oil stays expensive → CPI stays high → Fed hikes → Economy slows → Both stocks and bonds fall'
+  }
+];
+
+let storyIdx = 0;
+function renderStory() {
+  const s = storySteps[storyIdx];
+  document.getElementById('story-step-label').textContent = `Step ${storyIdx+1} of ${storySteps.length}`;
+  document.getElementById('story-title').textContent = s.title;
+  document.getElementById('story-body').textContent  = s.body;
+  document.getElementById('story-chain').textContent = s.chain;
+  document.getElementById('step-indicator').textContent = `${storyIdx+1} / ${storySteps.length}`;
+  document.getElementById('prev-btn').disabled = storyIdx === 0;
+  document.getElementById('next-btn').disabled = storyIdx === storySteps.length - 1;
+}
+function storyNext() { if (storyIdx < storySteps.length - 1) { storyIdx++; renderStory(); } }
+function storyPrev() { if (storyIdx > 0) { storyIdx--; renderStory(); } }
+renderStory();
+</script>
+</body>
+</html>

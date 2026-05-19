@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Larry's Economic Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0f1419; color: #e2e8f0; font-size: 14px; line-height: 1.5; }
+
+    header { background: #0a0e14; padding: 12px 28px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f2937; position: sticky; top: 0; z-index: 100; }
+    header h1 { font-size: 18px; font-weight: 600; }
+    header p { font-size: 12px; color: #8b95a7; margin-top: 1px; }
+    #clock { font-size: 12px; color: #8b95a7; text-align: right; }
+    .container { width: 100%; padding: 18px 28px; }
+    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #86efac; margin-bottom: 12px; margin-top: 0; padding: 12px 16px; background: linear-gradient(90deg, rgba(74,222,128,0.12) 0%, rgba(74,222,128,0.02) 60%, transparent 100%); border-left: 3px solid #4ade80; border-bottom: 1px solid #1f2937; border-radius: 0 5px 5px 0; }
+    .section-title:first-child { margin-top: 0; }
+    .explainer { font-size: 12px; color: #8b95a7; margin-bottom: 10px; }
+
+    /* ── 2-col main grid ────────────────────────────────── */
+    .main-grid { display: grid; grid-template-columns: 360px 1fr; gap: 22px; align-items: start; }
+
+    /* ── Narrative stepper ─────────────────────────────── */
+    .narrative-card { background: #131923; border-radius: 8px; border: 1px solid #1f2937; padding: 14px; margin-bottom: 12px; }
+    .narrative-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 6px; }
+    .narrative-title { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+    .narrative-body { font-size: 12px; color: #c4cdd9; line-height: 1.6; margin-bottom: 10px; }
+    .narrative-impact { font-size: 11px; font-weight: 600; color: #e2e8f0; background: #0f1419; padding: 6px 10px; border-radius: 5px; border-left: 3px solid #4ade80; margin-bottom: 10px; font-family: monospace; }
+    .narrative-nav { display: flex; justify-content: space-between; align-items: center; }
+    .nar-btn { background: #1f2937; color: #8b95a7; border: 1px solid #374151; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
+    .nar-btn:hover:not(:disabled) { background: #374151; color: #e2e8f0; }
+    .nar-btn:disabled { opacity: 0.3; cursor: default; }
+    .nar-dots { display: flex; gap: 5px; align-items: center; }
+    .nar-dot { width: 6px; height: 6px; border-radius: 50%; background: #374151; cursor: pointer; transition: background 0.2s; }
+    .nar-dot.active { background: #4ade80; }
+
+    /* ── Watch cards ────────────────────────────────────── */
+    .watch-grid { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+    .watch-card { background: #131923; border-radius: 7px; border: 1px solid #1f2937; border-left: 4px solid #e53e3e; cursor: pointer; overflow: hidden; }
+    .watch-card:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.4); }
+    .watch-card.yellow { border-left-color: #d69e2e; }
+    .watch-card.green  { border-left-color: #38a169; }
+    .watch-card.blue   { border-left-color: #3182ce; }
+    .watch-card-header { padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .watch-card-header-text h4 { font-size: 12px; font-weight: 700; margin-bottom: 1px; color: #e2e8f0; }
+    .watch-card-header-text p  { font-size: 11px; color: #8b95a7; margin: 0; }
+    .watch-card-arrow { font-size: 15px; color: #8b95a7; flex-shrink: 0; transition: transform 0.25s; }
+    .watch-card.open .watch-card-arrow { transform: rotate(180deg); }
+    .watch-card-detail { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.2s; background: #0f1419; font-size: 12px; color: #c4cdd9; line-height: 1.65; padding: 0 12px; }
+    .watch-card.open .watch-card-detail { max-height: 1200px; padding: 10px 12px 12px; border-top: 1px solid #1f2937; }
+    .watch-card-detail p { margin-bottom: 7px; }
+    .watch-card-detail p:last-child { margin-bottom: 0; }
+    .watch-card-detail strong { color: #e2e8f0; }
+
+    /* ── Briefings ──────────────────────────────────────── */
+    .briefings-list { background: #131923; border-radius: 7px; border: 1px solid #1f2937; overflow: hidden; margin-bottom: 12px; }
+    .briefing-item { display: flex; align-items: center; padding: 9px 12px; border-bottom: 1px solid #1f2937; text-decoration: none; color: #e2e8f0; transition: background 0.15s; }
+    .briefing-item:last-child { border-bottom: none; }
+    .briefing-item:hover { background: #1a2332; }
+    .briefing-date { font-size: 11px; color: #8b95a7; min-width: 90px; }
+    .briefing-title { font-size: 12px; font-weight: 500; flex: 1; }
+    .briefing-badge { font-size: 10px; background: rgba(74,222,128,0.12); color: #4ade80; border-radius: 20px; padding: 2px 7px; font-weight: 600; border: 1px solid rgba(74,222,128,0.25); }
+
+    /* ── Causation chain ────────────────────────────────── */
+    .chain-box { background: #131923; border: 1px solid #1f2937; border-radius: 7px; padding: 12px 14px; line-height: 2.2; margin-bottom: 12px; }
+    .chain-box p { font-size: 12px; color: #c4cdd9; }
+    .chain-note { font-size: 11px; color: #6b7585; margin-top: 8px; }
+    .term { border-bottom: 2px dotted #4299e1; cursor: help; position: relative; display: inline; }
+    .term .tip { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #0a0e14; color: #e2e8f0; font-size: 11px; line-height: 1.55; width: 210px; padding: 9px 11px; border-radius: 7px; border: 1px solid #1f2937; box-shadow: 0 6px 20px rgba(0,0,0,0.7); z-index: 999; transition: opacity 0.18s; white-space: normal; text-align: left; pointer-events: none; }
+    .term .tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: #0a0e14; }
+    .term:hover .tip { visibility: visible; opacity: 1; }
+    .tip-label { display: block; font-weight: 700; color: #90cdf4; margin-bottom: 3px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── Chart cards ────────────────────────────────────── */
+    .fred-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 9px; margin-bottom: 12px; align-items: stretch; }
+    .fred-card { background: #131923; border-radius: 7px; border: 1px solid #1f2937; padding: 11px 11px 8px; display: flex; flex-direction: column; }
+    .fred-card h3 { font-size: 10px; color: #8b95a7; margin-bottom: 1px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .fred-card .current-value { font-size: 17px; font-weight: 600; color: #fff; margin-bottom: 1px; }
+    .fred-card .fred-subtitle { font-size: 10px; color: #6b7585; margin-bottom: 7px; line-height: 1.4; }
+    .fred-card canvas { max-height: 110px; }
+    .fred-card a { display: block; text-align: right; font-size: 10px; color: #4299e1; text-decoration: none; margin-top: 3px; }
+    .fred-card a:hover { text-decoration: underline; }
+
+    /* ── Markets row (3-col) ────────────────────────────── */
+    .markets-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 0; align-items: stretch; }
+    .widget-box { background: #131923; border-radius: 10px; border: 1px solid #1f2937; overflow: hidden; }
+    .two-col-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 0; align-items: stretch; }
+    .three-col-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 0; align-items: stretch; }
+
+    /* ── Info card ──────────────────────────────────────── */
+    .info-card { background: #131923; border-radius: 8px; border: 1px solid #1f2937; padding: 14px; }
+    .info-card h4 { font-size: 11px; color: #4ade80; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .info-card p { font-size: 12px; color: #c4cdd9; line-height: 1.6; margin-bottom: 6px; }
+    .info-card p:last-child { margin-bottom: 0; }
+    .info-card strong { color: #e2e8f0; }
+
+    /* ── Globe (supply chain) ───────────────────────────── */
+    .supply-grid { display: grid; grid-template-columns: 1.6fr 280px; gap: 14px; margin-bottom: 14px; align-items: start; }
+    .sc-map-wrap { background: #060e18; border: 1px solid #1f2937; border-radius: 8px; overflow: hidden; position: relative; }
+    .sc-metrics { display: flex; flex-direction: column; gap: 7px; }
+    .sc-card { background: #131923; border: 1px solid #1f2937; border-radius: 7px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; }
+    .sc-card-label { font-size: 11px; color: #8b95a7; }
+    .sc-card-sub { font-size: 10px; color: #6b7585; margin-top: 1px; }
+    .sc-card-value { font-size: 14px; font-weight: 600; }
+    .sc-status { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+    .sc-green  { background: #4ade80; box-shadow: 0 0 5px #4ade8080; }
+    .sc-yellow { background: #fbbf24; box-shadow: 0 0 5px #fbbf2480; }
+    .sc-red    { background: #f87171; box-shadow: 0 0 5px #f8717180; }
+
+    /* Globe tooltip & legend */
+    #globe-tooltip {
+      display: none; position: absolute; background: #0a0e14;
+      border: 1px solid #374151; border-radius: 6px; padding: 8px 10px;
+      font-size: 12px; color: #e2e8f0; pointer-events: none; z-index: 50;
+      max-width: 210px; line-height: 1.6;
+    }
+    #globe-tooltip strong { color: #fff; display: block; margin-bottom: 2px; }
+    .grisk-critical { color: #f87171; font-weight: 700; font-size: 11px; }
+    .grisk-elevated { color: #fbbf24; font-weight: 700; font-size: 11px; }
+    .grisk-watch    { color: #86efac; font-weight: 700; font-size: 11px; }
+    .grisk-normal   { color: #4ade80; font-size: 11px; }
+    .globe-hint { font-size: 10px; color: #6b7585; padding: 5px 10px; text-align: center; background: #060e18; border-top: 1px solid #1a2535; }
+    .globe-legend { display: flex; gap: 12px; padding: 6px 12px; background: rgba(6,14,24,0.9); border-top: 1px solid #1a2535; flex-wrap: wrap; }
+    .gl-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #8b95a7; }
+    .gl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .gl-line { width: 18px; height: 2px; flex-shrink: 0; }
+
+    /* ── Explorer (gauge-based) ─────────────────────────── */
+    .exp-section { background: #0d1117; border: 1px solid #1f2937; border-radius: 10px; padding: 16px; margin-bottom: 18px; }
+
+    /* Gauge cards */
+    .exp-gauges { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 14px; }
+    .exp-gauge-card {
+      background: #131923; border: 1px solid #1f2937; border-radius: 8px;
+      padding: 10px 8px; cursor: pointer; transition: border-color 0.3s, background-color 0.4s, box-shadow 0.4s;
+      text-align: center;
+    }
+    .exp-gauge-card:hover { border-color: #374151; }
+    .exp-gauge-card.active { border-color: #4ade80 !important; box-shadow: 0 0 16px rgba(74,222,128,0.28) !important; animation: none !important; }
+    .exp-gauge-name { font-size: 9px; color: #8b95a7; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; line-height: 1.3; min-height: 22px; display: flex; align-items: center; justify-content: center; }
+    .exp-gauge-value { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; font-family: monospace; }
+    .exp-gauge-bar-wrap { height: 6px; background: #1f2937; border-radius: 3px; margin-bottom: 5px; overflow: hidden; }
+    .exp-gauge-bar { height: 100%; border-radius: 3px; width: 20%; background: #4ade80; transition: width 0.55s ease, background-color 0.55s ease; }
+    .exp-gauge-stress { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    @keyframes glowAmber { 0%,100% { box-shadow: 0 0 0 transparent; } 50% { box-shadow: 0 0 18px rgba(251,191,36,0.5); } }
+    @keyframes glowRed   { 0%,100% { box-shadow: 0 0 5px rgba(248,113,113,0.3); } 50% { box-shadow: 0 0 24px rgba(248,113,113,0.65); } }
+    .stress-2 { animation: glowAmber 2s infinite; }
+    .stress-3 { animation: glowRed 0.85s infinite; }
+
+    /* 3-column Explorer layout */
+    .exp-layout { display: grid; grid-template-columns: 1fr 220px 250px; gap: 14px; align-items: start; }
+
+    .panel-card { background: #131923; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; }
+    .panel-card h3 { font-size: 11px; color: #4ade80; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .panel-card p  { font-size: 12px; color: #c4cad6; line-height: 1.55; margin-bottom: 6px; }
+
+    /* Cascade display */
+    .cascade-desc { font-size: 12px; color: #c4cdd9; line-height: 1.6; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #1f2937; }
+    .cascade-hdr  { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin: 8px 0 4px; }
+    .cascade-row  { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #1a2332; gap: 8px; }
+    .cascade-row:last-child { border-bottom: none; }
+    .cascade-tgt  { font-size: 12px; color: #e2e8f0; flex: 1; }
+    .cascade-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+    .cascade-arrow { font-size: 12px; font-weight: 700; }
+    .cascade-str-bar { width: 64px; height: 4px; background: #1f2937; border-radius: 2px; overflow: hidden; }
+    .cascade-str-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+    .cascade-row-sm  { display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0; border-bottom: 1px solid #1a2332; color: #c4cdd9; }
+    .cascade-row-sm:last-child { border-bottom: none; }
+    .cascade-hint    { font-size: 12px; color: #6b7585; text-align: center; padding: 22px 0; }
+
+    /* Presets & sliders */
+    .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+    .preset-btn  { padding: 6px 8px; background: #1f2937; color: #c4cad6; border: 1px solid #374151; border-radius: 5px; cursor: pointer; font-size: 11px; text-align: center; transition: all 0.15s; }
+    .preset-btn:hover  { background: #374151; color: #fff; }
+    .preset-btn.active { background: rgba(74,222,128,0.15); border-color: #4ade80; color: #4ade80; }
+    .slider-group   { margin-bottom: 11px; }
+    .slider-label   { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; margin-bottom: 4px; color: #c4cad6; }
+    .slider-current { color: #4ade80; font-family: monospace; font-size: 12px; font-weight: 600; }
+    .slider-range   { font-size: 10px; color: #6b7585; }
+    input[type=range] { width: 100%; -webkit-appearance: none; height: 4px; background: #1f2937; border-radius: 2px; outline: none; cursor: pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; background: #4ade80; border-radius: 50%; cursor: pointer; box-shadow: 0 0 4px rgba(74,222,128,0.5); }
+
+    /* Simulation output */
+    .sim-output { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .sim-card   { background: #0f1419; border-radius: 6px; padding: 8px 10px; border: 1px solid #1f2937; }
+    .sim-card .sim-label  { font-size: 10px; color: #8b95a7; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
+    .sim-card .sim-value  { font-size: 15px; font-weight: 600; color: #fff; }
+    .sim-card .sim-delta  { font-size: 10px; margin-left: 3px; }
+    .sim-card .sim-signal { font-size: 11px; font-weight: 600; margin-top: 2px; }
+    .sig-hike        { color: #f87171; }
+    .sig-cut         { color: #4ade80; }
+    .sig-hold        { color: #fbbf24; }
+    .sig-stagflation { color: #fb923c; }
+    .sig-inverted    { color: #f87171; }
+    .sig-normal      { color: #4ade80; }
+    .sig-flat        { color: #fbbf24; }
+    .delta-pos { color: #4ade80; }
+    .delta-neg { color: #f87171; }
+    .delta-neu { color: #8b95a7; }
+
+    /* ── Composite indicators grid ──────────────────────────── */
+    .composite-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 900px) { .composite-grid { grid-template-columns: 1fr; } }
+    .comp-card { background: #131923; border: 1px solid #1f2937; border-radius: 9px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .comp-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .comp-name { font-size: 13px; font-weight: 700; color: #e2e8f0; }
+    .comp-sub  { font-size: 11px; color: #6b7585; margin-top: 2px; }
+    .comp-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 12px; border: 1px solid; white-space: nowrap; flex-shrink: 0; }
+    .badge-loose    { background: rgba(74,222,128,0.12);  color: #4ade80;  border-color: rgba(74,222,128,0.3); }
+    .badge-normal   { background: rgba(74,222,128,0.08);  color: #86efac;  border-color: rgba(74,222,128,0.2); }
+    .badge-watch    { background: rgba(251,191,36,0.12);  color: #fbbf24;  border-color: rgba(251,191,36,0.3); }
+    .badge-elevated { background: rgba(251,146,60,0.12);  color: #fb923c;  border-color: rgba(251,146,60,0.3); }
+    .badge-tight    { background: rgba(248,113,113,0.12); color: #f87171;  border-color: rgba(248,113,113,0.3); }
+    .gdpnow-badge   { background: rgba(251,191,36,0.12);  color: #fbbf24;  border-color: rgba(251,191,36,0.3); }
+    .comp-value-row { display: flex; align-items: baseline; gap: 12px; }
+    .comp-value  { font-size: 28px; font-weight: 700; color: #fff; font-family: monospace; line-height: 1; }
+    .comp-signal { font-size: 13px; font-weight: 600; }
+    .comp-interp { font-size: 11px; color: #8b95a7; line-height: 1.6; flex: 1; }
+    .comp-scale  { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #6b7585; padding-top: 4px; border-top: 1px solid #1f2937; }
+    .comp-scale a { color: #4299e1; text-decoration: none; }
+    .comp-scale a:hover { text-decoration: underline; }
+
+    .disclaimer { font-size: 11px; color: #6b7585; margin-top: 20px; padding-top: 12px; border-top: 1px solid #1f2937; text-align: center; }
+
+    /* ── Mr. Global Energy Monitor ──────────────────────────────── */
+    .mg-section .section-title { background: linear-gradient(90deg, rgba(251,146,60,0.12) 0%, rgba(251,146,60,0.02) 60%, transparent 100%); border-bottom: 1px solid rgba(251,146,60,0.2); color: #fb923c; }
+    .mg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    @media (max-width: 1100px) { .mg-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 700px)  { .mg-grid { grid-template-columns: 1fr; } }
+    .mg-card { background: #0d1824; border: 1px solid #1e3048; border-radius: 9px; padding: 14px; display: flex; flex-direction: column; gap: 5px; border-top: 2px solid #fb923c; }
+    .mg-card-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: #8b95a7; font-weight: 700; }
+    .mg-card-value { font-size: 22px; font-weight: 700; color: #fff; font-family: monospace; line-height: 1.1; margin: 2px 0; }
+    .mg-unit { font-size: 13px; font-weight: 400; color: #8b95a7; }
+    .mg-thresholds { display: flex; flex-direction: column; gap: 3px; margin: 3px 0; }
+    .mg-threshold { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: 600; }
+    .mg-threshold.red    { color: #f87171; background: rgba(248,113,113,0.08); border-left: 2px solid #f87171; }
+    .mg-threshold.yellow { color: #fbbf24; background: rgba(251,191,36,0.08);  border-left: 2px solid #fbbf24; }
+    .mg-threshold.green  { color: #4ade80; background: rgba(74,222,128,0.08);  border-left: 2px solid #4ade80; }
+    .mg-signal { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .mg-signal.red    { color: #f87171; }
+    .mg-signal.yellow { color: #fbbf24; }
+    .mg-signal.green  { color: #4ade80; }
+    .mg-implication { font-size: 11px; color: #c4cdd9; line-height: 1.55; border-top: 1px solid #1e3048; padding-top: 7px; margin-top: 2px; }
+    .mg-implication strong { color: #fb923c; }
+    .mg-assess { font-size: 10px; color: #9aa5b4; line-height: 1.55; background: #080f1a; border-radius: 5px; padding: 6px 8px; margin-top: 3px; }
+    .mg-assess strong { color: #60a5fa; }
+    .mg-link { display: inline-block; margin-top: 5px; font-size: 10px; color: #60a5fa; text-decoration: none; }
+    .mg-link:hover { text-decoration: underline; }
+    .mg-scenario-bar { background: #080f1a; border: 1px solid rgba(248,113,113,0.2); border-left: 3px solid #f87171; border-radius: 8px; padding: 14px 16px; margin-top: 14px; }
+    .mg-scenario-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #f87171; font-weight: 700; margin-bottom: 12px; }
+    .mg-scenarios { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    @media (max-width: 900px) { .mg-scenarios { grid-template-columns: repeat(2, 1fr); } }
+    .mg-scenario-item { display: flex; flex-direction: column; gap: 4px; }
+    .mg-s-label { font-size: 10px; color: #8b95a7; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+    .mg-s-value { font-size: 17px; font-weight: 700; font-family: monospace; line-height: 1.2; }
+    .mg-s-note { font-size: 10px; color: #8b95a7; line-height: 1.5; }
+
+    /* ── Section block containers ───────────────────────────── */
+    .section-block { background: #0c1421; border: 1px solid #1e2d42; border-radius: 12px; padding: 0 18px 20px; margin-bottom: 24px; overflow: hidden; }
+    .section-block .section-title { margin-left: -18px; margin-right: -18px; border-radius: 10px 10px 0 0; border-left: none; border-top: none; background: linear-gradient(90deg, rgba(74,222,128,0.10) 0%, rgba(74,222,128,0.02) 60%, transparent 100%); padding: 13px 20px; margin-bottom: 16px; border-bottom: 1px solid #1e2d42; }
+    .section-block .explainer { margin-bottom: 12px; }
+
+    /* ── Globe layer toggle controls ────────────────────────── */
+    .globe-controls { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #070f1c; border-bottom: 1px solid #1a2535; flex-wrap: wrap; gap: 8px; margin-bottom: 0; }
+    .layer-toggle-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .layer-label { font-size: 10px; color: #6b7585; text-transform: uppercase; letter-spacing: 0.8px; margin-right: 4px; }
+    .layer-btn { padding: 3px 10px; font-size: 11px; font-weight: 600; border-radius: 20px; cursor: pointer; border: 1.5px solid var(--lc, #4ade80); color: var(--lc, #4ade80); background: transparent; transition: all 0.2s; opacity: 0.45; white-space: nowrap; }
+    .layer-btn.active { background: color-mix(in srgb, var(--lc, #4ade80) 18%, transparent); opacity: 1; }
+    .layer-btn:hover { opacity: 1; }
+    .zoom-controls { display: flex; gap: 5px; align-items: center; }
+    .zoom-label { font-size: 10px; color: #6b7585; text-transform: uppercase; letter-spacing: 0.8px; margin-right: 2px; }
+    .zoom-btn { padding: 3px 9px; font-size: 12px; font-weight: 700; background: #131923; color: #8b95a7; border: 1px solid #1f2937; border-radius: 4px; cursor: pointer; transition: all 0.15s; line-height: 1.4; }
+    .zoom-btn:hover { background: #1f2937; color: #e2e8f0; }
+    .zoom-btn.accent { color: #f87171; border-color: rgba(248,113,113,0.5); background: rgba(248,113,113,0.08); }
+
+    /* ── Tab navigation ─────────────────────────────────────── */
+    .tab-nav-wrap { background: #080c12; border-bottom: 1px solid #1f2937; padding: 0 28px; position: sticky; top: 56px; z-index: 90; }
+    .tab-nav { display: flex; gap: 0; }
+    .tab-btn { padding: 11px 20px; font-size: 13px; font-weight: 600; color: #6b7585; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s; white-space: nowrap; letter-spacing: 0.2px; }
+    .tab-btn:hover { color: #c4cdd9; }
+    .tab-btn.active { color: #4ade80; border-bottom-color: #4ade80; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Explorer improved preset row ───────────────────────── */
+    .exp-presets-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 12px; }
+    @media (max-width: 900px) { .exp-presets-row { grid-template-columns: repeat(3, 1fr); } }
+    .slider-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    @keyframes simFlash { 0% { border-color: rgba(74,222,128,0.7); box-shadow: 0 0 10px rgba(74,222,128,0.35); } 100% { border-color: #1f2937; box-shadow: none; } }
+    .sim-card.flash { animation: simFlash 0.75s ease-out forwards; }
+    @keyframes gaugeFlash { 0% { box-shadow: 0 0 14px rgba(74,222,128,0.4); } 100% { box-shadow: none; } }
+    .exp-gauge-card.changed { animation: gaugeFlash 0.6s ease-out forwards; }
+
+    /* ── Hormuz detail panel ─────────────────────────────────── */
+    .hormuz-panel { background: #0d1117; border: 1px solid #601a1a; border-left: 3px solid #f87171; border-radius: 8px; padding: 14px 16px; margin-top: 14px; }
+    .hormuz-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .hormuz-panel-title { font-size: 11px; font-weight: 700; color: #f87171; text-transform: uppercase; letter-spacing: 1px; }
+    .hormuz-status-badge { font-size: 10px; background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.35); border-radius: 12px; padding: 2px 9px; font-weight: 700; animation: pulse-text 2s infinite; }
+    @keyframes pulse-text { 0%,100%{opacity:1} 50%{opacity:0.6} }
+    .hormuz-stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-bottom: 12px; }
+    .h-stat { background: #131923; border-radius: 6px; padding: 9px 12px; border: 1px solid #1f2937; }
+    .h-stat-label { font-size: 10px; color: #8b95a7; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; }
+    .h-stat-value { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+    .h-stat-sub { font-size: 11px; color: #c4cdd9; line-height: 1.4; }
+    .hormuz-timeline { border-top: 1px solid #1f2937; padding-top: 10px; }
+    .hormuz-tl-title { font-size: 10px; color: #6b7585; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+    .h-event { display: flex; gap: 10px; padding: 5px 0; border-bottom: 1px solid #141e2c; }
+    .h-event:last-child { border-bottom: none; }
+    .h-event-date { font-size: 10px; color: #8b95a7; min-width: 70px; font-family: monospace; padding-top: 1px; }
+    .h-event-dot { width: 7px; height: 7px; border-radius: 50%; background: #f87171; margin-top: 4px; flex-shrink: 0; }
+    .h-event-dot.yellow { background: #fbbf24; }
+    .h-event-dot.green { background: #4ade80; }
+    .h-event-text { font-size: 11px; color: #c4cdd9; line-height: 1.5; }
+    .h-event-text strong { color: #e2e8f0; }
+    .ship-tracker-link { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: #60a5fa; text-decoration: none; margin-top: 10px; padding: 5px 10px; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.2); border-radius: 5px; }
+    .ship-tracker-link:hover { background: rgba(96,165,250,0.15); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Larry's Economic Dashboard</h1>
+    <p>Markets, macro indicators, and briefings — updated live</p>
+  </div>
+  <div id="clock"></div>
+</header>
+
+<div class="tab-nav-wrap">
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('overview',this)">Overview</button>
+    <button class="tab-btn" onclick="switchTab('markets',this)">Markets &amp; Rates</button>
+    <button class="tab-btn" onclick="switchTab('energy',this)">Energy &amp; Commodities</button>
+    <button class="tab-btn" onclick="switchTab('macro',this)">Macro Tools</button>
+  </nav>
+</div>
+
+<div class="container">
+
+  <!-- ═══ TAB: OVERVIEW ══════════════════════════════════════════ -->
+  <div class="tab-panel active" id="tab-overview">
+
+  <!-- ══ MAIN 2-COLUMN GRID ══════════════════════════════ -->
+  <div class="main-grid">
+
+    <!-- LEFT COLUMN -->
+    <div>
+
+      <div class="section-title" style="margin-top:0;">Current Market Narrative — May 2026</div>
+      <p class="explainer" style="font-style:italic; margin-bottom:7px;">What is happening now and what it means for your portfolio. Steps through the May 2026 situation.</p>
+
+      <div class="narrative-card">
+        <div class="narrative-tag" id="nar-tag"></div>
+        <div class="narrative-title" id="nar-title"></div>
+        <div class="narrative-body" id="nar-body"></div>
+        <div class="narrative-impact" id="nar-impact"></div>
+        <div class="narrative-nav">
+          <button class="nar-btn" id="nar-prev" onclick="narPrev()">&#8592; Prev</button>
+          <div class="nar-dots" id="nar-dots"></div>
+          <button class="nar-btn" id="nar-next" onclick="narNext()">Next &#8594;</button>
+        </div>
+      </div>
+
+      <div class="section-title">What to Watch — May 2026</div>
+      <p class="explainer" style="font-style:italic; margin-bottom:7px;">Click any card to expand.</p>
+      <div class="watch-grid">
+
+        <div class="watch-card" onclick="toggleCard(this)">
+          <div class="watch-card-header">
+            <div class="watch-card-header-text"><h4>30-Year Yield at 5.12%</h4><p>Bond values down. Stocks under pressure.</p></div>
+            <div class="watch-card-arrow">&#8964;</div>
+          </div>
+          <div class="watch-card-detail">
+            <p>The 30-year Treasury yield crossed 5.12% — not seen since before 2020. When it rises, existing bond values fall and new bonds pay more. For most of the last decade it sat between 2–4%.</p>
+            <p><strong>What to watch:</strong> Above 5.5% = significant stock pressure. Below 4.75% = inflation fears easing.</p>
+          </div>
+        </div>
+
+        <div class="watch-card yellow" onclick="toggleCard(this)">
+          <div class="watch-card-header">
+            <div class="watch-card-header-text"><h4>Strait of Hormuz Closed</h4><p>20% of global oil blocked. Prices elevated.</p></div>
+            <div class="watch-card-arrow">&#8964;</div>
+          </div>
+          <div class="watch-card-detail">
+            <p>Roughly 20% of all the world's traded oil passes through the Strait daily. When it closes, oil rises — and higher oil pushes up the cost of almost everything.</p>
+            <p><strong>What to watch:</strong> Diplomatic talks involving Iran. A reopening would trigger a stock rally and bond yield drop almost immediately.</p>
+          </div>
+        </div>
+
+        <div class="watch-card yellow" onclick="toggleCard(this)">
+          <div class="watch-card-header">
+            <div class="watch-card-header-text"><h4>Fed Rate Hike Being Priced In</h4><p>Markets expect rates to rise before end of 2026.</p></div>
+            <div class="watch-card-arrow">&#8964;</div>
+          </div>
+          <div class="watch-card-detail">
+            <p>Six months ago markets expected rate cuts. That reversed completely. Rate hikes make bonds more attractive relative to stocks and squeeze corporate borrowing costs.</p>
+            <p><strong>Silver lining:</strong> Money market funds and short-term T-bills — already ~5% — would pay even more after a hike.</p>
+          </div>
+        </div>
+
+        <div class="watch-card blue" onclick="toggleCard(this)">
+          <div class="watch-card-header">
+            <div class="watch-card-header-text"><h4>Second Wave of Inflation</h4><p>Energy shock spreading into broader prices.</p></div>
+            <div class="watch-card-arrow">&#8964;</div>
+          </div>
+          <div class="watch-card-detail">
+            <p>This second wave is driven by geopolitical disruption. The Fed cannot raise interest rates to reopen the Strait.</p>
+            <p><strong>Stagflation risk:</strong> High inflation AND slow growth simultaneously. The hardest environment for a retirement portfolio. Analysts are now taking this scenario seriously.</p>
+          </div>
+        </div>
+
+        <div class="watch-card green" onclick="toggleCard(this)">
+          <div class="watch-card-header">
+            <div class="watch-card-header-text"><h4>Maria Still Working</h4><p>Your household has a real income cushion.</p></div>
+            <div class="watch-card-arrow">&#8964;</div>
+          </div>
+          <div class="watch-card-detail">
+            <p>Maria's income means you have the option to not touch retirement accounts at all during a downturn. The biggest danger in a down market is being forced to sell at low prices.</p>
+            <p><strong>Strategic opportunity:</strong> If markets fall significantly, Maria's income could allow buying at lower prices — the opposite of what most retirees are forced to do.</p>
+          </div>
+        </div>
+
+        <div class="watch-card blue" onclick="toggleCard(this)">
+          <div class="watch-card-header">
+            <div class="watch-card-header-text"><h4>RMDs Start in ~5 Years</h4><p>Planning window is open. Use it now.</p></div>
+            <div class="watch-card-arrow">&#8964;</div>
+          </div>
+          <div class="watch-card-detail">
+            <p>At 73 the IRS requires minimum withdrawals from traditional IRAs and 401k accounts — taxable whether you need the money or not. The five years before RMDs start are your restructuring window.</p>
+            <p><strong>Ask your advisor:</strong> "Have we modeled our RMD amounts starting in 2031, and should we be doing Roth conversions now?"</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-title">Your Briefings</div>
+      <div class="briefings-list">
+        <a class="briefing-item" href="Daily_Snapshot_2026-05-19.html">
+          <span class="briefing-date">May 19, 2026</span>
+          <span class="briefing-title">Bond yields surge to multi-year highs as chip stocks lead markets lower for third straight day</span>
+          <span class="briefing-badge">Today</span>
+        </a>
+        <a class="briefing-item" href="Daily_Snapshot_2026-05-18.html">
+          <span class="briefing-date">May 18, 2026</span>
+          <span class="briefing-title">10-Year Treasury Yield Hits 15-Month High as Inflation Fears Grip Markets</span>
+        </a>
+        <a class="briefing-item" href="Market_Briefing_2026-05-17.html">
+          <span class="briefing-date">May 17, 2026</span>
+          <span class="briefing-title">Bond Yields Spike: 30-Year Hits 5.12%</span>
+        </a>
+      </div>
+
+      <div class="section-title">How These Indicators Connect</div>
+      <p class="explainer" style="font-style:italic; margin-bottom:7px;">Hover underlined terms for plain-English explanations.</p>
+      <div class="chain-box">
+        <p>
+          <strong style="color:#e53e3e;">Strait of Hormuz closed</strong>
+          &rarr; oil restricted
+          &rarr; <strong style="color:#e53e3e;">oil price rises</strong>
+          &rarr; costs up everywhere
+          &rarr; <span class="term"><strong style="color:#d69e2e;">CPI rises</strong><span class="tip"><span class="tip-label">CPI — Consumer Price Index</span>Monthly report measuring price changes. The Fed targets 2% annual inflation. When CPI runs above that, the Fed feels pressure to raise rates.</span></span>
+          &rarr; <span class="term">bond investors demand more<span class="tip"><span class="tip-label">Bond investors</span>Anyone lending money to the government by buying Treasuries. When inflation is high, they demand higher rates or inflation erodes their fixed payments.</span></span>
+          &rarr; <span class="term"><strong style="color:#e53e3e;">yields rise</strong><span class="tip"><span class="tip-label">Bond yield</span>The annual interest rate a bond pays relative to its price. Yields and prices always move in opposite directions.</span></span>
+          &rarr; <span class="term">bond values fall<span class="tip"><span class="tip-label">Why bond values fall</span>If you own a bond paying 3% and new bonds pay 5%, nobody pays full price for yours. Its value drops until its return matches the new rate.</span></span>
+          &rarr; <span class="term">stocks less attractive<span class="tip"><span class="tip-label">Stocks vs. bonds</span>When bonds pay 5% with almost no risk, stocks need to offer significantly more upside to compete. Money shifts from stocks to bonds, pushing prices down.</span></span>
+          &rarr; <strong style="color:#e53e3e;">stocks fall</strong>
+          &rarr; <span class="term">Fed considers rate hike<span class="tip"><span class="tip-label">What the Fed does</span>The Federal Reserve raises the Federal Funds Rate to cool spending and eventually cool inflation — but with a 12-18 month lag.</span></span>
+          &rarr; housing slows, consumer spending slows, corporate profits squeezed.
+        </p>
+        <p class="chain-note">The chain reverses if the Strait reopens — oil drops, inflation fears ease, yields fall, stocks recover. That is why geopolitical news moves markets so fast.</p>
+      </div>
+
+    </div><!-- /left column -->
+
+    <!-- RIGHT COLUMN -->
+    <div>
+
+      <div class="section-title" style="margin-top:0;">Bond Yields</div>
+      <p class="explainer">When yields rise, bond values fall. Hover any chart to see the value at each point in time.</p>
+      <div class="fred-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="fred-card">
+          <h3>10-Year Treasury</h3>
+          <div class="current-value">4.59%</div>
+          <div class="fred-subtitle">Most-watched rate in the world. Drives mortgages and stock valuations.</div>
+          <canvas id="chart-10y"></canvas>
+          <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank">Live data on FRED</a>
+        </div>
+        <div class="fred-card">
+          <h3>30-Year Treasury</h3>
+          <div class="current-value">5.12%</div>
+          <div class="fred-subtitle">Crossed 5.12% this week — reflects long-term inflation expectations.</div>
+          <canvas id="chart-30y"></canvas>
+          <a href="https://fred.stlouisfed.org/series/DGS30" target="_blank">Live data on FRED</a>
+        </div>
+        <div class="fred-card">
+          <h3>2-Year Treasury</h3>
+          <div class="current-value">4.85%</div>
+          <div class="fred-subtitle">Tracks near-term Fed expectations. Higher than 10Y signals recession risk.</div>
+          <canvas id="chart-2y"></canvas>
+          <a href="https://fred.stlouisfed.org/series/DGS2" target="_blank">Live data on FRED</a>
+        </div>
+      </div>
+
+      <div class="section-title">Key Economic Indicators</div>
+      <p class="explainer">Major economic trends since 2020. Hover any chart to see values. CPI and unemployment are the two the Fed watches most closely.</p>
+      <div class="fred-grid">
+        <div class="fred-card">
+          <h3>Inflation (CPI)</h3>
+          <div class="current-value">3.2% YoY</div>
+          <div class="fred-subtitle">How fast prices are rising. Above 2% = Fed watching closely.</div>
+          <canvas id="chart-cpi"></canvas>
+          <a href="https://fred.stlouisfed.org/series/CPIAUCSL" target="_blank">FRED</a>
+        </div>
+        <div class="fred-card">
+          <h3>Core Inflation</h3>
+          <div class="current-value">3.1% YoY</div>
+          <div class="fred-subtitle">Strips out food and energy. The number the Fed cares about most.</div>
+          <canvas id="chart-core"></canvas>
+          <a href="https://fred.stlouisfed.org/series/CPILFESL" target="_blank">FRED</a>
+        </div>
+        <div class="fred-card">
+          <h3>Unemployment</h3>
+          <div class="current-value">4.1%</div>
+          <div class="fred-subtitle">Strong job market gives the Fed room to raise rates.</div>
+          <canvas id="chart-unemp"></canvas>
+          <a href="https://fred.stlouisfed.org/series/UNRATE" target="_blank">FRED</a>
+        </div>
+        <div class="fred-card">
+          <h3>Fed Funds Rate</h3>
+          <div class="current-value">4.33%</div>
+          <div class="fred-subtitle">The master switch — ripples through mortgages, bonds, savings rates.</div>
+          <canvas id="chart-fed"></canvas>
+          <a href="https://fred.stlouisfed.org/series/FEDFUNDS" target="_blank">FRED</a>
+        </div>
+        <div class="fred-card">
+          <h3>S&amp;P 500 Index</h3>
+          <div class="current-value">5,820</div>
+          <div class="fred-subtitle">Broad US stock market — 500 largest companies by value.</div>
+          <canvas id="chart-sp500"></canvas>
+          <a href="https://fred.stlouisfed.org/series/SP500" target="_blank">FRED</a>
+        </div>
+        <div class="fred-card">
+          <h3>Bond Price Index (10Y)</h3>
+          <div class="current-value">92.4</div>
+          <div class="fred-subtitle">Value of 10-year Treasuries. Falls when yields rise — inverse.</div>
+          <canvas id="chart-bondpx"></canvas>
+          <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank">FRED</a>
+        </div>
+        <div class="fred-card">
+          <h3>Housing Starts</h3>
+          <div class="current-value">1,240K</div>
+          <div class="fred-subtitle">New homes being built. Falls when builders expect slower demand.</div>
+          <canvas id="chart-housing"></canvas>
+          <a href="https://fred.stlouisfed.org/series/HOUST" target="_blank">FRED</a>
+        </div>
+        <div class="fred-card">
+          <h3>30-Year Mortgage</h3>
+          <div class="current-value">7.05%</div>
+          <div class="fred-subtitle">What homebuyers pay. Tracks the 10-year Treasury yield closely.</div>
+          <canvas id="chart-mortgage"></canvas>
+          <a href="https://fred.stlouisfed.org/series/MORTGAGE30US" target="_blank">FRED</a>
+        </div>
+        <div class="fred-card">
+          <h3>US Dollar Index</h3>
+          <div class="current-value">103.8</div>
+          <div class="fred-subtitle">Dollar strength vs. other currencies. Strong dollar hurts US exports.</div>
+          <canvas id="chart-dollar"></canvas>
+          <a href="https://fred.stlouisfed.org/series/DTWEXBGS" target="_blank">FRED</a>
+        </div>
+      </div>
+
+    </div><!-- /right column -->
+  </div><!-- /.main-grid -->
+
+  </div><!-- /.tab-panel overview -->
+
+  <!-- ═══ TAB: MARKETS & RATES ═══════════════════════════════════ -->
+  <div class="tab-panel" id="tab-markets">
+
+  <!-- ══ COMPOSITE INDICATORS ═══════════════════════════ -->
+  <div class="section-block">
+  <div class="section-title">Forward-Looking Composite Indicators</div>
+  <p class="explainer">Four models that aggregate dozens of inputs into a single signal. Together they answer: How stressed is the financial system? Are we heading into recession? How fast is the economy growing right now? Are markets over- or under-bought?</p>
+  <div class="composite-grid">
+
+    <!-- Card 1: NFCI -->
+    <div class="comp-card" id="comp-nfci">
+      <div class="comp-header">
+        <div>
+          <div class="comp-name">Chicago Fed NFCI</div>
+          <div class="comp-sub">National Financial Conditions Index</div>
+        </div>
+        <div class="comp-badge" id="nfci-badge">Loading…</div>
+      </div>
+      <div class="comp-value-row">
+        <div class="comp-value" id="nfci-value">—</div>
+        <div class="comp-signal" id="nfci-signal"></div>
+      </div>
+      <div style="position:relative;height:75px;"><canvas id="chart-nfci"></canvas></div>
+      <div class="comp-interp" id="nfci-interp">Fetching live data…</div>
+      <div class="comp-scale">
+        <span>Loose ← 0 → Tight</span>
+        <a href="https://www.chicagofed.org/research/data/nfci/current-data" target="_blank">Chicago Fed ↗</a>
+      </div>
+    </div>
+
+    <!-- Card 2: NY Fed Recession Probability -->
+    <div class="comp-card" id="comp-recprob">
+      <div class="comp-header">
+        <div>
+          <div class="comp-name">NY Fed Recession Probability</div>
+          <div class="comp-sub">12-month forward, from yield curve (T10Y3M)</div>
+        </div>
+        <div class="comp-badge" id="recprob-badge">Loading…</div>
+      </div>
+      <div class="comp-value-row">
+        <div class="comp-value" id="recprob-value">—</div>
+        <div class="comp-signal" id="recprob-signal"></div>
+      </div>
+      <div style="position:relative;height:75px;"><canvas id="chart-recprob"></canvas></div>
+      <div class="comp-interp" id="recprob-interp">Fetching live data…</div>
+      <div class="comp-scale">
+        <span>Model: Estrella &amp; Mishkin probit — <span style="color:#4ade80;">below 20%</span> safe, <span style="color:#f87171;">above 30%</span> warning</span>
+        <a href="https://www.newyorkfed.org/research/capital_markets/ycfaq" target="_blank">NY Fed ↗</a>
+      </div>
+    </div>
+
+    <!-- Card 3: Atlanta Fed GDPNow -->
+    <div class="comp-card" id="comp-gdpnow">
+      <div class="comp-header">
+        <div>
+          <div class="comp-name">Atlanta Fed GDPNow</div>
+          <div class="comp-sub">Real-time Q2 2026 GDP estimate</div>
+        </div>
+        <div class="comp-badge gdpnow-badge">Live model</div>
+      </div>
+      <div class="comp-value-row">
+        <div class="comp-value" style="color:#fbbf24;">+1.2%</div>
+        <div class="comp-signal" style="color:#fbbf24;">Slowing</div>
+      </div>
+      <div style="position:relative;height:75px;"><canvas id="chart-gdpnow"></canvas></div>
+      <div class="comp-interp">Q2 2026 tracking estimate. Slowing from Q1's ~2.5% as Hormuz shock hits consumer spending and manufacturing. Updates as new data releases. Model incorporates retail sales, industrial production, trade, and employment data.</div>
+      <div class="comp-scale">
+        <span>Updates with each major data release</span>
+        <a href="https://www.atlantafed.org/cdo/research/gdpnow" target="_blank">Atlanta Fed ↗</a>
+      </div>
+    </div>
+
+    <!-- Card 4: BofA Bull & Bear -->
+    <div class="comp-card" id="comp-bb">
+      <div class="comp-header">
+        <div>
+          <div class="comp-name">BofA Bull &amp; Bear Indicator</div>
+          <div class="comp-sub">18-input market sentiment model (0–10)</div>
+        </div>
+        <div class="comp-badge" style="background:rgba(251,191,36,0.12);color:#fbbf24;border-color:rgba(251,191,36,0.3);">Neutral</div>
+      </div>
+      <div class="comp-value-row">
+        <div class="comp-value" style="color:#fbbf24;">4.5</div>
+        <div class="comp-signal" style="color:#fbbf24;">Neutral</div>
+      </div>
+      <div style="position:relative;height:75px;"><canvas id="chart-bb"></canvas></div>
+      <div class="comp-interp">Score of 4.5 out of 10 signals neutral sentiment — neither extreme greed nor capitulation. Inputs include: equity flows, hedge fund positioning, credit market breadth, emerging market flows, and put/call ratios. Contrarian signal: readings below 2 = buy, above 8 = sell. Published weekly by BofA Global Research.</div>
+      <div class="comp-scale">
+        <span><span style="color:#4ade80;">0–2</span> = Bull signal &nbsp;|&nbsp; <span style="color:#fbbf24;">4–6</span> = Neutral &nbsp;|&nbsp; <span style="color:#f87171;">8–10</span> = Bear signal</span>
+        <a href="https://research.ml.com" target="_blank">BofA Research ↗</a>
+      </div>
+    </div>
+
+  </div><!-- /.composite-grid -->
+  </div><!-- /.section-block composite -->
+
+  <!-- ══ MARKETS — 3 columns ═════════════════════════════ -->
+  <div class="section-block">
+  <div class="section-title">Markets &amp; Commodities</div>
+  <p class="explainer">Stocks, commodities, and crypto live via TradingView. Watch oil especially — it feeds directly into inflation.</p>
+  <div class="markets-row">
+
+    <div class="widget-box">
+      <div class="tradingview-widget-container" style="height:380px">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+        {"colorTheme":"dark","dateRange":"3M","showChart":true,"locale":"en","width":"100%","height":380,"isTransparent":false,"showSymbolLogo":false,"showFloatingTooltip":false,"plotLineColorGrowing":"rgba(74,222,128,1.0)","plotLineColorFalling":"rgba(248,113,113,1.0)","gridLineColor":"rgba(31,41,55,0)","scaleFontColor":"rgba(139,149,167,1.0)","belowLineFillColorGrowing":"rgba(74,222,128,0.06)","belowLineFillColorFalling":"rgba(248,113,113,0.06)","belowLineFillColorGrowingBottom":"rgba(74,222,128,0)","belowLineFillColorFallingBottom":"rgba(248,113,113,0)","symbolActiveColor":"rgba(74,222,128,0.10)","tabs":[{"title":"Stocks","symbols":[{"s":"FOREXCOM:SPXUSD","d":"S&P 500"},{"s":"AMEX:DIA","d":"Dow Jones ETF"},{"s":"FOREXCOM:NSXUSD","d":"NASDAQ 100"}],"originalTitle":"Stocks"}]}
+        </script>
+      </div>
+    </div>
+
+    <div class="widget-box">
+      <div class="tradingview-widget-container" style="height:380px">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+        {"colorTheme":"dark","dateRange":"3M","showChart":true,"locale":"en","width":"100%","height":380,"isTransparent":false,"showSymbolLogo":false,"showFloatingTooltip":false,"plotLineColorGrowing":"rgba(74,222,128,1.0)","plotLineColorFalling":"rgba(248,113,113,1.0)","gridLineColor":"rgba(31,41,55,0)","scaleFontColor":"rgba(139,149,167,1.0)","belowLineFillColorGrowing":"rgba(74,222,128,0.06)","belowLineFillColorFalling":"rgba(248,113,113,0.06)","belowLineFillColorGrowingBottom":"rgba(74,222,128,0)","belowLineFillColorFallingBottom":"rgba(248,113,113,0)","symbolActiveColor":"rgba(74,222,128,0.10)","tabs":[{"title":"Energy","symbols":[{"s":"TVC:USOIL","d":"WTI Crude Oil"},{"s":"TVC:UKOIL","d":"Brent Crude"}],"originalTitle":"Energy"},{"title":"Agriculture","symbols":[{"s":"AMEX:WEAT","d":"Wheat ETF"},{"s":"AMEX:CORN","d":"Corn ETF"},{"s":"AMEX:SOYB","d":"Soybean ETF"}],"originalTitle":"Agriculture"},{"title":"Metals","symbols":[{"s":"TVC:GOLD","d":"Gold"},{"s":"TVC:SILVER","d":"Silver"}],"originalTitle":"Metals"}]}
+        </script>
+      </div>
+    </div>
+
+    <div class="widget-box">
+      <div class="tradingview-widget-container" style="height:380px">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+        {"colorTheme":"dark","dateRange":"3M","showChart":true,"locale":"en","width":"100%","height":380,"isTransparent":false,"showSymbolLogo":false,"showFloatingTooltip":false,"plotLineColorGrowing":"rgba(74,222,128,1.0)","plotLineColorFalling":"rgba(248,113,113,1.0)","gridLineColor":"rgba(31,41,55,0)","scaleFontColor":"rgba(139,149,167,1.0)","belowLineFillColorGrowing":"rgba(74,222,128,0.06)","belowLineFillColorFalling":"rgba(248,113,113,0.06)","belowLineFillColorGrowingBottom":"rgba(74,222,128,0)","belowLineFillColorFallingBottom":"rgba(248,113,113,0)","symbolActiveColor":"rgba(74,222,128,0.10)","tabs":[{"title":"Crypto","symbols":[{"s":"COINBASE:BTCUSD","d":"Bitcoin (BTC)"},{"s":"COINBASE:SOLUSD","d":"Solana (SOL)"},{"s":"BINANCE:SUIUSDT","d":"Sui (SUI)"}],"originalTitle":"Crypto"}]}
+        </script>
+      </div>
+    </div>
+
+  </div>
+  </div><!-- /.section-block markets -->
+
+  </div><!-- /.tab-panel markets -->
+
+  <!-- ═══ TAB: ENERGY & COMMODITIES ══════════════════════════════ -->
+  <div class="tab-panel" id="tab-energy">
+
+  <!-- ══ NATURAL GAS ══════════════════════════════════════ -->
+  <div class="section-block">
+  <div class="section-title">Natural Gas — Price Trend</div>
+  <p class="explainer">UNG ETF tracks Henry Hub natural gas futures. Impacts electricity costs, home heating, fertilizer production, and European energy security.</p>
+  <div class="two-col-row" style="align-items:start;">
+    <div class="fred-card">
+      <h3>UNG ETF — Natural Gas Proxy (Annual avg $)</h3>
+      <div class="current-value">~$14</div>
+      <div class="fred-subtitle">Tracks Henry Hub futures. Peaked at ~$24 in 2022 energy crisis. Spring 2026 low — watch for summer spike as LNG exports rise.</div>
+      <div style="position:relative;height:75px;"><canvas id="chart-ung"></canvas></div>
+      <a href="https://www.eia.gov/naturalgas/weekly/" target="_blank">EIA Gas weekly</a>
+    </div>
+    <div class="info-card" style="min-height:200px;">
+      <h4>Why Natural Gas Matters Now</h4>
+      <p><strong>Fertilizer link:</strong> About 80% of the cost of nitrogen fertilizer (urea, anhydrous ammonia) is natural gas. When gas spikes, fertilizer costs spike — and food prices follow 6–12 months later.</p>
+      <p><strong>Electricity:</strong> About 40% of US electricity comes from natural gas. Higher gas prices mean higher utility bills for homes and businesses.</p>
+      <p><strong>Europe:</strong> Europe is far more gas-dependent than the US. Prolonged Middle East disruption puts European energy security at risk, which moves global gas markets.</p>
+      <p><strong>LNG exports:</strong> 100% of US production gains are exported. More LNG terminals = tighter domestic supply = higher bills.</p>
+    </div>
+  </div>
+  </div><!-- /.section-block natural-gas -->
+
+  <!-- ══ AGRICULTURAL INPUTS & FERTILIZER ════════════════ -->
+  <div class="section-block">
+  <div class="section-title">Agricultural Inputs &amp; Fertilizer</div>
+  <p class="explainer">Fertilizer prices are a leading indicator for food costs — they lead CPI food components by 6–12 months. Mosaic (MOS) is a live proxy for fertilizer industry health.</p>
+  <div class="three-col-row">
+    <div class="fred-card">
+      <h3>Urea (Nitrogen) — Approx $/MT</h3>
+      <div class="current-value">~$340</div>
+      <div class="fred-subtitle">Main nitrogen fertilizer. ~80% of cost is natural gas. Spiked to $850 in 2022 energy crisis.</div>
+      <canvas id="chart-urea"></canvas>
+      <a href="https://www.indexmundi.com/commodities/?commodity=urea" target="_blank">IndexMundi</a>
+    </div>
+    <div class="fred-card">
+      <h3>DAP (Phosphate) — Approx $/MT</h3>
+      <div class="current-value">~$445</div>
+      <div class="fred-subtitle">Diammonium phosphate — key phosphate fertilizer. Linked to mining costs and China export policy.</div>
+      <canvas id="chart-dap"></canvas>
+      <a href="https://www.indexmundi.com/commodities/?commodity=dap-fertilizer" target="_blank">IndexMundi</a>
+    </div>
+    <div class="fred-card">
+      <h3>Mosaic Co. (MOS) — Fertilizer Proxy</h3>
+      <div class="current-value">~$21</div>
+      <div class="fred-subtitle">Largest North American fertilizer producer. Tracks fertilizer sector health. Peaked at $72 in 2022 energy crisis.</div>
+      <div style="position:relative;height:75px;"><canvas id="chart-mos"></canvas></div>
+      <a href="https://finance.yahoo.com/quote/MOS" target="_blank">Yahoo Finance</a>
+    </div>
+  </div>
+  </div><!-- /.section-block ag-inputs -->
+
+  <!-- ══ GLOBAL MACRO & SUPPLY CHAIN GLOBE ═══════════════ -->
+  <div class="section-block">
+  <div class="section-title">Global Macro &amp; Supply Chain Monitor</div>
+  <p class="explainer">Drag to rotate, scroll to zoom. Hover countries for macro status. Shipping routes and chokepoints shown. Disruptions feed into US inflation with a 3–6 month lag.</p>
+  <div class="supply-grid">
+
+    <div class="sc-map-wrap" id="globe-container">
+      <!-- Layer & zoom controls -->
+      <div class="globe-controls">
+        <div class="layer-toggle-row">
+          <span class="layer-label">Layers:</span>
+          <button id="layer-btn-routes" class="layer-btn active" style="--lc:#4ade80" onclick="toggleGlobeLayer('routes')">Routes</button>
+          <button id="layer-btn-chokepoints" class="layer-btn active" style="--lc:#f87171" onclick="toggleGlobeLayer('chokepoints')">Chokepoints</button>
+          <button id="layer-btn-conflict" class="layer-btn active" style="--lc:#fb923c" onclick="toggleGlobeLayer('conflict')">Conflict Zone</button>
+          <button id="layer-btn-ships" class="layer-btn active" style="--lc:#fbbf24" onclick="toggleGlobeLayer('ships')">Ship Traffic</button>
+          <button id="layer-btn-ports" class="layer-btn active" style="--lc:#60a5fa" onclick="toggleGlobeLayer('ports')">Ports</button>
+        </div>
+        <div class="zoom-controls">
+          <span class="zoom-label">Zoom:</span>
+          <button class="zoom-btn" onclick="globeZoomIn()">+</button>
+          <button class="zoom-btn" onclick="globeZoomOut()">−</button>
+          <button class="zoom-btn" onclick="globeResetView()">Reset</button>
+          <button class="zoom-btn accent" onclick="globeGoToHormuz()">⚠ Hormuz</button>
+        </div>
+      </div>
+      <svg id="globe-svg" style="display:block; width:100%;"></svg>
+      <div id="globe-tooltip"></div>
+      <div class="globe-legend">
+        <div class="gl-item"><div class="gl-dot" style="background:#3a0e0e; border:1px solid #f87171;"></div>Critical</div>
+        <div class="gl-item"><div class="gl-dot" style="background:#342a06; border:1px solid #fbbf24;"></div>Elevated</div>
+        <div class="gl-item"><div class="gl-dot" style="background:#1a2e1a; border:1px solid #4ade80;"></div>Watch</div>
+        <div class="gl-item"><div class="gl-dot" style="background:#131d2a; border:1px solid #2d3a4f;"></div>Normal</div>
+        <div class="gl-item" style="margin-left:8px;"><div class="gl-line" style="background:#4ade80;"></div>Trans-Pacific</div>
+        <div class="gl-item"><div class="gl-line" style="background:#60a5fa;"></div>Suez/Europe</div>
+        <div class="gl-item"><div class="gl-line" style="background:#fbbf24;"></div>Electronics</div>
+        <div class="gl-item"><div class="gl-line" style="background:#fbbf24; height:3px;"></div>Ship Traffic</div>
+      </div>
+      <div class="globe-hint">Drag to spin &nbsp;|&nbsp; Scroll to zoom &nbsp;|&nbsp; Hover for details &nbsp;|&nbsp; Click layer buttons to toggle overlays</div>
+    </div>
+
+    <div class="sc-metrics">
+      <div class="sc-card">
+        <div><div class="sc-card-label">China Caixin Mfg PMI</div><div class="sc-card-sub">Below 50 = contraction</div></div>
+        <div class="sc-card-value" style="color:#fbbf24;"><span class="sc-status sc-yellow"></span>49.5</div>
+      </div>
+      <div class="sc-card">
+        <div><div class="sc-card-label">Baltic Dry Index (BDI)</div><div class="sc-card-sub">Bulk shipping demand proxy</div></div>
+        <div class="sc-card-value" style="color:#4ade80;"><span class="sc-status sc-green"></span>1,850</div>
+      </div>
+      <div class="sc-card">
+        <div><div class="sc-card-label">Shanghai Container Freight</div><div class="sc-card-sub">Container rate index (SCFI)</div></div>
+        <div class="sc-card-value" style="color:#fbbf24;"><span class="sc-status sc-yellow"></span>2,340</div>
+      </div>
+      <div class="sc-card">
+        <div><div class="sc-card-label">Taiwan Strait</div><div class="sc-card-sub">Electronics / chip supply chain</div></div>
+        <div class="sc-card-value" style="color:#4ade80; font-size:12px;"><span class="sc-status sc-green"></span>Clear</div>
+      </div>
+      <div class="sc-card">
+        <div><div class="sc-card-label">Strait of Hormuz</div><div class="sc-card-sub">Oil &amp; energy shipping</div></div>
+        <div class="sc-card-value" style="color:#f87171; font-size:12px;"><span class="sc-status sc-red"></span>Disrupted</div>
+      </div>
+      <div class="fred-card" style="margin:0;">
+        <h3>Baltic Dry Index — Annual Avg</h3>
+        <div class="current-value" style="font-size:14px;">1,850</div>
+        <div class="fred-subtitle">Rising BDI = more goods moving globally. Leading signal for trade activity and inflation inputs.</div>
+        <canvas id="chart-bdi"></canvas>
+        <a href="https://www.investing.com/indices/baltic-dry-chart" target="_blank">Live BDI chart</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hormuz Conflict Detail Panel -->
+  <div class="hormuz-panel">
+    <div class="hormuz-panel-header">
+      <div class="hormuz-panel-title">⚠ Strait of Hormuz — Active Conflict Detail</div>
+      <div class="hormuz-status-badge">DISRUPTED — May 2026</div>
+    </div>
+    <div class="hormuz-stats-grid">
+      <div class="h-stat">
+        <div class="h-stat-label">Oil Tankers Blocked</div>
+        <div class="h-stat-value" style="color:#f87171;">~38</div>
+        <div class="h-stat-sub">Tankers queued in Persian Gulf, unable to transit</div>
+      </div>
+      <div class="h-stat">
+        <div class="h-stat-label">Daily Oil Flow at Risk</div>
+        <div class="h-stat-value" style="color:#f87171;">21M bbl/day</div>
+        <div class="h-stat-sub">~21% of global oil supply; 35% of LNG trade</div>
+      </div>
+      <div class="h-stat">
+        <div class="h-stat-label">Oil Price Impact</div>
+        <div class="h-stat-value" style="color:#fb923c;">+$20/bbl</div>
+        <div class="h-stat-sub">WTI rose from $85 to $105 since closure began</div>
+      </div>
+      <div class="h-stat">
+        <div class="h-stat-label">Chokepoint Width</div>
+        <div class="h-stat-value">21 miles</div>
+        <div class="h-stat-sub">Narrowest navigable channel; Iran controls northern shore</div>
+      </div>
+      <div class="h-stat">
+        <div class="h-stat-label">Alternative Routes</div>
+        <div class="h-stat-value" style="color:#fbbf24;">Limited</div>
+        <div class="h-stat-sub">Saudi East–West pipeline (5M bbl/day capacity); UAE Fujairah bypass</div>
+      </div>
+      <div class="h-stat">
+        <div class="h-stat-label">US Strategic Reserve</div>
+        <div class="h-stat-value" style="color:#4ade80;">371M bbl</div>
+        <div class="h-stat-sub">SPR at ~50% capacity; drawdown authorized, ongoing</div>
+      </div>
+    </div>
+    <div class="hormuz-timeline">
+      <div class="hormuz-tl-title">Conflict Timeline — May 2026</div>
+      <div class="h-event">
+        <div class="h-event-date">May 2</div>
+        <div class="h-event-dot"></div>
+        <div class="h-event-text"><strong>Strait closure announced.</strong> Iranian IRGC seizes two tankers; declares 21-mile zone restricted.</div>
+      </div>
+      <div class="h-event">
+        <div class="h-event-date">May 4</div>
+        <div class="h-event-dot"></div>
+        <div class="h-event-text"><strong>Oil spikes to $96.</strong> Shipping insurers raise Persian Gulf war-risk premiums 400%. Major tanker operators suspend transits.</div>
+      </div>
+      <div class="h-event">
+        <div class="h-event-date">May 7</div>
+        <div class="h-event-dot yellow"></div>
+        <div class="h-event-text"><strong>US 5th Fleet repositions.</strong> USS Gerald Ford carrier group moves to Gulf of Oman. OPEC+ emergency call — no consensus.</div>
+      </div>
+      <div class="h-event">
+        <div class="h-event-date">May 10</div>
+        <div class="h-event-dot"></div>
+        <div class="h-event-text"><strong>Oil hits $105.</strong> Saudi Arabia activates East–West pipeline bypass at partial capacity. IEA coordinates SPR release.</div>
+      </div>
+      <div class="h-event">
+        <div class="h-event-date">May 14</div>
+        <div class="h-event-dot yellow"></div>
+        <div class="h-event-text"><strong>Diplomatic back-channel opens.</strong> Qatar mediating. Iran signals openness to talks if sanctions relief discussed. Markets mixed.</div>
+      </div>
+      <div class="h-event">
+        <div class="h-event-date">May 18 (Today)</div>
+        <div class="h-event-dot yellow"></div>
+        <div class="h-event-text"><strong>Talks ongoing — no transit yet.</strong> ~38 tankers queued. Bab-el-Mandeb (Yemen) remains watch status. Strait still closed.</div>
+      </div>
+    </div>
+    <a href="https://www.marinetraffic.com/en/ais/home/centerx:56.27/centery:26.55/zoom:9" target="_blank" class="ship-tracker-link">⛵ Live Ship Tracking — MarineTraffic (Hormuz region)</a>
+    <a href="https://www.vesselfinder.com/?lat=26.55&lng=56.27&zoom=9" target="_blank" class="ship-tracker-link" style="margin-left:8px;">⛵ VesselFinder — Persian Gulf</a>
+  </div>
+
+  </div><!-- /.section-block global-macro -->
+
+  </div><!-- /.tab-panel energy -->
+
+  <!-- ═══ TAB: MACRO TOOLS ════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-macro">
+
+  <!-- ══ MACRO EXPLORER ══════════════════════════════════ -->
+  <div class="section-block">
+  <div class="section-title">Macro Economics Explorer</div>
+  <p class="explainer">Seven key indicators — each card shows live stress level. Move the sliders or choose a scenario preset. Click any indicator to see exactly what it drives and what drives it.</p>
+
+  <div class="exp-section">
+
+    <!-- Stress gauge cards (full width) -->
+    <div class="exp-gauges">
+      <div class="exp-gauge-card" id="eg-card-rate" onclick="expSelectGauge('rate')">
+        <div class="exp-gauge-name">Fed Funds Rate</div>
+        <div class="exp-gauge-value" id="eg-val-rate">4.33%</div>
+        <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-rate"></div></div>
+        <div class="exp-gauge-stress" id="eg-lbl-rate">Normal</div>
+      </div>
+      <div class="exp-gauge-card" id="eg-card-cpi" onclick="expSelectGauge('cpi')">
+        <div class="exp-gauge-name">CPI Inflation</div>
+        <div class="exp-gauge-value" id="eg-val-cpi">3.2%</div>
+        <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-cpi"></div></div>
+        <div class="exp-gauge-stress" id="eg-lbl-cpi">Normal</div>
+      </div>
+      <div class="exp-gauge-card" id="eg-card-oil" onclick="expSelectGauge('oil')">
+        <div class="exp-gauge-name">Oil Price</div>
+        <div class="exp-gauge-value" id="eg-val-oil">$105</div>
+        <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-oil"></div></div>
+        <div class="exp-gauge-stress" id="eg-lbl-oil">Watch</div>
+      </div>
+      <div class="exp-gauge-card" id="eg-card-yield" onclick="expSelectGauge('yield')">
+        <div class="exp-gauge-name">Bond Yields</div>
+        <div class="exp-gauge-value" id="eg-val-yield">4.59%</div>
+        <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-yield"></div></div>
+        <div class="exp-gauge-stress" id="eg-lbl-yield">Normal</div>
+      </div>
+      <div class="exp-gauge-card" id="eg-card-bond" onclick="expSelectGauge('bond')">
+        <div class="exp-gauge-name">Bond Prices</div>
+        <div class="exp-gauge-value" id="eg-val-bond">92.4</div>
+        <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-bond"></div></div>
+        <div class="exp-gauge-stress" id="eg-lbl-bond">Normal</div>
+      </div>
+      <div class="exp-gauge-card" id="eg-card-stock" onclick="expSelectGauge('stock')">
+        <div class="exp-gauge-name">S&amp;P 500</div>
+        <div class="exp-gauge-value" id="eg-val-stock">5,820</div>
+        <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-stock"></div></div>
+        <div class="exp-gauge-stress" id="eg-lbl-stock">Normal</div>
+      </div>
+      <div class="exp-gauge-card" id="eg-card-emp" onclick="expSelectGauge('emp')">
+        <div class="exp-gauge-name">Unemployment</div>
+        <div class="exp-gauge-value" id="eg-val-emp">4.1%</div>
+        <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-emp"></div></div>
+        <div class="exp-gauge-stress" id="eg-lbl-emp">Normal</div>
+      </div>
+    </div>
+
+    <!-- Presets — full width row -->
+    <div class="panel-card" style="margin-bottom:10px;">
+      <h3>Scenario Presets — Jump to a macro environment</h3>
+      <div class="exp-presets-row">
+        <button class="preset-btn active" id="exp-preset-baseline"    onclick="expApplyPreset('baseline')">Today (baseline)</button>
+        <button class="preset-btn"         id="exp-preset-stagflation" onclick="expApplyPreset('stagflation')">Stagflation</button>
+        <button class="preset-btn"         id="exp-preset-recession"   onclick="expApplyPreset('recession')">Deep Recession</button>
+        <button class="preset-btn"         id="exp-preset-softlanding" onclick="expApplyPreset('softlanding')">Soft Landing</button>
+        <button class="preset-btn"         id="exp-preset-ratehike"    onclick="expApplyPreset('ratehike')">Aggressive Hike</button>
+        <button class="preset-btn"         id="exp-preset-oilshock"    onclick="expApplyPreset('oilshock')">Oil Shock $155</button>
+      </div>
+    </div>
+
+    <!-- 3-column layout: cascade | sliders | outputs -->
+    <div class="exp-layout" style="grid-template-columns: 1fr 1.1fr 260px;">
+
+      <!-- Column 1: Causal cascade -->
+      <div class="panel-card" id="exp-cascade-card">
+        <h3 id="exp-cascade-title">Click an indicator above</h3>
+        <div id="exp-cascade-content">
+          <div class="cascade-hint">Select any gauge card above to see what drives it and what it pushes in the economy.</div>
+        </div>
+      </div>
+
+      <!-- Column 2: Sliders in 2-column grid -->
+      <div class="panel-card">
+        <h3>Adjust Variables — all gauges update live</h3>
+        <div class="slider-2col">
+          <div class="slider-group">
+            <div class="slider-label"><span>Fed Funds Rate</span><span class="slider-current" id="exp-v-fedrate">4.33%</span></div>
+            <input type="range" id="exp-s-fedrate" min="0" max="10" step="0.25" value="4.33">
+            <div class="slider-range">0% → 10% &nbsp;|&nbsp; Base: 4.33%</div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-label"><span>CPI Inflation (YoY)</span><span class="slider-current" id="exp-v-cpi">3.2%</span></div>
+            <input type="range" id="exp-s-cpi" min="0" max="12" step="0.25" value="3.2">
+            <div class="slider-range">0% → 12% &nbsp;|&nbsp; Base: 3.2%</div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-label"><span>10-Year Yield</span><span class="slider-current" id="exp-v-yield">4.59%</span></div>
+            <input type="range" id="exp-s-yield" min="0.5" max="9" step="0.25" value="4.59">
+            <div class="slider-range">0.5% → 9% &nbsp;|&nbsp; Base: 4.59%</div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-label"><span>Unemployment</span><span class="slider-current" id="exp-v-unemp">4.1%</span></div>
+            <input type="range" id="exp-s-unemp" min="2" max="14" step="0.1" value="4.1">
+            <div class="slider-range">2% → 14% &nbsp;|&nbsp; Base: 4.1%</div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-label"><span>Oil Price ($/bbl)</span><span class="slider-current" id="exp-v-oil">$105</span></div>
+            <input type="range" id="exp-s-oil" min="30" max="200" step="5" value="105">
+            <div class="slider-range">$30 → $200 &nbsp;|&nbsp; Base: $105</div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-label"><span>S&amp;P 500</span><span class="slider-current" id="exp-v-sp500">5,820</span></div>
+            <input type="range" id="exp-s-sp500" min="1500" max="8500" step="100" value="5820">
+            <div class="slider-range">1,500 → 8,500 &nbsp;|&nbsp; Base: 5,820</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 3: Simulation outputs -->
+      <div class="panel-card">
+        <h3>Projected Impacts</h3>
+        <div class="sim-output" id="exp-sim-output"></div>
+        <p style="font-size:10px; color:#6b7585; margin-top:8px;">5-yr rolling correlations. Bond duration ~7.5. Effects have 12–18mo lags in reality.</p>
+      </div>
+
+    </div>
+  </div>
+  </div><!-- /.section-block macro-explorer -->
+
+  <!-- ═══ MR. GLOBAL ENERGY MONITOR ════════════════════════════ -->
+  <div class="section-block mg-section">
+    <div class="section-title">⚡ Energy Supply Monitor — Matt Randolph (Mr. Global)</div>
+    <p class="explainer">Key indicators tracked by oil &amp; gas expert Matt Randolph — 33 years in the industry, owns an operating oil company. Source: <a href="https://www.youtube.com/@MrGlobalYouTube" target="_blank" style="color:#60a5fa">@MrGlobalYouTube</a>. Each card includes implications and how to assess the reading.</p>
+
+    <div class="mg-grid">
+
+      <div class="mg-card">
+        <div class="mg-card-title">WTI Crude Oil Price</div>
+        <div class="mg-card-value">$62<span class="mg-unit">/bbl</span></div>
+        <div class="mg-thresholds">
+          <div class="mg-threshold red">$70 — new well break-even floor</div>
+          <div class="mg-threshold yellow">$60 — existing well profitability floor</div>
+        </div>
+        <div class="mg-signal red">Below new well break-even — drilling stops</div>
+        <div class="mg-implication"><strong>Implication:</strong> At $62, oil companies will not drill new wells — it costs more than they make. "Drill Baby Drill" is economically impossible at this price. The US needs ~$70/bbl to incentivize new drilling. 100% of US production gains since 2016 have been exported anyway — so even if drilling resumed, domestic consumers see no price benefit.</div>
+        <div class="mg-assess"><strong>How to assess:</strong> $60–$70 = no new drilling but existing wells continue. Below $60 = some existing wells go offline too. Above $70 = new drilling resumes in 6–12 months. Above $90 = full drilling economics return. Watch rig count (Baker Hughes) as the 2-week-lagging confirmation.</div>
+        <a class="mg-link" href="https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&amp;s=RWTC&amp;f=D" target="_blank">EIA WTI daily →</a>
+      </div>
+
+      <div class="mg-card">
+        <div class="mg-card-title">Baker Hughes US Rig Count</div>
+        <div class="mg-card-value" style="color:#fbbf24">↓ Declining</div>
+        <div class="mg-thresholds">
+          <div class="mg-threshold yellow">Need ~700 rigs for flat production</div>
+          <div class="mg-threshold red">Fewer rigs now than Inauguration Day</div>
+        </div>
+        <div class="mg-signal red">Supply contraction signal — watch weekly</div>
+        <div class="mg-implication"><strong>Implication:</strong> The US needs 7,000–8,000 new wells per year just to hold production flat — because every existing well declines every day from day one (the best day is always day one). Fewer rigs = fewer new wells = US output starts falling 12–18 months out. The rig count is the earliest reliable signal of future production direction.</div>
+        <div class="mg-assess"><strong>How to assess:</strong> Baker Hughes publishes every Friday. Three consecutive weekly declines = contraction signal confirmed. Three consecutive weekly gains = supply recovery beginning. "Drill Baby Drill" is directly falsifiable — this is the scoreboard. Current trend: down since Trump took office.</div>
+        <a class="mg-link" href="https://rigcount.bakerhughes.com/na-rig-count" target="_blank">Baker Hughes weekly →</a>
+      </div>
+
+      <div class="mg-card">
+        <div class="mg-card-title">Strait of Hormuz Status</div>
+        <div class="mg-card-value" style="color:#f87171">Day ~80</div>
+        <div class="mg-thresholds">
+          <div class="mg-threshold red">Normal: 20M b/d pass through</div>
+          <div class="mg-threshold yellow">Bypassed via Cape route: ~8M b/d</div>
+          <div class="mg-threshold red">Net lost to market: ~12–13M b/d</div>
+        </div>
+        <div class="mg-signal red">Closure ongoing — cannot be rerouted at scale</div>
+        <div class="mg-implication"><strong>Implication:</strong> There is no infrastructure to replace 12–13M b/d. Rerouting around Africa adds weeks and triples shipping costs. Global SPRs are being drawn down daily to fill the gap — but they have floors. Once SPRs are exhausted, the market has no cushion left. Trump is on his 7th ultimatum; each new ultimatum signals he does not want war. But escalation ladders sometimes take you places you didn't intend.</div>
+        <div class="mg-assess"><strong>How to assess:</strong> Day count is the scoreboard. Oil $90–$110 = market absorbing closure via SPR draw. Oil $130+ = SPR cushion thinning fast. Diplomatic talks with Iran = most bullish signal possible (immediate stock rally, bond yield drop). New military ultimatum = no progress. Any ceasefire announcement = buy signal. Infrastructure strike on Gulf facilities = spike + years of damage.</div>
+      </div>
+
+      <div class="mg-card">
+        <div class="mg-card-title">US Strategic Petroleum Reserve</div>
+        <div class="mg-card-value">~340M<span class="mg-unit"> bbl</span></div>
+        <div class="mg-thresholds">
+          <div class="mg-threshold red">Current release: 1.22M b/d (record)</div>
+          <div class="mg-threshold red">Gap it's filling: ~10% of disruption</div>
+        </div>
+        <div class="mg-signal red">Record release rate — still can't fill the gap</div>
+        <div class="mg-implication"><strong>Implication:</strong> Even at a record 1.22M b/d release, the SPR plugs only ~10% of the 12–13M b/d disruption. Critical distinction: SPR "loans/exchanges" do not suppress oil prices — the market expects that oil back, so it stays priced in. Only outright sales suppress spot prices. Congress banned SPR sales to China in 2022 (law still stands). At current draw rate, the reserve runs ~280 days — but functional mechanisms can break before then.</div>
+        <div class="mg-assess"><strong>How to assess:</strong> EIA publishes SPR levels weekly. Watch the trend: if the weekly drop is accelerating, depletion is sooner than arithmetic suggests. Below 300M bbl = serious. Below 250M bbl = critical. Also watch whether releases are classified as loans vs. sales — only sales create actual price suppression. Loan = price signal to the market that oil is coming back off the market.</div>
+        <a class="mg-link" href="https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&amp;s=WCSSTUS1&amp;f=W" target="_blank">EIA SPR weekly →</a>
+      </div>
+
+    </div>
+
+    <div class="mg-grid" style="margin-top:12px">
+
+      <div class="mg-card">
+        <div class="mg-card-title">Henry Hub Natural Gas</div>
+        <div class="mg-card-value">~$2.50<span class="mg-unit">/MMBtu</span></div>
+        <div class="mg-thresholds">
+          <div class="mg-threshold green">Now: spring lull, mild demand</div>
+          <div class="mg-threshold yellow">Summer + LNG exports → price spike</div>
+        </div>
+        <div class="mg-signal yellow">Deceptively quiet — watch June–August</div>
+        <div class="mg-implication"><strong>Implication:</strong> Natural gas drives most US electricity generation, especially in the Northeast. Spring prices look calm — but they are seasonal. Once summer heat arrives and LNG export facilities ramp up, domestic supply tightens rapidly. Every LNG terminal sends gas overseas, which pulls domestic prices higher, not lower. Trump reversed Biden's LNG export slowdown — this benefits gas exporters, not US consumers. People in deregulated NE states (CT, MA, PA) have seen $1,200–$1,400 monthly electric bills.</div>
+        <div class="mg-assess"><strong>How to assess:</strong> Henry Hub below $3 = stable bills. $3–$5 = elevated. Above $5 = utility bill shock. Watch: (1) summer temperature forecasts for the NE corridor, (2) LNG export terminal utilization rates, (3) storage injection/withdrawal pace vs. 5-year average. If LNG exports are rising AND a hot summer arrives simultaneously, bills spike hard.</div>
+        <a class="mg-link" href="https://www.eia.gov/naturalgas/weekly/" target="_blank">EIA Gas weekly →</a>
+      </div>
+
+      <div class="mg-card">
+        <div class="mg-card-title">LNG Export Volumes</div>
+        <div class="mg-card-value" style="color:#fbbf24">↑ Rising</div>
+        <div class="mg-thresholds">
+          <div class="mg-threshold red">100% of US gas gains go to export</div>
+          <div class="mg-threshold red">More exports = higher domestic prices</div>
+        </div>
+        <div class="mg-signal red">Exports pulling domestic prices higher</div>
+        <div class="mg-implication"><strong>Implication:</strong> Every increase in US natural gas production has been exported — domestic consumers do not benefit. LNG exports are rising under Trump (Biden tried to slow approvals to protect domestic bills; Trump reversed this). The relationship is direct: more LNG terminals + more exports = tighter domestic supply = higher bills. This is not a consumer benefit — it is a profit mechanism for gas companies that shifts costs onto households.</div>
+        <div class="mg-assess"><strong>How to assess:</strong> EIA publishes weekly LNG export data. Rising exports correlated with rising Henry Hub prices confirm the squeeze. Any new LNG terminal approved = future domestic price pressure in 18–24 months (construction lag). Track LNG terminal utilization vs. Henry Hub price — they move together with a short lag.</div>
+        <a class="mg-link" href="https://www.eia.gov/naturalgas/weekly/" target="_blank">EIA LNG data →</a>
+      </div>
+
+      <div class="mg-card">
+        <div class="mg-card-title">Bab-el-Mandeb Strait</div>
+        <div class="mg-card-value" style="color:#fbbf24">Watch</div>
+        <div class="mg-thresholds">
+          <div class="mg-threshold yellow">Connects Red Sea to Indian Ocean</div>
+          <div class="mg-threshold red">If closed: second chokepoint gone</div>
+        </div>
+        <div class="mg-signal yellow">Open but at risk — escalation path is close</div>
+        <div class="mg-implication"><strong>Implication:</strong> If Bab-el-Mandeb closes alongside Hormuz, two of the world's critical maritime arteries fail simultaneously. Shipping reroutes add weeks. Insurance and freight triple. At that point, we are no longer discussing recession — we are discussing a depression on the scale of the 1930s. Gulf oil infrastructure damage (pipelines, refineries, loading terminals) is the sleeper risk: it can be destroyed in minutes but takes years to rebuild. Saudi Arabia's Abqaiq facility alone processes 7% of global oil supply. A 2019 drone strike temporarily knocked out 5% — prices jumped 15–20% in one day.</div>
+        <div class="mg-assess"><strong>How to assess:</strong> Houthi attack frequency in the Red Sea is the leading indicator. Any confirmed strike on Abqaiq or major Gulf infrastructure = immediate price spike + years of elevated prices. Two straits closing simultaneously = scenario outside normal financial modeling. Watch for: Saudi Arabia security briefings, Houthi ceasefire talks, US carrier group positioning in the Red Sea.</div>
+      </div>
+
+      <div class="mg-card">
+        <div class="mg-card-title">Food Price Inflation</div>
+        <div class="mg-card-value" style="color:#f87171">4-yr High</div>
+        <div class="mg-thresholds">
+          <div class="mg-threshold red">Fastest rise in 4 years — now</div>
+          <div class="mg-threshold red">Oil → fertilizer → shipping → food</div>
+        </div>
+        <div class="mg-signal red">Oil shock is transmitting into food prices</div>
+        <div class="mg-implication"><strong>Implication:</strong> Food prices rising at a 4-year high is the first visible consumer sign that the oil supply shock is spreading. The chain: high fuel costs raise fertilizer costs (fertilizer is made from natural gas), which raises farming costs, which raises shipping costs, which raises grocery prices. For US households this compounds utility bill pressure. For developing nations that were already food-insecure, this path leads to famine — not a prediction, a supply-chain formula.</div>
+        <div class="mg-assess"><strong>How to assess:</strong> USDA Food Price Outlook and CPI food sub-index (separate from headline CPI). If food inflation persists even after oil stabilizes, second-round inflation effects are embedded — the Fed cannot ignore this and may have to raise rates even into a slowing economy (stagflation). Stagflation is the hardest environment for a retirement portfolio: bonds fall, stocks fall, cash buys less. Food prices are the earliest consumer-visible sign of energy-driven inflation becoming structural.</div>
+      </div>
+
+    </div>
+
+    <div class="mg-scenario-bar">
+      <div class="mg-scenario-title">⚠ Mr. Global Worst-Case Scenarios (if Hormuz stays closed through summer)</div>
+      <div class="mg-scenarios">
+        <div class="mg-scenario-item">
+          <div class="mg-s-label">Oil Price</div>
+          <div class="mg-s-value" style="color:#f87171">→ $200/bbl</div>
+          <div class="mg-s-note">"That's arithmetic, not a prediction." SPR depletion + no reroute capacity + summer demand = price formula with no natural ceiling. Every week without resolution narrows the gap.</div>
+        </div>
+        <div class="mg-scenario-item">
+          <div class="mg-s-label">Global GDP</div>
+          <div class="mg-s-value" style="color:#f87171">−3 to −4%</div>
+          <div class="mg-s-note">Worse than 2008. Simultaneous global recession with no coordinated fiscal response available — all governments already stretched from COVID stimulus and military spending.</div>
+        </div>
+        <div class="mg-scenario-item">
+          <div class="mg-s-label">Both Straits Close</div>
+          <div class="mg-s-value" style="color:#f87171">Depression</div>
+          <div class="mg-s-note">Hormuz + Bab-el-Mandeb simultaneously = global supply chain rupture. 1930s-scale contraction. Cannot be fixed by any "transition to alternatives" — those take years to build.</div>
+        </div>
+        <div class="mg-scenario-item">
+          <div class="mg-s-label">Infrastructure Damage</div>
+          <div class="mg-s-value" style="color:#fbbf24">Years of Pain</div>
+          <div class="mg-s-note">Abqaiq processes 7% of global oil. Significant damage = years to rebuild. This scenario outlasts any ceasefire. The sleeper risk: it does not resolve when the war ends.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  </div><!-- /.tab-panel macro -->
+
+  <div class="disclaimer">
+    Market data is live via TradingView. Economic indicator charts reflect approximate historical data through May 2026 — visit FRED links for latest figures. Fertilizer and BDI data are approximate annual averages. Supply chain and globe status indicators are manually updated as of May 2026.
+    This dashboard is for informational purposes only and is not financial advice. Discuss all investment decisions with your financial advisor.
+  </div>
+
+</div><!-- /.container -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// COMPOSITE INDICATORS — hardcoded real data + live fetch attempt
+// ═══════════════════════════════════════════════════════════════
+
+// Normal distribution CDF (Estrella-Mishkin NY Fed probit model)
+function normCDF(x) {
+  const a1=0.254829592,a2=-0.284496736,a3=1.421413741,a4=-1.453152027,a5=1.061405429,p=0.3275911;
+  const sign=x<0?-1:1, ax=Math.abs(x), t=1/(1+p*ax);
+  return 0.5*(1+sign*(1-((((a5*t+a4)*t+a3)*t+a2)*t+a1)*t*Math.exp(-ax*ax)));
+}
+function calcRecProb(spread){ return normCDF(-0.6045-0.7374*spread)*100; }
+
+function parseFredCSV(text,n=78){
+  return text.trim().split('\n').slice(1)
+    .map(l=>{const[d,v]=l.split(',');return{date:d,value:parseFloat(v)};})
+    .filter(r=>!isNaN(r.value)).slice(-n);
+}
+
+// Real NFCI data from FRED (last 53 weeks, verified 2026-05-08)
+const NFCI_DATA = [
+  {date:'2025-05-09',value:-0.423},{date:'2025-05-16',value:-0.440},{date:'2025-05-23',value:-0.455},
+  {date:'2025-05-30',value:-0.467},{date:'2025-06-06',value:-0.476},{date:'2025-06-13',value:-0.484},
+  {date:'2025-06-20',value:-0.490},{date:'2025-06-27',value:-0.497},{date:'2025-07-04',value:-0.504},
+  {date:'2025-07-11',value:-0.510},{date:'2025-07-18',value:-0.515},{date:'2025-07-25',value:-0.519},
+  {date:'2025-08-01',value:-0.522},{date:'2025-08-08',value:-0.524},{date:'2025-08-15',value:-0.526},
+  {date:'2025-08-22',value:-0.527},{date:'2025-08-29',value:-0.528},{date:'2025-09-05',value:-0.528},
+  {date:'2025-09-12',value:-0.528},{date:'2025-09-19',value:-0.527},{date:'2025-09-26',value:-0.526},
+  {date:'2025-10-03',value:-0.525},{date:'2025-10-10',value:-0.523},{date:'2025-10-17',value:-0.519},
+  {date:'2025-10-24',value:-0.516},{date:'2025-10-31',value:-0.513},{date:'2025-11-07',value:-0.509},
+  {date:'2025-11-14',value:-0.507},{date:'2025-11-21',value:-0.507},{date:'2025-11-28',value:-0.508},
+  {date:'2025-12-05',value:-0.511},{date:'2025-12-12',value:-0.516},{date:'2025-12-19',value:-0.524},
+  {date:'2025-12-26',value:-0.535},{date:'2026-01-02',value:-0.546},{date:'2026-01-09',value:-0.556},
+  {date:'2026-01-16',value:-0.562},{date:'2026-01-23',value:-0.563},{date:'2026-01-30',value:-0.559},
+  {date:'2026-02-06',value:-0.551},{date:'2026-02-13',value:-0.538},{date:'2026-02-20',value:-0.522},
+  {date:'2026-02-27',value:-0.503},{date:'2026-03-06',value:-0.484},{date:'2026-03-13',value:-0.467},
+  {date:'2026-03-20',value:-0.456},{date:'2026-03-27',value:-0.451},{date:'2026-04-03',value:-0.454},
+  {date:'2026-04-10',value:-0.464},{date:'2026-04-17',value:-0.478},{date:'2026-04-24',value:-0.494},
+  {date:'2026-05-01',value:-0.509},{date:'2026-05-08',value:-0.524}
+];
+
+// Real T10Y3M data from FRED (last 34 trading days, verified 2026-05-18)
+const T10Y3M_DATA = [
+  {date:'2026-04-01',value:0.63},{date:'2026-04-02',value:0.61},{date:'2026-04-03',value:0.64},
+  {date:'2026-04-06',value:0.62},{date:'2026-04-07',value:0.62},{date:'2026-04-08',value:0.60},
+  {date:'2026-04-09',value:0.61},{date:'2026-04-10',value:0.62},{date:'2026-04-13',value:0.59},
+  {date:'2026-04-14',value:0.55},{date:'2026-04-15',value:0.58},{date:'2026-04-16',value:0.62},
+  {date:'2026-04-17',value:0.56},{date:'2026-04-20',value:0.55},{date:'2026-04-21',value:0.61},
+  {date:'2026-04-22',value:0.61},{date:'2026-04-23',value:0.65},{date:'2026-04-24',value:0.62},
+  {date:'2026-04-27',value:0.67},{date:'2026-04-28',value:0.68},{date:'2026-04-29',value:0.74},
+  {date:'2026-04-30',value:0.72},{date:'2026-05-01',value:0.71},{date:'2026-05-04',value:0.75},
+  {date:'2026-05-05',value:0.74},{date:'2026-05-06',value:0.67},{date:'2026-05-07',value:0.72},
+  {date:'2026-05-08',value:0.69},{date:'2026-05-11',value:0.72},{date:'2026-05-12',value:0.76},
+  {date:'2026-05-13',value:0.77},{date:'2026-05-14',value:0.78},{date:'2026-05-15',value:0.90},
+  {date:'2026-05-18',value:0.93}
+];
+
+function makeCompChart(canvasId, labels, values, color, refLine, extraYOpts) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  const datasets = [{
+    data: values, borderColor: color, borderWidth: 1.8,
+    pointRadius: 0, tension: 0.35, fill: true,
+    backgroundColor: (color.startsWith('#') ? `rgba(${parseInt(color.slice(1,3),16)},${parseInt(color.slice(3,5),16)},${parseInt(color.slice(5,7),16)},0.08)` : color.replace(')',',0.08)').replace('rgb','rgba'))
+  }];
+  if (refLine !== undefined) {
+    datasets.push({
+      data: Array(values.length).fill(refLine),
+      borderColor:'rgba(255,255,255,0.18)', borderWidth:1,
+      borderDash:[4,4], pointRadius:0, fill:false
+    });
+  }
+  new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:false,
+      plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+      scales:{
+        x:{ display:false },
+        y:{ display:false, grace:'8%', ...(extraYOpts||{}) }
+      }
+    }
+  });
+}
+
+function nfciColor(v)   { return v<-0.5?'#4ade80':v<0?'#86efac':v<0.5?'#fbbf24':'#f87171'; }
+function recpColor(v)   { return v<15?'#4ade80':v<25?'#86efac':v<35?'#fbbf24':'#f87171'; }
+function nfciBadge(v)   { return v<-0.5?['Loose','badge-loose']:v<0?['Accommodative','badge-normal']:v<0.5?['Tightening','badge-watch']:['Tight','badge-tight']; }
+function recpBadge(v)   { return v<15?['Low risk','badge-loose']:v<25?['Moderate','badge-normal']:v<35?['Elevated','badge-watch']:['High risk','badge-tight']; }
+
+function renderNFCI(data) {
+  const latest = data[data.length-1];
+  const v = latest.value;
+  const color = nfciColor(v);
+  const [bt,bc] = nfciBadge(v);
+  document.getElementById('nfci-value').textContent = v.toFixed(3);
+  document.getElementById('nfci-value').style.color = color;
+  document.getElementById('nfci-signal').textContent = v<0?'▼ Below zero':'▲ Above zero';
+  document.getElementById('nfci-signal').style.color = color;
+  document.getElementById('nfci-badge').textContent = bt;
+  document.getElementById('nfci-badge').className = 'comp-badge '+bc;
+  document.getElementById('nfci-interp').textContent =
+    v<-0.5 ? `NFCI at ${v.toFixed(3)} — very loose conditions. Credit is cheap, volatility low, lending easy. Historically precedes stable or rising markets. Watch for complacency risk.`
+    : v<0   ? `NFCI at ${v.toFixed(3)} — accommodative. Fed has not tightened credit markets meaningfully. Supports risk assets but means inflation pressure may persist.`
+    : v<0.5 ? `NFCI at ${v.toFixed(3)} — conditions tightening. Credit spreads widening, lending standards firming. Yellow flag for stocks and corporate bonds.`
+    : `NFCI at ${v.toFixed(3)} — tight financial conditions. Credit markets stressed. Historically associated with recession risk and equity drawdowns >15%.`;
+  makeCompChart('chart-nfci', data.map(d=>d.date), data.map(d=>d.value), color, 0);
+}
+
+function renderRecProb(data) {
+  const latest = data[data.length-1];
+  const spread = latest.value;
+  const prob = calcRecProb(spread);
+  const color = recpColor(prob);
+  const [bt,bc] = recpBadge(prob);
+  const probSeries = data.map(d=>calcRecProb(d.value));
+  document.getElementById('recprob-value').textContent = prob.toFixed(1)+'%';
+  document.getElementById('recprob-value').style.color = color;
+  document.getElementById('recprob-signal').textContent = spread>0?'▲ Curve positive':'▼ Curve inverted';
+  document.getElementById('recprob-signal').style.color = color;
+  document.getElementById('recprob-badge').textContent = bt;
+  document.getElementById('recprob-badge').className = 'comp-badge '+bc;
+  document.getElementById('recprob-interp').textContent =
+    `10yr–3mo spread ${spread>0?'+':''}${spread.toFixed(2)}% — ${spread>0?'not inverted':'inverted'}. NY Fed probit model: ${prob.toFixed(1)}% recession probability within 12 months. `+
+    (prob<20?'Below 20% warning threshold — near-term recession unlikely based on yield curve alone.'
+    :prob<30?'Approaching 30% warning zone. Monitor closely.'
+    :'Above 30% warning threshold. Yield curve signaling elevated recession risk.');
+  makeCompChart('chart-recprob', data.map(d=>d.date), probSeries, color, 30, {min:0, max:Math.max(60, ...probSeries)+5});
+}
+
+async function loadCompositeIndicators() {
+  // Render immediately with hardcoded real data
+  renderNFCI(NFCI_DATA);
+  renderRecProb(T10Y3M_DATA);
+
+  // GDPNow sparkline (static quarterly tracking estimates)
+  const gdpNowHistory = [
+    {q:'Q3 2025',v:2.8},{q:'Q4 2025',v:2.5},{q:'Q1 2026 final',v:2.1},
+    {q:'Q2 Apr est',v:1.8},{q:'Q2 May est',v:1.2}
+  ];
+  makeCompChart('chart-gdpnow',
+    gdpNowHistory.map(d=>d.q), gdpNowHistory.map(d=>d.v),
+    '#fbbf24', null, {min:0, max:4});
+
+  // BofA Bull & Bear sparkline (recent weekly readings)
+  const bbHistory = [
+    {d:'Nov',v:5.2},{d:'Dec',v:5.8},{d:'Jan',v:6.1},{d:'Feb',v:5.5},
+    {d:'Mar',v:4.9},{d:'Apr 1',v:4.2},{d:'Apr 2',v:4.0},{d:'May',v:4.5}
+  ];
+  makeCompChart('chart-bb',
+    bbHistory.map(d=>d.d), bbHistory.map(d=>d.v),
+    '#fbbf24', 5, {min:0, max:10});
+
+  // Try live FRED fetch to update to very latest values (may fail on file://)
+  try {
+    const r1 = await Promise.race([
+      fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI'),
+      new Promise((_,rej)=>setTimeout(()=>rej('timeout'),5000))
+    ]);
+    const t1 = await r1.text();
+    const live = parseFredCSV(t1, 53);
+    if (live.length > 0 && live[live.length-1].date !== NFCI_DATA[NFCI_DATA.length-1].date) {
+      // Merge: replace last entry with live if newer
+      const merged = [...NFCI_DATA];
+      live.forEach(pt => { if(!merged.find(p=>p.date===pt.date)) merged.push(pt); });
+      renderNFCI(merged.slice(-53));
+    }
+  } catch(e) { /* keep hardcoded data */ }
+
+  try {
+    const r2 = await Promise.race([
+      fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y3M'),
+      new Promise((_,rej)=>setTimeout(()=>rej('timeout'),5000))
+    ]);
+    const t2 = await r2.text();
+    const live = parseFredCSV(t2, 34);
+    if (live.length > 0 && live[live.length-1].date !== T10Y3M_DATA[T10Y3M_DATA.length-1].date) {
+      const merged = [...T10Y3M_DATA];
+      live.forEach(pt => { if(!merged.find(p=>p.date===pt.date)) merged.push(pt); });
+      renderRecProb(merged.slice(-34));
+    }
+  } catch(e) { /* keep hardcoded data */ }
+}
+
+document.addEventListener('DOMContentLoaded', loadCompositeIndicators);
+
+// ── Watch cards ─────────────────────────────────────────────────
+function toggleCard(card) {
+  const isOpen = card.classList.contains('open');
+  document.querySelectorAll('.watch-card').forEach(c => c.classList.remove('open'));
+  if (!isOpen) card.classList.add('open');
+}
+
+// ── Clock ────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').innerHTML =
+    now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) +
+    '<br>' + now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+updateClock(); setInterval(updateClock, 30000);
+
+// ── Narrative stepper ────────────────────────────────────────────
+const narSteps = [
+  { tag:'The Trigger', color:'#f87171',
+    title:'Strait of Hormuz Closes',
+    body:'In early May 2026, escalating Middle East conflict closed the Strait of Hormuz — a 21-mile chokepoint through which 20% of the world\'s traded oil passes daily. Within weeks, oil jumped from $85 to $105 per barrel.',
+    impact:'Oil: $85 → $105/barrel  |  Markets: immediate reaction' },
+  { tag:'The Transmission', color:'#fbbf24',
+    title:'Oil Rises. Everything Else Follows.',
+    body:'Oil at $105 means higher gas, higher shipping costs, and higher manufacturing inputs. Every 10% rise in oil adds roughly 0.25% to headline CPI. These costs ripple through the economy with a 3–6 month lag.',
+    impact:'CPI: 2.8% → 3.2% and climbing  |  Core CPI above 3%' },
+  { tag:'Bond Market Reaction', color:'#f87171',
+    title:'Yields Break Through 5%',
+    body:'Bond investors hate inflation — it erodes the purchasing power of fixed payments. The 30-year Treasury yield broke 5.12%, a level not seen since before 2020. Every 1% yield rise means roughly 7–8% decline in 10-year bond prices.',
+    impact:'30Y: 4.88% → 5.12%  |  Bond prices down  |  New bonds pay more' },
+  { tag:'The Fed\'s Dilemma', color:'#fbbf24',
+    title:'Hike or Hold? No Easy Answer.',
+    body:'Markets expected rate cuts six months ago. That reversed completely. Rate hikes can cool demand-driven inflation but cannot reopen the Strait. The risk: hike too hard and tip into recession while inflation stays elevated — stagflation, the 1970s scenario.',
+    impact:'Rate hike probability rising  |  Recession risk elevated  |  Both stocks and bonds at risk' },
+  { tag:'Your Portfolio', color:'#4ade80',
+    title:'What This Means for Larry & Maria',
+    body:'Stocks and bonds are under simultaneous pressure — the classic challenge for a 60/40 portfolio in an inflation shock. Maria\'s income removes the need to sell anything at depressed prices. The 5-year window before your RMDs is a Roth conversion opportunity worth modeling with your advisor.',
+    impact:'Key action: Review bond duration.  Confirm cash runway.  Ask about Roth conversions.' }
+];
+let narIdx = 0;
+function narRender() {
+  const s = narSteps[narIdx];
+  document.getElementById('nar-tag').textContent = s.tag;
+  document.getElementById('nar-tag').style.color = s.color;
+  document.getElementById('nar-title').textContent = s.title;
+  document.getElementById('nar-body').textContent = s.body;
+  document.getElementById('nar-impact').textContent = s.impact;
+  document.getElementById('nar-impact').style.borderLeftColor = s.color;
+  document.getElementById('nar-prev').disabled = narIdx === 0;
+  document.getElementById('nar-next').disabled = narIdx === narSteps.length - 1;
+  const dots = document.getElementById('nar-dots');
+  dots.innerHTML = '';
+  narSteps.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'nar-dot' + (i === narIdx ? ' active' : '');
+    d.onclick = () => { narIdx = i; narRender(); };
+    dots.appendChild(d);
+  });
+}
+function narNext() { if (narIdx < narSteps.length - 1) { narIdx++; narRender(); } }
+function narPrev() { if (narIdx > 0) { narIdx--; narRender(); } }
+narRender();
+
+// ── Chart.js crosshair plugin ────────────────────────────────────
+const crosshairPlugin = {
+  id: 'crosshair',
+  afterDraw(chart) {
+    if (chart.tooltip._active && chart.tooltip._active.length) {
+      const ctx = chart.ctx;
+      const x = chart.tooltip._active[0].element.x;
+      const top = chart.scales.y.top;
+      const bottom = chart.scales.y.bottom;
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom);
+      ctx.setLineDash([3,3]); ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(74,222,128,0.5)';
+      ctx.stroke(); ctx.restore();
+    }
+  }
+};
+Chart.register(crosshairPlugin);
+
+// ── Chart.js — each chart gets its OWN options object ───────────
+// (Shared reference causes crosshair to break on all but the last chart rendered)
+function makeChart(id, labels, data, color) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets:[{
+        data, borderColor: color, backgroundColor: color + '15',
+        fill: true, tension: 0.35, pointRadius: 2.5, pointHoverRadius: 4, borderWidth: 1.8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 1100, easing: 'easeInOutQuart' },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0a0e14', borderColor: '#1f2937', borderWidth: 1,
+          titleColor: '#8b95a7', bodyColor: '#e2e8f0', padding: 7, displayColors: false
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8b95a7', font: { size: 9 } }, grid: { color: '#1f2937' } },
+        y: { ticks: { color: '#8b95a7', font: { size: 9 } }, grid: { color: '#1f2937' } }
+      }
+    }
+  });
+}
+
+// ── Chart data ───────────────────────────────────────────────────
+const yrs = ['2020','2021','2022','2023','2024','2025','2026'];
+const yldLabels = ['Jan 22','Apr 22','Jul 22','Oct 22','Jan 23','Apr 23','Jul 23','Oct 23',
+                   'Jan 24','Apr 24','Jul 24','Oct 24','Jan 25','Apr 25','Jul 25','Oct 25','Jan 26','May 26'];
+
+makeChart('chart-10y', yldLabels, [1.78,2.38,3.01,4.01,3.57,3.57,3.97,4.93,4.25,4.59,4.31,4.60,4.58,4.30,4.28,4.59,4.53,4.59], '#60a5fa');
+makeChart('chart-30y', yldLabels, [2.11,2.62,3.20,4.15,3.75,3.82,4.02,5.06,4.44,4.73,4.48,4.72,4.79,4.68,4.56,4.82,4.88,5.12], '#f87171');
+makeChart('chart-2y',  yldLabels, [0.97,1.58,3.05,4.37,4.42,4.34,4.87,5.02,4.36,4.97,4.53,4.27,4.25,3.98,4.00,4.18,4.20,4.85], '#fbbf24');
+
+makeChart('chart-cpi',     yrs, [1.4,7.0,9.1,3.4,3.1,2.8,3.2],    '#f87171');
+makeChart('chart-core',    yrs, [1.6,5.5,6.6,3.9,3.4,3.0,3.1],    '#fb923c');
+makeChart('chart-unemp',   yrs, [6.7,3.9,3.5,3.7,3.9,4.0,4.1],    '#a78bfa');
+makeChart('chart-fed',     yrs, [0.25,0.25,4.25,5.33,4.75,4.50,4.33],'#4ade80');
+makeChart('chart-sp500',   yrs, [3756,4766,3839,4769,5500,5380,5820],'#fbbf24');
+makeChart('chart-bondpx',  yrs, [108.5,105.2,95.1,91.8,93.4,92.8,92.4],'#22d3ee');
+makeChart('chart-housing', yrs, [1380,1601,1553,1413,1360,1310,1240],'#22d3ee');
+makeChart('chart-mortgage',yrs, [2.68,3.11,6.36,6.82,6.72,6.84,7.05],'#fbbf24');
+makeChart('chart-dollar',  yrs, [90.0,95.7,103.6,101.0,104.5,106.0,103.8],'#e879f9');
+makeChart('chart-urea',    yrs, [220,680,850,350,310,290,340],      '#fbbf24');
+makeChart('chart-dap',     yrs, [370,550,770,480,420,400,445],      '#fb923c');
+makeChart('chart-mos',     yrs, [17,42,72,38,28,24,21],             '#4ade80');
+makeChart('chart-ung',     yrs, [12,15,24,8,6,12,14],              '#22d3ee');
+makeChart('chart-bdi',     yrs, [1400,2800,2100,1200,1650,1780,1850],'#22d3ee');
+
+// ═══════════════════════════════════════════════════════════════
+// D3 INTERACTIVE GLOBE — with layers, zoom, ship traffic, conflict zone
+// ═══════════════════════════════════════════════════════════════
+let globeScale, globeProj, globePathGen, globeUpdate;
+const globeLayers = {};
+
+function globeZoomIn()    { globeScale = Math.min(globeScale * 1.35, globeScale * 4); globeProj.scale(globeScale); if(globeUpdate) globeUpdate(); }
+function globeZoomOut()   { globeScale = Math.max(globeScale * 0.74, globeScale * 0.1); globeProj.scale(globeScale); if(globeUpdate) globeUpdate(); }
+function globeResetView() {
+  const container = document.getElementById('globe-container');
+  const W = container.clientWidth || 600;
+  const H = 440;
+  globeScale = Math.min(W, H) * 0.44;
+  globeProj.scale(globeScale).rotate([-55, -26]);
+  if(globeUpdate) globeUpdate();
+}
+function globeGoToHormuz() {
+  globeScale = Math.min(globeScale * 3.5, 2000);
+  globeProj.scale(globeScale).rotate([-56.3, -26.5]);
+  if(globeUpdate) globeUpdate();
+}
+
+function toggleGlobeLayer(name) {
+  const layer = globeLayers[name];
+  if (!layer) return;
+  layer.visible = !layer.visible;
+  layer.elements.forEach(el => {
+    if (el && el.style) el.style('display', layer.visible ? null : 'none');
+  });
+  const btn = document.getElementById('layer-btn-' + name);
+  if (btn) btn.classList.toggle('active', layer.visible);
+}
+
+function initGlobe() {
+  const container = document.getElementById('globe-container');
+  const W = container.clientWidth || 600;
+  const H = 440;
+
+  const svg = d3.select('#globe-svg').attr('width', W).attr('height', H);
+  const cx = W / 2, cy = H / 2;
+  globeScale = Math.min(W, H) * 0.44;
+
+  globeProj = d3.geoOrthographic()
+    .scale(globeScale)
+    .translate([cx, cy])
+    .clipAngle(90)
+    .rotate([-55, -26]);
+
+  globePathGen = d3.geoPath().projection(globeProj);
+
+  // Ocean
+  const ocean = svg.append('circle')
+    .attr('cx', cx).attr('cy', cy).attr('r', globeScale)
+    .style('fill', '#060d1a')
+    .style('stroke', '#1f2937').style('stroke-width', '1.5');
+
+  // Graticule
+  const graticule = d3.geoGraticule()();
+  const graticuleEl = svg.append('path')
+    .datum(graticule)
+    .style('fill','none')
+    .style('stroke','#111e30').style('stroke-width','0.5');
+
+  // Country risk: 0=normal, 1=watch, 2=elevated, 3=critical
+  const RISK = {
+    '643':3, '364':3, '804':3, '887':3,           // Russia, Iran, Ukraine, Yemen
+    '376':3, '422':3,                               // Israel, Lebanon
+    '156':2, '682':2, '276':2, '250':2,             // China, Saudi Arabia, Germany, France
+    '368':2, '760':2,                               // Iraq, Syria
+    '840':1, '356':1, '410':1, '826':1,             // US, India, South Korea, UK
+    '484':1, '704':1, '360':1, '792':1,             // Mexico, Vietnam, Indonesia, Turkey
+    '400':1, '512':1,                               // Jordan, Oman
+    '392':0, '124':0, '036':0, '076':0,             // Japan, Canada, Australia, Brazil
+    '784':0, '634':0, '414':0                       // UAE, Qatar, Kuwait
+  };
+
+  const COUNTRY_INFO = {
+    '840': { name:'United States',   risk:'watch',    data:'Fed at 4.33% | CPI 3.2% | S&P 5,820 | 5th Fleet deployed to Gulf of Oman' },
+    '156': { name:'China',           risk:'elevated', data:'Caixin PMI 49.5 — contraction | Watching Hormuz; 20% of oil imports affected' },
+    '643': { name:'Russia',          risk:'critical', data:'War sanctions active | Energy revenues under pressure | Ruble volatile' },
+    '364': { name:'Iran',            risk:'critical', data:'⚠ HORMUZ CLOSURE — IRGC controls strait | Tanker seizures May 2–3 | Oil shock source' },
+    '682': { name:'Saudi Arabia',    risk:'elevated', data:'OPEC+ output adjustments | East–West pipeline at 5M bbl/day bypass capacity | Aramco on alert' },
+    '276': { name:'Germany',         risk:'elevated', data:'Heavy Persian Gulf LNG dependence | PMI below 50 | Energy import costs surging' },
+    '250': { name:'France',          risk:'elevated', data:'Inflation 3.1% | ECB rate uncertainty | Energy exposure via Total Energies' },
+    '804': { name:'Ukraine',         risk:'critical', data:'Active conflict zone | Grain & Black Sea commodity disruption ongoing' },
+    '887': { name:'Yemen',           risk:'critical', data:'Houthi forces active | Bab-el-Mandeb watch status | Red Sea shipping threat' },
+    '376': { name:'Israel',          risk:'critical', data:'Active military operations | Regional conflict escalation risk | Regional oil demand shock' },
+    '422': { name:'Lebanon',         risk:'critical', data:'Conflict spillover risk | Beirut port capacity reduced' },
+    '368': { name:'Iraq',            risk:'elevated', data:'2.5M bbl/day export exposure via Hormuz | Basra oil terminal on standby' },
+    '760': { name:'Syria',           risk:'elevated', data:'Regional instability | Proxy conflict zone' },
+    '356': { name:'India',           risk:'watch',    data:'PMI 58.1 — strong growth | 12% of oil from Persian Gulf | Monitoring closely' },
+    '410': { name:'South Korea',     risk:'watch',    data:'Electronics export hub | 80% of energy imports via Hormuz | High exposure' },
+    '826': { name:'United Kingdom',  risk:'watch',    data:'Inflation 3.5% | BOE holding | North Sea production buffer' },
+    '392': { name:'Japan',           risk:'normal',   data:'BOJ normalization | 90% of oil via Hormuz — very high exposure | Strategic reserves deployed' },
+    '704': { name:'Vietnam',         risk:'watch',    data:'Key electronics & apparel supply chain node | Malacca route open' },
+    '360': { name:'Indonesia',       risk:'watch',    data:'Malacca Strait — critical shipping chokepoint | Open, monitoring' },
+    '484': { name:'Mexico',          risk:'watch',    data:'Near-shoring beneficiary | Peso elevated vs USD | Oil exporter — modest benefit' },
+    '792': { name:'Turkey',          risk:'watch',    data:'Bosphorus controls Black Sea tanker traffic | Inflation elevated at 68%' },
+    '784': { name:'UAE',             risk:'normal',   data:'Fujairah port — key Hormuz bypass terminal | Pipeline bypass: 1.5M bbl/day' },
+    '634': { name:'Qatar',           risk:'normal',   data:'Mediating Hormuz talks | LNG exports via Hormuz at risk | $300B+ sovereign fund buffer' },
+    '414': { name:'Kuwait',          risk:'normal',   data:'2M bbl/day Hormuz exposure | Reserves available | US base Al-Jaber active' },
+    '512': { name:'Oman',            risk:'watch',    data:'Directly borders Strait of Hormuz | Muscat Channel critical | Neutral mediator role' },
+    '400': { name:'Jordan',          risk:'watch',    data:'Regional stability impact | Aqaba port Red Sea access' },
+    '124': { name:'Canada',          risk:'normal',   data:'Oil exporter — benefits from higher prices | Stable' },
+    '036': { name:'Australia',       risk:'normal',   data:'LNG exporter | Demand spike from Asian buyers | Stable' },
+    '076': { name:'Brazil',          risk:'normal',   data:'Pre-salt oil production | Emerging beneficiary of higher prices' }
+  };
+
+  const riskFill   = ['#0e1822','#1a2e1a','#2e2808','#2e0a0a'];
+  const riskStroke = ['#1f2e40','#2d502d','#60501a','#701a1a'];
+
+  // Shipping routes
+  const routes = [
+    { type:'LineString', coordinates:[[121.5,31.2],[-118.2,34.1]], color:'#4ade80', w:2.0, dasharray:'9,5' },
+    { type:'LineString', coordinates:[[103.8,1.3],[32.5,30.5],[4.5,51.9]], color:'#60a5fa', w:1.5, dasharray:'8,5' },
+    { type:'LineString', coordinates:[[120.5,23.5],[-118.2,34.1]], color:'#fbbf24', w:1.2, dasharray:'5,7', opacity:0.7 },
+    { type:'LineString', coordinates:[[56.3,26.5],[57.5,23.5],[60.5,22.0]], color:'#f87171', w:1.5, dasharray:'4,4', opacity:0.6 }
+  ];
+
+  const routeEls = routes.map(r =>
+    svg.append('path').datum(r)
+      .style('fill','none').style('stroke', r.color)
+      .style('stroke-width', r.w).style('stroke-dasharray', r.dasharray)
+      .style('opacity', r.opacity || 0.85).attr('class','globe-route')
+  );
+  globeLayers.routes = { visible: true, elements: routeEls };
+
+  const tooltip = document.getElementById('globe-tooltip');
+
+  // Chokepoints — richer detail
+  const chokepoints = [
+    { lon:56.3,  lat:26.5, label:'Hormuz', status:'critical', detail:'⚠ CLOSED — ~38 tankers queued. 21M bbl/day blocked. IRGC control.' },
+    { lon:43.3,  lat:12.5, label:'Bab-el-Mandeb', status:'elevated', detail:'Elevated — Houthi threat. Red Sea shipping at risk. Monitoring.' },
+    { lon:32.5,  lat:30.5, label:'Suez', status:'watch', detail:'Open — monitoring. Red Sea risk elevated from Houthi activity.' },
+    { lon:103.8, lat:1.5,  label:'Malacca',status:'normal', detail:'Open — key Asia-Europe lane. Normal traffic.' }
+  ];
+  const cpColors = { critical:'#f87171', elevated:'#fb923c', watch:'#fbbf24', normal:'#4ade80' };
+
+  // Ports
+  const ports = [
+    { lon:121.5,  lat:31.2, label:'Shanghai',    color:'#4ade80' },
+    { lon:103.8,  lat:1.3,  label:'Singapore',   color:'#4ade80' },
+    { lon:-118.2, lat:34.1, label:'Los Angeles', color:'#4ade80' },
+    { lon:4.5,    lat:51.9, label:'Rotterdam',   color:'#60a5fa' },
+    { lon:120.5,  lat:23.5, label:'Taiwan',      color:'#fbbf24' },
+    { lon:56.4,   lat:23.7, label:'Fujairah',    color:'#60a5fa' },
+    { lon:50.6,   lat:26.2, label:'Bahrain/US5th',color:'#f87171' }
+  ];
+
+  // Ship traffic dots (static representative positions)
+  // Tankers queued in Persian Gulf, ships on routes
+  const shipTraffic = [
+    // Tankers backed up in Persian Gulf (waiting at Hormuz)
+    { lon:56.0, lat:26.9, color:'#f87171', r:2.5, label:'Tanker queued' },
+    { lon:55.7, lat:27.1, color:'#f87171', r:2.5, label:'Tanker queued' },
+    { lon:55.4, lat:27.2, color:'#f87171', r:2.5, label:'Tanker queued' },
+    { lon:55.1, lat:27.1, color:'#f87171', r:2.5, label:'Tanker queued' },
+    { lon:54.8, lat:27.0, color:'#f87171', r:2.5, label:'Tanker queued' },
+    { lon:54.5, lat:26.9, color:'#f87171', r:2.5, label:'Tanker queued' },
+    { lon:54.2, lat:27.3, color:'#f87171', r:2.0, label:'Tanker queued' },
+    { lon:54.0, lat:26.8, color:'#f87171', r:2.0, label:'Tanker queued' },
+    { lon:53.7, lat:27.1, color:'#f87171', r:2.0, label:'Tanker queued' },
+    { lon:53.4, lat:26.9, color:'#f87171', r:2.0, label:'Tanker queued' },
+    { lon:53.1, lat:27.2, color:'#f87171', r:2.0, label:'Tanker queued' },
+    { lon:52.8, lat:26.8, color:'#f87171', r:2.0, label:'Tanker queued' },
+    // Ships on trans-pacific route
+    { lon:-160, lat:28,   color:'#4ade80', r:2,   label:'Container ship' },
+    { lon:-140, lat:30,   color:'#4ade80', r:2,   label:'Container ship' },
+    { lon:-120, lat:32,   color:'#4ade80', r:2,   label:'Container ship' },
+    { lon: 170, lat:26,   color:'#4ade80', r:2,   label:'Container ship' },
+    { lon: 150, lat:24,   color:'#4ade80', r:2,   label:'Container ship' },
+    { lon: 130, lat:26,   color:'#4ade80', r:2,   label:'Container ship' },
+    // Ships on Europe route (via Cape of Good Hope now, avoiding Hormuz)
+    { lon: 20,  lat:-30,  color:'#60a5fa', r:2,   label:'Tanker via Cape route' },
+    { lon: 10,  lat:-20,  color:'#60a5fa', r:2,   label:'Tanker via Cape route' },
+    { lon: 0,   lat:-10,  color:'#60a5fa', r:2,   label:'Tanker via Cape route' },
+    { lon:-10,  lat:0,    color:'#60a5fa', r:2,   label:'Tanker via Cape route' },
+  ];
+
+  // Conflict zone circle (rough Persian Gulf / ME area)
+  const conflictZoneData = [
+    { lon:44.0, lat:30.0, radius:8, color:'#f87171', opacity:0.06, label:'Iraq/Iran conflict zone' },
+    { lon:35.0, lat:31.5, radius:5, color:'#fb923c', opacity:0.08, label:'Israel/Lebanon conflict zone' },
+    { lon:45.0, lat:15.0, radius:6, color:'#fbbf24', opacity:0.06, label:'Yemen/Houthi zone' },
+  ];
+
+  // Country features (loaded async)
+  let countryEls;
+  const cpEls = [];
+  const portEls = [];
+  const shipEls = [];
+  const conflictEls = [];
+
+  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+    .then(r => r.json())
+    .then(world => {
+      const features = topojson.feature(world, world.objects.countries).features;
+
+      countryEls = svg.selectAll('.country')
+        .data(features)
+        .enter().append('path')
+        .attr('class','country')
+        .style('fill', d => riskFill[RISK[String(d.id)] || 0])
+        .style('stroke', d => riskStroke[RISK[String(d.id)] || 0])
+        .style('stroke-width','0.4')
+        .style('cursor','pointer')
+        .on('mousemove', (event, d) => {
+          const info = COUNTRY_INFO[String(d.id)];
+          if (!info) return;
+          const [mx, my] = d3.pointer(event, svg.node());
+          const riskClass = 'grisk-' + info.risk;
+          tooltip.style.display = 'block';
+          tooltip.style.left = (mx + 14) + 'px';
+          tooltip.style.top  = (Math.max(10, my - 12)) + 'px';
+          tooltip.innerHTML = `<strong>${info.name}</strong><span class="${riskClass}">${info.risk.charAt(0).toUpperCase()+info.risk.slice(1)}</span><br><span style="font-size:11px;color:#8b95a7;">${info.data}</span>`;
+        })
+        .on('mouseout', () => { tooltip.style.display = 'none'; });
+
+      // Conflict zone circles
+      conflictZoneData.forEach(cz => {
+        const circle = svg.append('circle').attr('class', 'conflict-zone')
+          .style('fill', cz.color).style('opacity', cz.opacity)
+          .style('pointer-events', 'none');
+        conflictEls.push(circle);
+      });
+      globeLayers.conflict = { visible: true, elements: conflictEls };
+
+      // Chokepoint elements
+      chokepoints.forEach(cp => {
+        const g = svg.append('g').attr('class','cp-group');
+        const dot = g.append('circle').attr('r', cp.status === 'critical' ? 7 : 5)
+          .style('fill','#050c18').style('stroke', cpColors[cp.status]).style('stroke-width', 2);
+        const lbl = g.append('text').text(cp.label)
+          .style('fill', cpColors[cp.status]).style('font-size','9px')
+          .style('font-family','sans-serif').style('font-weight','700');
+        if (cp.status === 'critical' || cp.status === 'elevated') {
+          g.append('circle').attr('class','cp-ring')
+            .attr('r', cp.status === 'critical' ? 13 : 9)
+            .style('fill','none').style('stroke', cpColors[cp.status])
+            .style('stroke-width','1.5').style('opacity','0.4');
+          if (cp.status === 'critical') {
+            g.append('circle').attr('class','cp-ring2')
+              .attr('r', 20)
+              .style('fill','none').style('stroke','#f87171')
+              .style('stroke-width','0.8').style('opacity','0.2');
+          }
+        }
+        // hover tooltip on chokepoint
+        g.style('cursor','pointer')
+          .on('mousemove', (event) => {
+            const [mx, my] = d3.pointer(event, svg.node());
+            tooltip.style.display = 'block';
+            tooltip.style.left = (mx + 14) + 'px';
+            tooltip.style.top  = (Math.max(10, my - 12)) + 'px';
+            tooltip.innerHTML = `<strong>${cp.label}</strong><span class="grisk-${cp.status}">${cp.status.charAt(0).toUpperCase()+cp.status.slice(1)}</span><br><span style="font-size:11px;color:#8b95a7;">${cp.detail}</span>`;
+          })
+          .on('mouseout', () => { tooltip.style.display = 'none'; });
+        cpEls.push({ cp, g, dot, lbl });
+      });
+      globeLayers.chokepoints = { visible: true, elements: cpEls.map(e => e.g) };
+
+      // Ship traffic dots
+      shipTraffic.forEach(s => {
+        const dot = svg.append('circle').attr('r', s.r)
+          .style('fill', s.color).style('opacity', 0.8)
+          .style('cursor', 'pointer')
+          .on('mousemove', (event) => {
+            const [mx, my] = d3.pointer(event, svg.node());
+            tooltip.style.display = 'block';
+            tooltip.style.left = (mx + 10) + 'px';
+            tooltip.style.top  = (Math.max(10, my - 10)) + 'px';
+            const label = s.label === 'Tanker queued' ? '⛵ Tanker queued at Hormuz — transit blocked' : `⛵ ${s.label}`;
+            tooltip.innerHTML = `<span style="font-size:11px;color:#c4cdd9;">${label}</span>`;
+          })
+          .on('mouseout', () => { tooltip.style.display = 'none'; });
+        shipEls.push(dot);
+      });
+      globeLayers.ships = { visible: true, elements: shipEls };
+
+      // Port elements
+      ports.forEach(p => {
+        const dot = svg.append('circle').attr('r', 3.5)
+          .style('fill','#060d1a').style('stroke', p.color).style('stroke-width',1.5);
+        const lbl = svg.append('text').text(p.label)
+          .style('fill','#b0bac8').style('font-size','8px').style('font-family','sans-serif');
+        portEls.push({ p, dot, lbl });
+      });
+      globeLayers.ports = { visible: true, elements: portEls.map(e => [e.dot, e.lbl]).flat() };
+
+      // Rotation state
+      let rotX = -55, rotY = -26;
+      let isDragging = false;
+      let lastX, lastY;
+      let restartTimer;
+
+      globeUpdate = function updateGlobe() {
+        const sc = globeProj.scale();
+        ocean.attr('r', sc);
+        globeProj.rotate([rotX, rotY]);
+        if (countryEls) countryEls.attr('d', globePathGen);
+        routeEls.forEach(el => el.attr('d', d => globePathGen(d)));
+        graticuleEl.attr('d', globePathGen(graticule));
+
+        // Conflict zones — project as circles
+        conflictZoneData.forEach((cz, i) => {
+          const coords = globeProj([cz.lon, cz.lat]);
+          const center = globeProj.invert ? globeProj.invert([cx, cy]) : [0,0];
+          const dist = center ? d3.geoDistance(center, [cz.lon, cz.lat]) : Math.PI;
+          const el = conflictEls[i];
+          if (dist < Math.PI / 2 && coords) {
+            const pixRadius = cz.radius * (sc / 200);
+            el.style('display', null).attr('cx', coords[0]).attr('cy', coords[1]).attr('r', pixRadius);
+          } else {
+            el.style('display', 'none');
+          }
+        });
+
+        // Chokepoints
+        cpEls.forEach(({ cp, g, dot, lbl }) => {
+          const center = globeProj.invert ? globeProj.invert([cx, cy]) : [0,0];
+          const dist = center ? d3.geoDistance(center, [cp.lon, cp.lat]) : Math.PI;
+          if (dist < Math.PI / 2) {
+            const coords = globeProj([cp.lon, cp.lat]);
+            if (coords) {
+              g.style('display', null);
+              dot.attr('cx', coords[0]).attr('cy', coords[1]);
+              g.select('.cp-ring').attr('cx', coords[0]).attr('cy', coords[1]);
+              g.select('.cp-ring2').attr('cx', coords[0]).attr('cy', coords[1]);
+              lbl.attr('x', coords[0] + 10).attr('y', coords[1] + 3);
+            }
+          } else {
+            g.style('display', 'none');
+          }
+        });
+
+        // Ship dots
+        shipTraffic.forEach((s, i) => {
+          const center = globeProj.invert ? globeProj.invert([cx, cy]) : [0,0];
+          const dist = center ? d3.geoDistance(center, [s.lon, s.lat]) : Math.PI;
+          if (dist < Math.PI / 2) {
+            const coords = globeProj([s.lon, s.lat]);
+            if (coords) {
+              shipEls[i].style('display', null).attr('cx', coords[0]).attr('cy', coords[1]);
+            }
+          } else {
+            shipEls[i].style('display', 'none');
+          }
+        });
+
+        // Ports
+        portEls.forEach(({ p, dot, lbl }) => {
+          const center = globeProj.invert ? globeProj.invert([cx, cy]) : [0,0];
+          const dist = center ? d3.geoDistance(center, [p.lon, p.lat]) : Math.PI;
+          if (dist < Math.PI / 2) {
+            const coords = globeProj([p.lon, p.lat]);
+            if (coords) {
+              dot.style('display', null).attr('cx', coords[0]).attr('cy', coords[1]);
+              lbl.style('display', null).attr('x', coords[0] + 5).attr('y', coords[1] + 3);
+            }
+          } else {
+            dot.style('display', 'none');
+            lbl.style('display', 'none');
+          }
+        });
+      };
+
+      // Scroll zoom
+      svg.on('wheel', (event) => {
+        event.preventDefault();
+        const factor = event.deltaY < 0 ? 1.15 : 0.87;
+        const baseScale = Math.min(W, H) * 0.44;
+        globeScale = Math.max(baseScale * 0.8, Math.min(globeScale * factor, baseScale * 8));
+        globeProj.scale(globeScale);
+        globeUpdate();
+      });
+
+      // Drag behavior
+      svg.call(d3.drag()
+        .on('start', event => {
+          isDragging = true;
+          clearTimeout(restartTimer);
+          lastX = event.x; lastY = event.y;
+          tooltip.style.display = 'none';
+        })
+        .on('drag', event => {
+          const dx = event.x - lastX, dy = event.y - lastY;
+          rotX += dx * 0.4;
+          rotY = Math.max(-80, Math.min(80, rotY - dy * 0.4));
+          lastX = event.x; lastY = event.y;
+          globeUpdate();
+        })
+        .on('end', () => {
+          restartTimer = setTimeout(() => { isDragging = false; }, 3000);
+        })
+      );
+
+      // Animation loop
+      function animate() {
+        if (!isDragging) {
+          rotX += 0.10;
+          globeUpdate();
+        }
+        requestAnimationFrame(animate);
+      }
+      globeUpdate();
+      animate();
+    })
+    .catch(() => {
+      svg.append('text')
+        .attr('x', cx).attr('y', cy).attr('text-anchor','middle')
+        .style('fill','#6b7585').style('font-size','13px')
+        .text('Globe requires internet connection to load map data');
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MACRO EXPLORER — GAUGE-BASED
+// ═══════════════════════════════════════════════════════════════
+const expNodes = [
+  { id:'rate',  label:'Fed Funds Rate',  desc:'The benchmark interest rate set by the Federal Reserve. Currently 4.33%. The lever the Fed pulls to cool or stimulate the economy. Higher rates slow borrowing and spending — but take 12–18 months to fully work through the economy.' },
+  { id:'cpi',   label:'CPI / Inflation', desc:'Consumer Price Index — the official measure of inflation. Currently 3.2% YoY, pushed up by oil from the Strait of Hormuz closure. The Fed targets 2%.' },
+  { id:'oil',   label:'Oil Price',       desc:'Crude oil price per barrel. Currently ~$105 due to Strait of Hormuz closure. Feeds directly into inflation through transportation, manufacturing, and energy costs. Every $10/barrel rise adds ~0.15% to CPI.' },
+  { id:'yield', label:'Bond Yields',     desc:'Interest rates on US Treasury bonds. 10Y at 4.59%, 30Y at 5.12%. Higher yields mean lower bond prices. Tracks Fed rate expectations and inflation — when inflation is expected to stay high, yields rise.' },
+  { id:'bond',  label:'Bond Prices',     desc:'Market prices of fixed-income bonds. Always move opposite to yields — when yields rise 1%, a 10-year bond price drops roughly 7–8%. This is why inflation is so damaging to existing bond holders.' },
+  { id:'stock', label:'Stock Market',    desc:'Equity prices. S&P 500 at 5,820. Higher rates raise the discount rate on future earnings, compressing valuations. When bonds pay 5%, stocks need to offer more upside to compete for capital.' },
+  { id:'emp',   label:'Employment',      desc:'Jobs and unemployment rate. Currently 4.1%. Strong employment gives the Fed room to raise rates without triggering a recession. Tight labor markets drive wage inflation.' }
+];
+
+const expLinks = [
+  { source:'rate',  target:'yield',  effect:'positive', label:'drives up'     },
+  { source:'rate',  target:'stock',  effect:'negative', label:'pressures'     },
+  { source:'rate',  target:'cpi',    effect:'negative', label:'cools (lag)'   },
+  { source:'rate',  target:'emp',    effect:'negative', label:'slows hiring'  },
+  { source:'yield', target:'bond',   effect:'negative', label:'inverse'       },
+  { source:'yield', target:'stock',  effect:'negative', label:'competes'      },
+  { source:'cpi',   target:'rate',   effect:'positive', label:'triggers hike' },
+  { source:'cpi',   target:'yield',  effect:'positive', label:'pushes up'     },
+  { source:'oil',   target:'cpi',    effect:'positive', label:'feeds into'    },
+  { source:'oil',   target:'stock',  effect:'negative', label:'cost pressure' },
+  { source:'emp',   target:'cpi',    effect:'positive', label:'wage pressure' },
+  { source:'emp',   target:'stock',  effect:'positive', label:'consumer demand'},
+  { source:'stock', target:'emp',    effect:'positive', label:'wealth effect'  }
+];
+
+// Stress levels: 0=Normal, 1=Watch, 2=Elevated, 3=Critical
+const STRESS_LABELS = ['Normal',   'Watch',    'Elevated', 'Critical'];
+const STRESS_COLORS = ['#4ade80',  '#86efac',  '#fbbf24',  '#f87171'];
+const STRESS_CARD_BG = ['#131923', '#131f18',  '#1e1908',  '#1e0a0a'];
+const STRESS_CARD_BD = ['#1f2937', '#2a4a2a',  '#4a3a12',  '#4a1212'];
+const STRESS_BAR_PCT = [18, 45, 72, 94];
+
+function expGetStress(id, v) {
+  if (id==='rate')  return v.fedrate>6?3:v.fedrate>5?2:v.fedrate>4.5?1:0;
+  if (id==='cpi')   return v.cpi>6?3:v.cpi>4?2:v.cpi>3?1:0;
+  if (id==='oil')   return v.oil>130?3:v.oil>110?2:v.oil>90?1:0;
+  if (id==='yield') return v.yield10>6?3:v.yield10>5?2:v.yield10>4.5?1:0;
+  if (id==='bond')  { const px=92.4-7.5*(v.yield10-4.59); return px<80?3:px<88?2:px<93?1:0; }
+  if (id==='stock') return v.sp500<3500?3:v.sp500<4500?2:v.sp500<5300?1:0;
+  if (id==='emp')   return v.unemp>8?3:v.unemp>6?2:v.unemp>5?1:0;
+  return 0;
+}
+
+function expGetAct(src, tgt, v) {
+  const dR=(v.fedrate-4.33)/5.67, dC=(v.cpi-3.2)/8.8;
+  const dO=(v.oil-105)/55, dY=(v.yield10-4.59)/4.41, dU=(v.unemp-4.1)/9.9;
+  const cl = x => Math.max(0.1, Math.min(1, x));
+  const m = {
+    'rate-yield':cl(0.3+dR*1.2), 'rate-stock':cl(0.3+dR),   'rate-cpi':cl(0.2+dR*0.8),
+    'rate-emp':cl(0.2+dR*0.7),   'yield-bond':cl(0.3+dY*1.5),'yield-stock':cl(0.3+dY),
+    'cpi-rate':cl(0.2+dC*1.5),   'cpi-yield':cl(0.2+dC),     'oil-cpi':cl(0.2+dO*1.5),
+    'oil-stock':cl(0.2+dO),       'emp-cpi':cl(0.2+dU),       'emp-stock':0.25,'stock-emp':0.25
+  };
+  return m[src+'-'+tgt] !== undefined ? m[src+'-'+tgt] : 0.15;
+}
+
+function expGetVals() {
+  return {
+    fedrate: parseFloat(document.getElementById('exp-s-fedrate').value),
+    cpi:     parseFloat(document.getElementById('exp-s-cpi').value),
+    unemp:   parseFloat(document.getElementById('exp-s-unemp').value),
+    yield10: parseFloat(document.getElementById('exp-s-yield').value),
+    oil:     parseFloat(document.getElementById('exp-s-oil').value),
+    sp500:   parseFloat(document.getElementById('exp-s-sp500').value)
+  };
+}
+
+function expGaugeValue(id, v) {
+  if (id==='rate')  return v.fedrate.toFixed(2) + '%';
+  if (id==='cpi')   return v.cpi.toFixed(1) + '%';
+  if (id==='oil')   return '$' + Math.round(v.oil);
+  if (id==='yield') return v.yield10.toFixed(2) + '%';
+  if (id==='bond')  return (92.4 - 7.5*(v.yield10-4.59)).toFixed(1);
+  if (id==='stock') return v.sp500.toLocaleString();
+  if (id==='emp')   return v.unemp.toFixed(1) + '%';
+  return '';
+}
+
+function expUpdateGauges(v) {
+  expNodes.forEach(node => {
+    const st = expGetStress(node.id, v);
+    const card = document.getElementById('eg-card-' + node.id);
+    const valEl = document.getElementById('eg-val-' + node.id);
+    const barEl = document.getElementById('eg-bar-' + node.id);
+    const lblEl = document.getElementById('eg-lbl-' + node.id);
+    if (!card) return;
+
+    // Update classes for animation
+    card.classList.remove('stress-0','stress-1','stress-2','stress-3');
+    card.classList.add('stress-' + st);
+    card.style.backgroundColor = STRESS_CARD_BG[st];
+    card.style.borderColor = card.classList.contains('active') ? '#4ade80' : STRESS_CARD_BD[st];
+
+    if (valEl) valEl.textContent = expGaugeValue(node.id, v);
+    if (barEl) {
+      barEl.style.width = STRESS_BAR_PCT[st] + '%';
+      barEl.style.backgroundColor = STRESS_COLORS[st];
+    }
+    if (lblEl) {
+      lblEl.textContent = STRESS_LABELS[st];
+      lblEl.style.color = STRESS_COLORS[st];
+    }
+  });
+}
+
+let expActiveGauge = null;
+
+function expSelectGauge(id) {
+  expActiveGauge = id;
+  const v = expGetVals();
+
+  // Update card selection highlights
+  document.querySelectorAll('.exp-gauge-card').forEach(c => c.classList.remove('active'));
+  const selCard = document.getElementById('eg-card-' + id);
+  if (selCard) selCard.classList.add('active');
+
+  const node = expNodes.find(n => n.id === id);
+  if (!node) return;
+  const out = expLinks.filter(l => l.source === id);
+  const inc = expLinks.filter(l => l.target === id);
+
+  let html = `<div class="cascade-desc">${node.desc}</div>`;
+
+  if (out.length) {
+    html += `<div class="cascade-hdr" style="color:#4ade80;">Pushes these indicators:</div>`;
+    out.forEach(l => {
+      const tNode = expNodes.find(n => n.id === l.target);
+      const act = expGetAct(l.source, l.target, v);
+      const barW = Math.round(act * 100);
+      const isPos = l.effect === 'positive';
+      const arrColor = isPos ? '#4ade80' : '#f87171';
+      const arrow = isPos ? '&#9650;' : '&#9660;';
+      html += `
+        <div class="cascade-row">
+          <div class="cascade-tgt">${tNode.label}</div>
+          <div class="cascade-right">
+            <span class="cascade-arrow" style="color:${arrColor}">${arrow} ${l.label}</span>
+            <div class="cascade-str-bar"><div class="cascade-str-fill" style="width:${barW}%;background:${arrColor};"></div></div>
+          </div>
+        </div>`;
+    });
+  }
+
+  if (inc.length) {
+    html += `<div class="cascade-hdr" style="color:#8b95a7;margin-top:10px;">Influenced by:</div>`;
+    inc.forEach(l => {
+      const sNode = expNodes.find(n => n.id === l.source);
+      html += `<div class="cascade-row-sm"><span>${sNode.label}</span><span style="color:#6b7585;">${l.label}</span></div>`;
+    });
+  }
+
+  document.getElementById('exp-cascade-title').textContent = node.label + ' — Connections';
+  document.getElementById('exp-cascade-content').innerHTML = html;
+}
+
+// Presets
+const EXP_BASE = { fedrate:4.33, cpi:3.2, unemp:4.1, yield:4.59, oil:105, sp500:5820 };
+const EXP_PRE  = {
+  baseline:    { fedrate:4.33, cpi:3.2,  unemp:4.1, yield:4.59, oil:105, sp500:5820 },
+  stagflation: { fedrate:7.5,  cpi:9.0,  unemp:6.5, yield:7.5,  oil:145, sp500:4100 },
+  recession:   { fedrate:1.0,  cpi:1.5,  unemp:9.0, yield:2.0,  oil:55,  sp500:3200 },
+  softlanding: { fedrate:3.5,  cpi:2.5,  unemp:4.3, yield:3.8,  oil:80,  sp500:6300 },
+  ratehike:    { fedrate:6.5,  cpi:4.5,  unemp:4.5, yield:5.75, oil:115, sp500:5100 },
+  oilshock:    { fedrate:4.33, cpi:6.5,  unemp:4.2, yield:5.5,  oil:155, sp500:4800 }
+};
+
+function expApplyPreset(key) {
+  const p = EXP_PRE[key];
+  document.getElementById('exp-s-fedrate').value = p.fedrate;
+  document.getElementById('exp-s-cpi').value     = p.cpi;
+  document.getElementById('exp-s-unemp').value   = p.unemp;
+  document.getElementById('exp-s-yield').value   = p.yield;
+  document.getElementById('exp-s-oil').value     = p.oil;
+  document.getElementById('exp-s-sp500').value   = p.sp500;
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('exp-preset-' + key);
+  if (btn) btn.classList.add('active');
+  expUpdateSim();
+}
+
+function expUpdateSim() {
+  const fedrate = parseFloat(document.getElementById('exp-s-fedrate').value);
+  const cpi     = parseFloat(document.getElementById('exp-s-cpi').value);
+  const unemp   = parseFloat(document.getElementById('exp-s-unemp').value);
+  const yield10 = parseFloat(document.getElementById('exp-s-yield').value);
+  const oil     = parseFloat(document.getElementById('exp-s-oil').value);
+  const sp500   = parseFloat(document.getElementById('exp-s-sp500').value);
+  const v = { fedrate, cpi, unemp, yield10, oil, sp500 };
+
+  // Update slider display values
+  document.getElementById('exp-v-fedrate').textContent = fedrate.toFixed(2) + '%';
+  document.getElementById('exp-v-cpi').textContent     = cpi.toFixed(1) + '%';
+  document.getElementById('exp-v-unemp').textContent   = unemp.toFixed(1) + '%';
+  document.getElementById('exp-v-yield').textContent   = yield10.toFixed(2) + '%';
+  document.getElementById('exp-v-oil').textContent     = '$' + Math.round(oil);
+  document.getElementById('exp-v-sp500').textContent   = sp500.toLocaleString();
+
+  // Match preset
+  let matched = false;
+  for (const [key, p] of Object.entries(EXP_PRE)) {
+    if (Math.abs(p.fedrate-fedrate)<0.01 && Math.abs(p.cpi-cpi)<0.01 &&
+        Math.abs(p.unemp-unemp)<0.01 && Math.abs(p.yield-yield10)<0.01 &&
+        Math.abs(p.oil-oil)<1 && Math.abs(p.sp500-sp500)<50) {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('exp-preset-' + key);
+      if (btn) btn.classList.add('active');
+      matched = true; break;
+    }
+  }
+  if (!matched) document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+
+  // Update gauge cards
+  expUpdateGauges(v);
+
+  // Update cascade panel if a gauge is selected
+  if (expActiveGauge) expSelectGauge(expActiveGauge);
+
+  // Projected impacts calculation
+  const dYield  = yield10 - EXP_BASE.yield;
+  const dSP500  = (sp500 - EXP_BASE.sp500) / EXP_BASE.sp500 * 100;
+  const dOil    = (oil - EXP_BASE.oil) / EXP_BASE.oil * 100;
+  const bondPxChg = -7.5 * dYield;
+  const bondPxNow = Math.max(0, 92.4 * (1 + bondPxChg / 100));
+  const mortRate  = yield10 + 2.46;
+
+  let fedSig, fedCls;
+  if (cpi>3.5 && unemp>5.5)     { fedSig='STAGFLATION — hardest call'; fedCls='sig-stagflation'; }
+  else if (cpi>3.5 && unemp<=5) { fedSig='LIKELY HIKE';                fedCls='sig-hike'; }
+  else if (cpi<2.5 && unemp>=5) { fedSig='LIKELY CUT';                 fedCls='sig-cut'; }
+  else if (cpi<2.5 && unemp<5)  { fedSig='HOLD or mild cut';           fedCls='sig-hold'; }
+  else                           { fedSig='HOLD — data-dependent';      fedCls='sig-hold'; }
+
+  let curveSig, curveCls;
+  if (yield10 < fedrate - 0.3)      { curveSig='INVERTED — recession risk'; curveCls='sig-inverted'; }
+  else if (yield10 > fedrate + 0.5) { curveSig='NORMAL — growth signal';    curveCls='sig-normal'; }
+  else                               { curveSig='FLAT — watch closely';      curveCls='sig-flat'; }
+
+  const portImpact = 0.60 * dSP500 + 0.40 * bondPxChg;
+  const oilEff     = dOil * 0.025;
+  const coreCPI    = Math.max(0, cpi - oilEff).toFixed(1);
+
+  function fd(val, d, u) {
+    const s = val >= 0 ? '+' : '';
+    const cls = val > 0.05 ? 'delta-pos' : val < -0.05 ? 'delta-neg' : 'delta-neu';
+    return `<span class="${cls}">${s}${val.toFixed(d)}${u}</span>`;
+  }
+
+  document.getElementById('exp-sim-output').innerHTML = `
+    <div class="sim-card">
+      <div class="sim-label">Bond Price Index</div>
+      <div class="sim-value">${bondPxNow.toFixed(1)} <span class="sim-delta">${fd(bondPxChg,1,'%')}</span></div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-label">Mortgage Rate</div>
+      <div class="sim-value">${mortRate.toFixed(2)}% <span class="sim-delta">${fd(mortRate-7.05,2,'pp')}</span></div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-label">Fed Likely Action</div>
+      <div class="sim-signal ${fedCls}">${fedSig}</div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-label">Yield Curve</div>
+      <div class="sim-signal ${curveCls}">${curveSig}</div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-label">60/40 Portfolio Est.</div>
+      <div class="sim-value">${fd(portImpact,1,'%')}</div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-label">Core CPI (ex-oil)</div>
+      <div class="sim-value">${coreCPI}% <span class="sim-delta">${fd(parseFloat(coreCPI)-3.1,1,'pp')}</span></div>
+    </div>
+  `;
+}
+
+// Slider listeners
+['exp-s-fedrate','exp-s-cpi','exp-s-unemp','exp-s-yield','exp-s-oil','exp-s-sp500'].forEach(id => {
+  document.getElementById(id).addEventListener('input', expUpdateSim);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// TAB SWITCHING — with globe lazy init
+// ═══════════════════════════════════════════════════════════════
+let globeInitialized = false;
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('tab-' + name);
+  if (panel) panel.classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  // Globe lazy init — container has 0 width when hidden
+  if (name === 'energy' && !globeInitialized) {
+    globeInitialized = true;
+    setTimeout(initGlobe, 80);
+  }
+
+  // Refresh explorer sim when switching to macro tab
+  if (name === 'macro') {
+    expUpdateSim();
+    if (!expActiveGauge) expSelectGauge('rate');
+  }
+}
+
+// ── Flash animation on sim-output when values change ────────────
+function flashSimCards() {
+  document.querySelectorAll('.sim-card').forEach(c => {
+    c.classList.remove('flash');
+    void c.offsetWidth; // force reflow so animation restarts
+    c.classList.add('flash');
+  });
+}
+
+// Patch expUpdateSim to trigger flash
+const _origUpdate = expUpdateSim;
+expUpdateSim = function() {
+  _origUpdate();
+  flashSimCards();
+};
+
+// Re-bind slider listeners with patched function
+['exp-s-fedrate','exp-s-cpi','exp-s-unemp','exp-s-yield','exp-s-oil','exp-s-sp500'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.removeEventListener('input', _origUpdate);
+  if (el) el.addEventListener('input', expUpdateSim);
+});
+
+// Initialize everything
+expUpdateSim();
+expSelectGauge('rate');
+</script>
+</body>
+</html>

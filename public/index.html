@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Larry's Economic Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Economic Dashboard</h1>
+      <p id="last-updated">Loading...</p>
+    </div>
+    <div id="clock"></div>
+  </header>
+
+  <div id="alert-bar" class="alert-bar hidden"></div>
+
+  <div class="container">
+
+    <!-- AI Commentary Panels -->
+    <div class="section-label">AI Analysis</div>
+    <div id="panels-grid" class="panels-grid">
+      <div class="panel-skeleton">Loading analysis...</div>
+    </div>
+
+    <!-- Key Indicators -->
+    <div class="section-label">Key Indicators</div>
+    <div id="indicators-grid" class="indicators-grid"></div>
+
+    <!-- Markets -->
+    <div class="section-label">Markets</div>
+    <div id="markets-grid" class="markets-grid"></div>
+
+    <!-- News Feed -->
+    <div class="section-label">Latest News</div>
+    <div id="news-list" class="news-list"></div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

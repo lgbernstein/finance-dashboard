@@ -1,13 +1,13 @@
 {
   "agents": {
     "Thinker": {
-      "model": "claude-opus-4-7-20251001",
+      "model": "claude-opus-4-7",
       "prompt_file": "agents/thinker/prompt.md",
       "max_tokens": 4096,
       "allowed_tools": ["read_shared_memory", "write_shared_memory", "flag_for_approval", "invoke_agent"]
     },
     "Manager": {
-      "model": "claude-opus-4-7-20251001",
+      "model": "claude-opus-4-7",
       "prompt_file": "agents/manager/prompt.md",
       "max_tokens": 4096,
       "allowed_tools": ["invoke_agent", "read_shared_memory", "write_db", "flag_for_approval"]
