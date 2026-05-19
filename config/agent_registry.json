@@ -1,0 +1,55 @@
+{
+  "agents": {
+    "Thinker": {
+      "model": "claude-opus-4-7-20251001",
+      "prompt_file": "agents/thinker/prompt.md",
+      "max_tokens": 4096,
+      "allowed_tools": ["read_shared_memory", "write_shared_memory", "flag_for_approval", "invoke_agent"]
+    },
+    "Manager": {
+      "model": "claude-opus-4-7-20251001",
+      "prompt_file": "agents/manager/prompt.md",
+      "max_tokens": 4096,
+      "allowed_tools": ["invoke_agent", "read_shared_memory", "write_db", "flag_for_approval"]
+    },
+    "Researcher": {
+      "model": "claude-sonnet-4-6",
+      "prompt_file": "agents/researcher/prompt.md",
+      "max_tokens": 4096,
+      "allowed_tools": ["fetch_fred", "fetch_rss", "fetch_market", "brave_search"]
+    },
+    "Analyst": {
+      "model": "claude-sonnet-4-6",
+      "prompt_file": "agents/analyst/prompt.md",
+      "max_tokens": 8192,
+      "allowed_tools": ["read_shared_memory"]
+    },
+    "AlertMonitor": {
+      "model": "claude-sonnet-4-6",
+      "prompt_file": "agents/alert_monitor/prompt.md",
+      "max_tokens": 2048,
+      "allowed_tools": ["fetch_rss", "brave_search", "read_shared_memory"]
+    },
+    "Builder": {
+      "model": "claude-sonnet-4-6",
+      "prompt_file": "agents/builder/prompt.md",
+      "max_tokens": 8192,
+      "allowed_tools": ["read_shared_memory", "write_file", "run_tests", "deploy"]
+    },
+    "Designer": {
+      "model": "claude-sonnet-4-6",
+      "prompt_file": "agents/designer/prompt.md",
+      "max_tokens": 4096,
+      "allowed_tools": ["read_shared_memory", "write_file"]
+    }
+  },
+  "allowed_handoffs": {
+    "Thinker":      ["Manager", "Builder", "Designer"],
+    "Manager":      ["Researcher", "Analyst", "AlertMonitor"],
+    "Researcher":   ["Manager"],
+    "Analyst":      ["Manager"],
+    "AlertMonitor": ["Manager"],
+    "Builder":      ["Manager"],
+    "Designer":     ["Manager"]
+  }
+}

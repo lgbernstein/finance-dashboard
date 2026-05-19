@@ -1,0 +1,7 @@
+node_modules/
+.env
+shared_memory/task_history.jsonl
+shared_memory/observations.json
+shared_memory/context_window_tracker.json
+*.sqlite
+*.db

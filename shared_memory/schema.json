@@ -1,0 +1,25 @@
+{
+  "files": {
+    "last_cycle.json": "Manager writes after each run cycle — timestamps, status, gaps",
+    "data_cache.json": "Researcher writes — latest fetched FRED, market, RSS data",
+    "analyst_baseline.json": "Analyst writes — previous key levels + prediction log",
+    "alert_history.json": "AlertMonitor writes — escalated events, known headlines",
+    "thinker_state.json": "Thinker writes — approved/rejected improvements, strategic notes",
+    "deployment_log.json": "Builder writes — deployment history",
+    "design_decisions.json": "Designer writes — layout and style decisions",
+    "task_history.jsonl": "Manager appends — one line per completed cycle",
+    "pending_approvals/": "Any agent writes — decisions awaiting Larry's input"
+  },
+  "rules": {
+    "write_access": {
+      "Manager": ["last_cycle.json", "task_history.jsonl"],
+      "Researcher": ["data_cache.json"],
+      "Analyst": ["analyst_baseline.json"],
+      "AlertMonitor": ["alert_history.json"],
+      "Thinker": ["thinker_state.json", "pending_approvals/"],
+      "Builder": ["deployment_log.json"],
+      "Designer": ["design_decisions.json", "pending_design_tasks/"]
+    },
+    "read_access": "all agents may read all files"
+  }
+}

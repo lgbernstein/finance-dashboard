@@ -1,0 +1,19 @@
+{
+  "thinker_escalation": {
+    "new_data_source": true,
+    "architectural_change": true,
+    "new_agent_added": true,
+    "remove_existing_feature": true,
+    "cost_increase_monthly_usd": 10
+  },
+  "alert_monitor_escalation": {
+    "severity_levels": ["critical", "high"],
+    "auto_publish_levels": [],
+    "analyst_confidence_threshold": 0.70
+  },
+  "builder_escalation": {
+    "deploy_to_production": true,
+    "database_schema_change": true,
+    "dependency_added": true
+  }
+}
