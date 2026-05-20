@@ -2,34 +2,34 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Professional DCC/Maya palette — cool charcoal, desaturated accents */
-  --bg:        #1c1c1c;
-  --surface:   #252527;
-  --surface2:  #2e2e30;
-  --surface3:  #383839;
-  --border:    #3e3e40;
-  --border2:   #4c4c4e;
-  --text:      #d4d4d4;
-  --text2:     #ababab;
-  --muted:     #777779;
-  --dim:       #555557;
+  /* Maya/Autodesk DCC palette — mid-gray surfaces, depth via darker borders */
+  --bg:        #282828;
+  --surface:   #323232;
+  --surface2:  #3c3c3c;
+  --surface3:  #464646;
+  --border:    #1e1e1e;
+  --border2:   #161616;
+  --text:      #cccccc;
+  --text2:     #a0a0a0;
+  --muted:     #6e6e6e;
+  --dim:       #4e4e4e;
 
-  /* Accents — desaturated, professional */
-  --green:     #56b87a;
-  --green-dim: rgba(86,184,122,0.13);
-  --green-b:   rgba(86,184,122,0.28);
-  --red:       #c96060;
-  --red-dim:   rgba(201,96,96,0.13);
-  --red-b:     rgba(201,96,96,0.28);
-  --amber:     #c89a3a;
-  --amber-dim: rgba(200,154,58,0.12);
-  --amber-b:   rgba(200,154,58,0.28);
-  --blue:      #5b9bd5;
-  --blue-dim:  rgba(91,155,213,0.13);
-  --blue-b:    rgba(91,155,213,0.28);
-  --purple:    #9b8bc4;
-  --purple-dim:rgba(155,139,196,0.13);
-  --purple-b:  rgba(155,139,196,0.28);
+  /* Accents — single steel blue primary, muted functional colors */
+  --green:     #5aab78;
+  --green-dim: rgba(90,171,120,0.15);
+  --green-b:   rgba(90,171,120,0.30);
+  --red:       #b85c5c;
+  --red-dim:   rgba(184,92,92,0.15);
+  --red-b:     rgba(184,92,92,0.30);
+  --amber:     #b8902e;
+  --amber-dim: rgba(184,144,46,0.15);
+  --amber-b:   rgba(184,144,46,0.30);
+  --blue:      #4a90d9;
+  --blue-dim:  rgba(74,144,217,0.15);
+  --blue-b:    rgba(74,144,217,0.30);
+  --purple:    #8f7ec0;
+  --purple-dim:rgba(143,126,192,0.15);
+  --purple-b:  rgba(143,126,192,0.30);
 
   --sidebar-w: 210px;
   --drawer-w:  380px;
@@ -146,9 +146,11 @@ body {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-top: 1px solid var(--surface3);
+  border-left: 1px solid var(--surface3);
   border-radius: var(--radius);
   padding: 18px 22px;
-  box-shadow: var(--shadow);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 2px 8px rgba(0,0,0,0.5);
 }
 .mt-16 { margin-top: 16px; }
 
