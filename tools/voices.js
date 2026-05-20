@@ -42,6 +42,27 @@ const VOICES = [
     title: 'Former CEO, PIMCO; Bloomberg Opinion',
     why: 'One of the clearest communicators on Fed policy and global economics — writes for a general audience',
     baseQueries: ['Mohamed El-Erian economy', 'Mohamed El-Erian inflation']
+  },
+  {
+    id: 'jan_hatzius',
+    name: 'Jan Hatzius',
+    title: 'Chief Economist, Goldman Sachs',
+    why: 'The most closely watched Wall Street economist — his GDP and recession forecasts move markets',
+    baseQueries: ['Jan Hatzius economy', 'Jan Hatzius Goldman Sachs forecast']
+  },
+  {
+    id: 'mark_zandi',
+    name: 'Mark Zandi',
+    title: 'Chief Economist, Moody\'s Analytics',
+    why: 'Go-to voice on recession risk and household finances — frequently cited by policymakers and press',
+    baseQueries: ['Mark Zandi economy', 'Mark Zandi recession']
+  },
+  {
+    id: 'joseph_stiglitz',
+    name: 'Joseph Stiglitz',
+    title: 'Nobel Laureate; Columbia University',
+    why: 'Nobel Prize-winning economist who calls out inequality and policy failures others won\'t',
+    baseQueries: ['Joseph Stiglitz economy', 'Stiglitz inequality trade']
   }
 ];
 
@@ -68,6 +89,7 @@ async function fetchAll() {
         const hits = await brave.search(q, 5);
         best = hits.find(h => h.description && h.description.length > 60);
         if (best) break;
+        await new Promise(r => setTimeout(r, 500));
       }
 
       if (best) {
@@ -87,6 +109,7 @@ async function fetchAll() {
     } catch (err) {
       gaps.push(`${voice.name}: ${err.message}`);
     }
+    await new Promise(r => setTimeout(r, 1000));
   }
 
   return { voices: results, gaps };
