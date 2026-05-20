@@ -1221,9 +1221,47 @@ function expBuildNarrative(v, fedSig, curveSig) {
 });
 
 // ── Dr. Webb Chat ──────────────────────────────────────────────
-let webbMessages = [];
-let webbContext  = null;
-let webbPending  = false;
+let webbMessages     = [];
+let webbContext      = null;
+let webbPending      = false;
+let webbPendingImage = null;
+
+function webbReadImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    const [header, b64] = dataUrl.split(',');
+    const mediaType = header.match(/:(.*?);/)[1];
+    webbPendingImage = { data: b64, mediaType, dataUrl };
+    const preview = document.getElementById('webb-img-preview');
+    const img = document.getElementById('webb-img-preview-img');
+    if (preview && img) { img.src = dataUrl; preview.style.display = 'flex'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+function webbHandleFileInput(input) {
+  if (input.files?.[0]) webbReadImage(input.files[0]);
+}
+
+function webbClearImage() {
+  webbPendingImage = null;
+  const preview = document.getElementById('webb-img-preview');
+  const img = document.getElementById('webb-img-preview-img');
+  const fileInput = document.getElementById('webb-img-input');
+  if (preview) preview.style.display = 'none';
+  if (img) img.src = '';
+  if (fileInput) fileInput.value = '';
+}
+
+// Paste screenshot into Webb when drawer is open
+document.addEventListener('paste', e => {
+  if (!document.getElementById('webb-drawer')?.classList.contains('open')) return;
+  const items = Array.from(e.clipboardData?.items || []);
+  const imgItem = items.find(i => i.type.startsWith('image/'));
+  if (imgItem) { e.preventDefault(); webbReadImage(imgItem.getAsFile()); }
+});
 
 function webbOpen(ctx) {
   if (ctx) {
@@ -1252,12 +1290,13 @@ function webbClearContext() {
   if (bar) bar.style.display = 'none';
 }
 
-function webbAddMsg(role, text) {
+function webbAddMsg(role, text, imgDataUrl) {
   const el = document.getElementById('webb-messages');
   if (!el) return;
   const div = document.createElement('div');
   div.className = `webb-msg webb-msg-${role}`;
-  div.innerHTML = `<div class="webb-msg-text">${text.replace(/\n/g,'<br>')}</div>`;
+  const imgHtml = imgDataUrl ? `<img class="webb-msg-img" src="${imgDataUrl}" alt="screenshot">` : '';
+  div.innerHTML = `${imgHtml}<div class="webb-msg-text">${text.replace(/\n/g,'<br>')}</div>`;
   el.appendChild(div);
   el.scrollTop = el.scrollHeight;
 }
@@ -1266,11 +1305,26 @@ async function webbSend() {
   if (webbPending) return;
   const input = document.getElementById('webb-input');
   const text  = input?.value.trim();
-  if (!text) return;
+  if (!text && !webbPendingImage) return;
 
   input.value = '';
-  webbMessages.push({ role: 'user', content: text });
-  webbAddMsg('user', text);
+  const img = webbPendingImage;
+  webbClearImage();
+
+  // Build message content: multimodal if image present, plain string otherwise
+  const displayText = text || '(screenshot)';
+  let msgContent;
+  if (img) {
+    msgContent = [
+      { type: 'image', data: img.data, mediaType: img.mediaType },
+      { type: 'text', text: text || 'What do you see in this screenshot and what does it tell you about the current market situation?' }
+    ];
+  } else {
+    msgContent = text;
+  }
+
+  webbMessages.push({ role: 'user', content: msgContent });
+  webbAddMsg('user', displayText, img?.dataUrl);
 
   webbPending = true;
   document.getElementById('webb-send').disabled = true;

@@ -634,8 +634,16 @@
     </div>
     <div class="webb-input-area">
       <div id="webb-context-bar" class="webb-context-bar" style="display:none"></div>
+      <div id="webb-img-preview" class="webb-img-preview" style="display:none">
+        <img id="webb-img-preview-img" src="" alt="screenshot">
+        <button class="webb-img-clear" onclick="webbClearImage()" title="Remove image">✕</button>
+      </div>
       <div class="webb-input-row">
-        <textarea id="webb-input" class="webb-input" placeholder="Ask about anything on the dashboard..." rows="2"></textarea>
+        <label class="webb-img-btn" title="Attach screenshot (or paste one)">
+          📷
+          <input type="file" id="webb-img-input" accept="image/*" style="display:none" onchange="webbHandleFileInput(this)">
+        </label>
+        <textarea id="webb-input" class="webb-input" placeholder="Ask about anything on the dashboard… or paste a screenshot" rows="2"></textarea>
         <button class="webb-send" id="webb-send" onclick="webbSend()">↑</button>
       </div>
     </div>

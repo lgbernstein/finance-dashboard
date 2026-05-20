@@ -126,12 +126,23 @@ Rules:
 - No bullet lists in responses. Write prose like you're talking across a desk.
 - Never give explicit buy/sell advice but absolutely do say "this is a bad environment for X" or "Y is what I'd be watching."`;
 
-    let apiMessages = [...messages];
+    // Transform image blocks to Anthropic multimodal format
+    function toAnthropicContent(content) {
+      if (typeof content === 'string') return content;
+      return content.map(block => {
+        if (block.type === 'image') {
+          return { type: 'image', source: { type: 'base64', media_type: block.mediaType, data: block.data } };
+        }
+        return { type: 'text', text: block.text || '' };
+      });
+    }
+
+    let apiMessages = messages.map(m => ({ role: m.role, content: toAnthropicContent(m.content) }));
     if (context) {
       apiMessages = [
         { role: 'user', content: `Here is current context from my dashboard: ${context}` },
         { role: 'assistant', content: 'Got it — I have the current market context. What do you want to know?' },
-        ...messages
+        ...apiMessages
       ];
     }
 
