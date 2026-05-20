@@ -91,10 +91,21 @@
       </div>
 
       <div class="overview-grid">
-        <!-- Causation chain -->
-        <div class="card card-chain" id="chain-card">
-          <div class="card-label amber">Causation Chain</div>
-          <div id="chain-content"><div class="skeleton">Run a cycle to generate analysis.</div></div>
+        <!-- Market snapshot row -->
+        <div id="market-snapshot" class="snapshot-row">
+          <div class="snapshot-card flat"><div class="skeleton">Loading markets...</div></div>
+        </div>
+
+        <!-- Today's situation + Key levels -->
+        <div class="two-col-cards">
+          <div class="card" id="panel-daily_summary">
+            <div class="card-label green">Today's Situation</div>
+            <div class="skeleton">Loading...</div>
+          </div>
+          <div class="card" id="key-levels-card">
+            <div class="card-label amber">Key Levels</div>
+            <div id="key-levels-content"><div class="skeleton">Loading...</div></div>
+          </div>
         </div>
 
         <!-- Macro + Risk side by side -->
@@ -118,7 +129,7 @@
         <!-- Voices -->
         <div class="card" id="voices-card">
           <div class="card-label purple">What the Level Heads Are Saying</div>
-          <p class="voices-sub">Dalio · Marks · Buffett · Druckenmiller · Grantham · El-Erian — translated into plain English</p>
+          <p class="voices-sub">Independent voices — translated into plain English</p>
           <div id="voices-list"><div class="skeleton">Loading...</div></div>
         </div>
 

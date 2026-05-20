@@ -88,6 +88,7 @@ function toggleExpand(id, btn) {
 
 // ── Render panels ─────────────────────────────────────────────
 const PANEL_MAP = {
+  daily_summary:        'panel-daily_summary',
   macro_overview:       'panel-macro_overview',
   risk_watch:           'panel-risk_watch',
   what_to_watch:        'panel-what_to_watch',
@@ -198,6 +199,88 @@ function renderCuratedNews(items) {
   `).join('');
 }
 
+// ── Market snapshot (overview top row) ───────────────────────
+const SNAPSHOT_SYMS  = ['^GSPC','^IXIC','^TNX','CL=F','^VIX'];
+const SNAPSHOT_NAMES = {
+  '^GSPC':'S&P 500', '^IXIC':'NASDAQ', '^TNX':'10-Yr Yield',
+  'CL=F':'WTI Crude', '^VIX':'VIX'
+};
+
+function renderMarketSnapshot(market) {
+  const el = document.getElementById('market-snapshot');
+  if (!el) return;
+  const by = Object.fromEntries((market || []).map(m => [m.symbol, m]));
+  const items = SNAPSHOT_SYMS.filter(s => by[s]);
+  if (!items.length) return;
+  el.innerHTML = items.map(sym => {
+    const m = by[sym];
+    const chg = m.change_pct;
+    const cls = chg == null ? 'flat' : chg > 0 ? 'up' : 'down';
+    const arrow = chg > 0 ? '▲' : chg < 0 ? '▼' : '';
+    const isIdx = ['^GSPC','^IXIC'].includes(sym);
+    const isYld = sym === '^TNX';
+    const val = isIdx ? fmt(m.value, 0) : isYld ? m.value.toFixed(2) + '%' : '$' + m.value.toFixed(2);
+    return `<div class="snapshot-card ${cls}">
+      <div class="snapshot-label">${SNAPSHOT_NAMES[sym]}</div>
+      <div class="snapshot-value ${cls}">${val}</div>
+      ${chg != null ? `<div class="snapshot-change ${cls}">${arrow} ${Math.abs(chg).toFixed(2)}%</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── Key levels (overview sidebar) ────────────────────────────
+function renderKeyLevels(market) {
+  const el = document.getElementById('key-levels-content');
+  if (!el) return;
+  const by = Object.fromEntries((market || []).map(m => [m.symbol, m]));
+  const flags = [];
+
+  const spx = by['^GSPC'];
+  if (spx) {
+    const cls = spx.change_pct > 0.5 ? 'ok' : spx.change_pct < -1 ? 'alert' : 'warn';
+    const note = spx.change_pct > 0 ? `Up ${spx.change_pct.toFixed(2)}% today` : `Down ${Math.abs(spx.change_pct).toFixed(2)}% today`;
+    flags.push({ name: 'S&P 500', value: fmt(spx.value, 0), note, cls });
+  }
+  const vix = by['^VIX'];
+  if (vix) {
+    const cls = vix.value < 15 ? 'ok' : vix.value > 25 ? 'alert' : 'warn';
+    const note = vix.value < 15 ? 'Markets calm' : vix.value > 25 ? 'High fear' : 'Volatility elevated';
+    flags.push({ name: 'VIX Fear Index', value: vix.value.toFixed(1), note, cls });
+  }
+  const oil = by['CL=F'];
+  if (oil) {
+    const cls = oil.value < 80 ? 'ok' : oil.value > 100 ? 'alert' : 'warn';
+    const note = oil.value > 100 ? 'Above $100 — inflation risk' : oil.value > 80 ? 'Running high' : 'Normal range';
+    flags.push({ name: 'WTI Crude', value: '$' + oil.value.toFixed(2), note, cls });
+  }
+  const yld = by['^TNX'];
+  if (yld) {
+    const cls = yld.value < 4 ? 'ok' : yld.value > 5 ? 'alert' : 'warn';
+    const note = yld.value > 5 ? 'Very restrictive' : yld.value > 4 ? 'Rates elevated' : 'Rates moderate';
+    flags.push({ name: '10-Yr Treasury', value: yld.value.toFixed(2) + '%', note, cls });
+  }
+
+  el.innerHTML = `<div class="key-levels-grid">${flags.map(f =>
+    `<div class="level-flag ${f.cls}">
+      <div class="level-flag-name">${f.name}</div>
+      <div class="level-flag-val">${f.value}</div>
+      <div class="level-flag-note">${f.note}</div>
+    </div>`).join('')}</div>`;
+}
+
+// ── Date formatting helper ─────────────────────────────────────
+function fmtDate(str) {
+  if (!str) return null;
+  try {
+    const d = new Date(str);
+    const days = Math.floor((Date.now() - d) / 86400000);
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return days + ' days ago';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch { return null; }
+}
+
 // ── Voices ────────────────────────────────────────────────────
 function renderVoices(voices) {
   const el = document.getElementById('voices-list');
@@ -206,20 +289,24 @@ function renderVoices(voices) {
     el.innerHTML = '<div class="skeleton">Run a cycle to load voices.</div>';
     return;
   }
-  el.innerHTML = voices.map(v => `
+  el.innerHTML = voices.map(v => {
+    const date = fmtDate(v.published);
+    return `
     <div class="voice-card">
       <div class="voice-header">
         <div>
           <div class="voice-name">${v.name}</div>
           <div class="voice-title">${v.title}</div>
         </div>
-        ${v.url ? `<a class="voice-src-link" href="${v.url}" target="_blank" rel="noopener">Source ↗</a>` : ''}
+        <div class="voice-meta">
+          ${date ? `<span class="voice-date">${date}</span>` : ''}
+          ${v.url ? `<a class="voice-src-link" href="${v.url}" target="_blank" rel="noopener">Source ↗</a>` : ''}
+        </div>
       </div>
       ${v.current_view ? `<div class="voice-view">${v.current_view}</div>` : ''}
       ${v.plain_english ? `<div class="voice-plain"><span class="voice-plain-label">What this means for you:</span> ${v.plain_english}</div>` : ''}
-      <div class="voice-why">${v.why}</div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── Alert bar ─────────────────────────────────────────────────
@@ -553,10 +640,11 @@ async function load() {
 
     renderAlerts(d.alerts || []);
     renderPanels(d.panels || []);
-    renderChain(d.panels || []);
     renderVoices(d.voices || []);
     renderCuratedNews(d.curated_news || []);
     renderMarkets(d.market || []);
+    renderMarketSnapshot(d.market || []);
+    renderKeyLevels(d.market || []);
     renderIndicators(d.indicators || [], d.history || {});
 
   } catch (err) {

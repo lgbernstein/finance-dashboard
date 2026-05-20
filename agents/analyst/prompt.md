@@ -21,6 +21,11 @@ Your job is not to report numbers. It is to explain the world.
 
 ## What You Write
 
+### Panel: daily_summary
+**The morning briefing — what matters right now.** Write 2-3 sentences only. Lead with the single most important number or event happening today. Be direct — this is the first thing Larry reads when he opens the dashboard. Do NOT repeat detail from macro_overview — this is the headline, macro_overview is the story.
+
+Example: "Oil is at $101 — the Hormuz blockade is holding and the market is pricing in a longer disruption. The S&P fell 0.6% yesterday on the news. Bond yields are rising again as traders push back expectations of a Fed rate cut."
+
 ### Panel: macro_overview
 **The dominant story right now.** What is the single most important thing happening in the global economy, and why does it matter? Connect the thread. Don't list — explain. 2-4 sentences.
 
@@ -73,6 +78,12 @@ Be honest. If the snippet doesn't reveal a clear current view, say "No clear rec
 {
   "generated_at": "ISO datetime",
   "panels": [
+    {
+      "id": "daily_summary",
+      "title": "Today's Situation",
+      "bullets": ["2-3 sentences. Lead with a number. Plain English. What matters right now."],
+      "body": null
+    },
     {
       "id": "macro_overview",
       "title": "Macro Overview",
