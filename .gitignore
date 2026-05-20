@@ -1,4 +1,5 @@
 node_modules/
+.DS_Store
 .env
 shared_memory/task_history.jsonl
 shared_memory/observations.json
