@@ -70,6 +70,13 @@ const VOICES = [
     title: 'Nobel Laureate; Columbia University',
     why: 'Nobel Prize-winning economist who calls out inequality and policy failures others won\'t',
     baseQueries: ['Joseph Stiglitz economy', 'Stiglitz inequality trade']
+  },
+  {
+    id: 'bernard_baumohl',
+    name: 'Bernard Baumohl',
+    title: 'Chief Global Economist, Economic Outlook Group',
+    why: 'Expert on leading economic indicators — calls turning points before they show up in the data',
+    baseQueries: ['Bernard Baumohl economy', 'Baumohl economic indicators forecast']
   }
 ];
 
