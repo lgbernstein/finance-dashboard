@@ -9,27 +9,27 @@
   --surface3:  #585858;
   --border:    #2e2e2e;
   --border2:   #252525;
-  --text:      #e8e8e8;
-  --text2:     #c0c0c0;
-  --muted:     #969696;
-  --dim:       #b0b0b0;
+  --text:      #f0f0f0;
+  --text2:     #d0d0d0;
+  --muted:     #a0a0a0;
+  --dim:       #c0c0c0;
 
-  /* Accents — single steel blue primary, muted functional colors */
-  --green:     #5aab78;
-  --green-dim: rgba(90,171,120,0.15);
-  --green-b:   rgba(90,171,120,0.30);
-  --red:       #b85c5c;
-  --red-dim:   rgba(184,92,92,0.15);
-  --red-b:     rgba(184,92,92,0.30);
-  --amber:     #b8902e;
-  --amber-dim: rgba(184,144,46,0.15);
-  --amber-b:   rgba(184,144,46,0.30);
-  --blue:      #4a90d9;
-  --blue-dim:  rgba(74,144,217,0.15);
-  --blue-b:    rgba(74,144,217,0.30);
-  --purple:    #8f7ec0;
-  --purple-dim:rgba(143,126,192,0.15);
-  --purple-b:  rgba(143,126,192,0.30);
+  /* Accents — vivid, high-contrast against mid-grey surfaces */
+  --green:     #4ade80;
+  --green-dim: rgba(74,222,128,0.15);
+  --green-b:   rgba(74,222,128,0.30);
+  --red:       #f87171;
+  --red-dim:   rgba(248,113,113,0.15);
+  --red-b:     rgba(248,113,113,0.30);
+  --amber:     #fbbf24;
+  --amber-dim: rgba(251,191,36,0.15);
+  --amber-b:   rgba(251,191,36,0.30);
+  --blue:      #4299e1;
+  --blue-dim:  rgba(66,153,225,0.15);
+  --blue-b:    rgba(66,153,225,0.30);
+  --purple:    #a78bfa;
+  --purple-dim:rgba(167,139,250,0.15);
+  --purple-b:  rgba(167,139,250,0.30);
 
   --sidebar-w: 210px;
   --drawer-w:  380px;
@@ -201,7 +201,7 @@ body {
 .card-body-para {
   font-size: 15px;
   font-weight: 400;
-  color: var(--text2);
+  color: var(--text);
   line-height: 1.75;
   margin: 0 0 13px;
 }
