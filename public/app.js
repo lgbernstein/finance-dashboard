@@ -60,23 +60,47 @@ function md(text) {
 }
 
 // ── Build bullet panel HTML ───────────────────────────────────
+function isProse(text) {
+  const plain = text.replace(/\*\*/g, '').replace(/<[^>]+>/g, '').trim();
+  return plain.length > 80 || /\.\s+[A-Z]/.test(plain) || (plain.endsWith('.') && plain.length > 60);
+}
+
 function bulletPanel(panel, expandId) {
   let bullets = [];
   try { bullets = JSON.parse(panel.bullets || '[]'); } catch {}
+  if (!Array.isArray(bullets)) bullets = [];
 
-  const bulletsHtml = bullets.length
-    ? `<ul class="bullet-list">${bullets.map(b =>
-        `<li>${md(b).replace(/<\/?p>/g,'')}</li>`
-      ).join('')}</ul>`
-    : '';
+  let html = '';
+  let shortBuf = [];
+  let proseCount = 0;
+
+  const flushShort = () => {
+    if (!shortBuf.length) return;
+    html += `<ul class="bullet-list">${shortBuf.map(b =>
+      `<li>${md(b).replace(/<\/?p>/g,'')}</li>`
+    ).join('')}</ul>`;
+    shortBuf = [];
+  };
+
+  bullets.forEach(b => {
+    if (isProse(b)) {
+      flushShort();
+      const cls = proseCount === 0 ? 'card-lede' : 'card-body-para';
+      html += `<p class="${cls}">${md(b).replace(/<\/?p>/g,'')}</p>`;
+      proseCount++;
+    } else {
+      shortBuf.push(b);
+    }
+  });
+  flushShort();
 
   const hasBody = panel.body && panel.body.trim().length > 20;
   const expandBtn = hasBody
-    ? `<button class="expand-toggle" onclick="toggleExpand('${expandId}', this)">Full analysis ↓</button>
+    ? `<button class="expand-toggle" onclick="toggleExpand('${expandId}', this)">Read more ↓</button>
        <div class="expand-body" id="${expandId}">${md(panel.body)}</div>`
     : '';
 
-  return bulletsHtml + expandBtn;
+  return html + expandBtn;
 }
 
 function toggleExpand(id, btn) {
@@ -110,6 +134,14 @@ function renderPanels(panels) {
     if (!elId) continue;
     const el = document.getElementById(elId);
     if (!el) continue;
+    // Auto-set data-accent from label color if not already in HTML
+    if (!el.dataset.accent) {
+      const lbl = el.querySelector('.card-label');
+      if (lbl) {
+        const accent = ['green','red','blue','amber','purple','gray'].find(c => lbl.classList.contains(c));
+        if (accent) el.dataset.accent = accent;
+      }
+    }
     const inner = bulletPanel(panel, `expand-${panel.panel_id}`);
     const label = el.querySelector('.card-label');
     el.innerHTML = '';
@@ -131,8 +163,8 @@ function renderGeoStepper() {
   }
 
   container.innerHTML = geoPanels.map((panel, i) => `
-    <div class="card geo-card">
-      <div class="card-label amber" style="margin-bottom:14px">Geopolitical Thread ${geoPanels.length > 1 ? i + 1 : ''}</div>
+    <div class="card geo-card" data-accent="purple">
+      <div class="card-label purple">Geopolitical Thread ${geoPanels.length > 1 ? i + 1 : ''}</div>
       ${bulletPanel(panel, `expand-geo-${i}`)}
     </div>
   `).join('');
