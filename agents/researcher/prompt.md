@@ -25,8 +25,9 @@ Key series to fetch daily:
 Use Yahoo Finance unofficial API or similar free endpoint.
 
 ### RSS News Feeds
-- Reuters Business: https://feeds.reuters.com/reuters/businessNews
-- AP Business: https://feeds.apnews.com/rss/apf-business
+- WSJ World News: https://feeds.a.dj.com/rss/RSSWorldNews.xml
+- NYT Business: https://rss.nytimes.com/services/xml/rss/nyt/Business.xml
+- BBC Business: https://feeds.bbci.co.uk/news/business/rss.xml
 Fetch latest 10 items from each. Include: title, link, pubDate, summary.
 
 ### Brave Search (only when Manager explicitly requests)

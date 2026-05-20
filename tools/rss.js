@@ -2,8 +2,9 @@ const Parser = require('rss-parser');
 const parser = new Parser({ timeout: 10000 });
 
 const FEEDS = [
-  { source: 'Reuters', url: 'https://feeds.reuters.com/reuters/businessNews' },
-  { source: 'AP',      url: 'https://feeds.apnews.com/rss/apf-business' },
+  { source: 'WSJ',  url: 'https://feeds.a.dj.com/rss/RSSWorldNews.xml' },
+  { source: 'NYT',  url: 'https://rss.nytimes.com/services/xml/rss/nyt/Business.xml' },
+  { source: 'BBC',  url: 'https://feeds.bbci.co.uk/news/business/rss.xml' },
 ];
 
 async function fetchAll(sinceHours = 24) {
