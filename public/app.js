@@ -240,10 +240,13 @@ function renderCuratedNews(items) {
   }
   el.innerHTML = items.map(n => `
     <div class="curated-item">
-      <a class="curated-headline" href="${n.url || '#'}" target="_blank" rel="noopener">
-        <span class="curated-src">${n.source || '?'}</span>
-        <span>${n.headline}</span>
-      </a>
+      <div style="display:flex;align-items:baseline;gap:4px;flex-wrap:wrap;">
+        <a class="curated-headline" href="${n.url || '#'}" target="_blank" rel="noopener">
+          <span class="curated-src">${n.source || '?'}</span>
+          <span>${n.headline}</span>
+        </a>
+        <button class="ask-webb-btn" onclick="webbOpen('News: ${n.headline.replace(/'/g,"\\'")}. ${(n.why_it_matters||'').replace(/'/g,"\\'")}')">Ask Dr. Webb</button>
+      </div>
       ${n.why_it_matters ? `<div class="curated-why">${n.why_it_matters}</div>` : ''}
     </div>
   `).join('');
@@ -351,6 +354,7 @@ function renderVoices(voices) {
         <div class="voice-meta">
           ${date ? `<span class="voice-date">${date}</span>` : ''}
           ${v.url ? `<a class="voice-src-link" href="${v.url}" target="_blank" rel="noopener">Source ↗</a>` : ''}
+          <button class="ask-webb-btn" onclick="webbOpen('${v.name.replace(/'/g,"\\'")} says: ${(v.current_view||'').replace(/'/g,"\\'")}')">Ask Dr. Webb</button>
         </div>
       </div>
       ${v.current_view ? `<div class="voice-view">${v.current_view}</div>` : ''}
@@ -1104,6 +1108,9 @@ function expUpdateSim() {
     return `<span class="${cls}">${s}${val.toFixed(d)}${u}</span>`;
   }
 
+  const narrativeEl = document.getElementById('exp-narrative');
+  if (narrativeEl) narrativeEl.textContent = expBuildNarrative(v, fedSig, curveSig);
+
   const out = document.getElementById('exp-sim-output');
   if (!out) return;
   out.innerHTML = `
@@ -1121,8 +1128,114 @@ function expUpdateSim() {
   });
 }
 
+function expBuildNarrative(v, fedSig, curveSig) {
+  if (v.cpi > 5 && v.unemp > 5.5)
+    return `The economy is in stagflation territory — ${v.cpi.toFixed(1)}% inflation running alongside ${v.unemp.toFixed(1)}% unemployment. The Fed faces an impossible choice: hike to fight inflation and deepen job losses, or hold/cut to protect employment and let prices run hotter. Both paths inflict pain. There is no clean exit.`;
+  if (v.unemp > 8)
+    return `Unemployment at ${v.unemp.toFixed(1)}% signals a hard recession. Consumer spending is collapsing, corporate earnings will follow, and the Fed is likely cutting aggressively. The risk is a deflationary spiral if rate cuts come too slowly or the transmission mechanism is broken.`;
+  if (v.oil > 140)
+    return `Oil at $${Math.round(v.oil)}/bbl is a tax on the entire economy. Every $10 move in crude adds roughly 25–30bp to headline CPI within 6 months. At this level, consumer discretionary spending is being squeezed, transport costs are spiking, and second-round effects into food prices are already in motion.`;
+  if (v.cpi > 6)
+    return `Inflation at ${v.cpi.toFixed(1)}% is well above target and at risk of becoming embedded in wage expectations. The Fed will likely need to hold rates higher for longer. Mortgage rates near ${(v.yield10 + 2.46).toFixed(2)}% are effectively shutting out first-time buyers and slowing the housing market sharply.`;
+  if (v.fedrate > 6)
+    return `Fed funds at ${v.fedrate.toFixed(2)}% is in territory last seen in 2007. Credit is tightening for businesses and consumers. The housing market is effectively frozen. Rate hikes take 12–18 months to fully transmit — the pain from today's settings may not show up in unemployment or GDP for another year.`;
+  if (v.unemp < 3.5 && v.cpi < 3)
+    return `Near-full employment with contained inflation — textbook soft landing. The Fed has room to hold or nudge rates lower. Equity valuations are stretched but supported by earnings. The main risk: any external shock (energy, geopolitics, credit event) tips a fragile equilibrium.`;
+  if (v.sp500 < 4000)
+    return `The S&P at ${v.sp500.toLocaleString()} reflects significant multiple compression. Bear market conditions historically precede Fed easing cycles by 6–12 months. Credit spreads typically widen before equities bottom — watch HYG as the leading signal. Capitulation usually requires retail panic, not just institutional selling.`;
+  const spread = (v.yield10 - v.fedrate).toFixed(2);
+  return `Fed funds at ${v.fedrate.toFixed(2)}% vs. 10-year yield at ${v.yield10.toFixed(2)}% gives a ${Number(spread) > 0 ? '+' : ''}${spread}pp spread — ${curveSig.split(' —')[0].toLowerCase()}. With CPI at ${v.cpi.toFixed(1)}% and unemployment at ${v.unemp.toFixed(1)}%, the most likely Fed path is ${fedSig.split(' —')[0].toLowerCase()}. Oil at $${Math.round(v.oil)}/bbl remains the key exogenous variable to watch.`;
+}
+
 // Bind sliders
 ['exp-s-fedrate','exp-s-cpi','exp-s-unemp','exp-s-yield','exp-s-oil','exp-s-sp500'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('input', expUpdateSim);
+});
+
+// ── Dr. Webb Chat ──────────────────────────────────────────────
+let webbMessages = [];
+let webbContext  = null;
+let webbPending  = false;
+
+function webbOpen(ctx) {
+  if (ctx) {
+    webbContext = ctx;
+    const bar = document.getElementById('webb-context-bar');
+    if (bar) {
+      bar.style.display = 'flex';
+      bar.innerHTML = `<span>Context: ${ctx.substring(0,80)}${ctx.length>80?'…':''}</span><button class="webb-context-clear" onclick="webbClearContext()">✕</button>`;
+    }
+  }
+  document.getElementById('webb-drawer')?.classList.add('open');
+  document.getElementById('webb-overlay')?.classList.add('open');
+  document.getElementById('webb-btn')?.style.setProperty('display','none');
+  setTimeout(() => document.getElementById('webb-input')?.focus(), 300);
+}
+
+function webbClose() {
+  document.getElementById('webb-drawer')?.classList.remove('open');
+  document.getElementById('webb-overlay')?.classList.remove('open');
+  document.getElementById('webb-btn')?.style.removeProperty('display');
+}
+
+function webbClearContext() {
+  webbContext = null;
+  const bar = document.getElementById('webb-context-bar');
+  if (bar) bar.style.display = 'none';
+}
+
+function webbAddMsg(role, text) {
+  const el = document.getElementById('webb-messages');
+  if (!el) return;
+  const div = document.createElement('div');
+  div.className = `webb-msg webb-msg-${role}`;
+  div.innerHTML = `<div class="webb-msg-text">${text.replace(/\n/g,'<br>')}</div>`;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function webbSend() {
+  if (webbPending) return;
+  const input = document.getElementById('webb-input');
+  const text  = input?.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  webbMessages.push({ role: 'user', content: text });
+  webbAddMsg('user', text);
+
+  webbPending = true;
+  document.getElementById('webb-send').disabled = true;
+
+  const thinking = document.createElement('div');
+  thinking.className = 'webb-msg webb-msg-assistant';
+  thinking.innerHTML = '<div class="webb-msg-text webb-msg-thinking">Dr. Webb is thinking…</div>';
+  document.getElementById('webb-messages').appendChild(thinking);
+  document.getElementById('webb-messages').scrollTop = 99999;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: webbMessages, context: webbContext })
+    });
+    const data = await res.json();
+    thinking.remove();
+    const reply = data.reply || 'No response.';
+    webbMessages.push({ role: 'assistant', content: reply });
+    webbAddMsg('assistant', reply);
+  } catch (e) {
+    thinking.remove();
+    webbAddMsg('assistant', 'Connection error — try again.');
+  }
+
+  webbPending = false;
+  document.getElementById('webb-send').disabled = false;
+  document.getElementById('webb-input')?.focus();
+}
+
+// Enter key sends (Shift+Enter for newline)
+document.getElementById('webb-input')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); webbSend(); }
 });

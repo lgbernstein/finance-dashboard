@@ -20,19 +20,19 @@
   <!-- Mobile bottom nav -->
   <nav class="mobile-nav">
     <button class="mobile-nav-item active" data-tab="overview">
-      <span class="mobile-nav-icon">◎</span>
+      <span class="mobile-nav-icon">🗞</span>
       <span class="mobile-nav-label">Overview</span>
     </button>
     <button class="mobile-nav-item" data-tab="geopolitics">
-      <span class="mobile-nav-icon">◈</span>
+      <span class="mobile-nav-icon">🌐</span>
       <span class="mobile-nav-label">Geo</span>
     </button>
     <button class="mobile-nav-item" data-tab="markets">
-      <span class="mobile-nav-icon">◇</span>
+      <span class="mobile-nav-icon">📈</span>
       <span class="mobile-nav-label">Markets</span>
     </button>
     <button class="mobile-nav-item" data-tab="indicators">
-      <span class="mobile-nav-icon">◈</span>
+      <span class="mobile-nav-icon">📊</span>
       <span class="mobile-nav-label">Data</span>
     </button>
     <button class="mobile-nav-item" data-tab="energy">
@@ -40,7 +40,7 @@
       <span class="mobile-nav-label">Energy</span>
     </button>
     <button class="mobile-nav-item" data-tab="macro-tools">
-      <span class="mobile-nav-icon">◇</span>
+      <span class="mobile-nav-icon">🎛</span>
       <span class="mobile-nav-label">Macro</span>
     </button>
   </nav>
@@ -53,25 +53,25 @@
 
     <nav class="sidebar-nav">
       <button class="nav-item active" data-tab="overview">
-        <span class="nav-icon">◎</span> Overview
+        <span class="nav-icon">🗞</span> Overview
       </button>
       <button class="nav-item" data-tab="geopolitics">
-        <span class="nav-icon">◈</span> Geopolitics
+        <span class="nav-icon">🌐</span> Geopolitics
       </button>
       <button class="nav-item" data-tab="markets">
-        <span class="nav-icon">◇</span> Markets
+        <span class="nav-icon">📈</span> Markets
       </button>
       <button class="nav-item" data-tab="indicators">
-        <span class="nav-icon">◈</span> Indicators
+        <span class="nav-icon">📊</span> Indicators
       </button>
       <button class="nav-item" data-tab="energy">
         <span class="nav-icon">⚡</span> Energy
       </button>
       <button class="nav-item" data-tab="macro-tools">
-        <span class="nav-icon">◇</span> Macro Tools
+        <span class="nav-icon">🎛</span> Macro Tools
       </button>
       <button class="nav-item" data-tab="my-position">
-        <span class="nav-icon">◎</span> My Position
+        <span class="nav-icon">💼</span> My Position
       </button>
     </nav>
 
@@ -468,8 +468,21 @@
         <p class="page-sub">Interactive simulation — adjust variables or pick a scenario to see how indicators cascade through the economy</p>
       </div>
 
-      <!-- 7 gauge cards -->
-      <div class="exp-gauges">
+      <!-- 1. Scenario Presets at top -->
+      <div class="card">
+        <div class="card-header"><div class="card-label blue">Scenario Presets — jump to a macro environment</div></div>
+        <div class="exp-presets-row">
+          <button class="preset-btn active" id="exp-preset-baseline"    onclick="expApplyPreset('baseline')">Today (baseline)</button>
+          <button class="preset-btn"        id="exp-preset-stagflation" onclick="expApplyPreset('stagflation')">Stagflation</button>
+          <button class="preset-btn"        id="exp-preset-recession"   onclick="expApplyPreset('recession')">Deep Recession</button>
+          <button class="preset-btn"        id="exp-preset-softlanding" onclick="expApplyPreset('softlanding')">Soft Landing</button>
+          <button class="preset-btn"        id="exp-preset-ratehike"    onclick="expApplyPreset('ratehike')">Aggressive Hike</button>
+          <button class="preset-btn"        id="exp-preset-oilshock"    onclick="expApplyPreset('oilshock')">Oil Shock $155</button>
+        </div>
+      </div>
+
+      <!-- 2. Gauge cards -->
+      <div class="exp-gauges mt-16">
         <div class="exp-gauge-card" id="eg-card-rate" onclick="expSelectGauge('rate')">
           <div class="exp-gauge-name">Fed Funds Rate</div>
           <div class="exp-gauge-value" id="eg-val-rate">4.33%</div>
@@ -514,25 +527,8 @@
         </div>
       </div>
 
-      <!-- Presets -->
-      <div class="card mt-16">
-        <div class="card-header"><div class="card-label blue">Scenario Presets — jump to a macro environment</div></div>
-        <div class="exp-presets-row">
-          <button class="preset-btn active" id="exp-preset-baseline"    onclick="expApplyPreset('baseline')">Today (baseline)</button>
-          <button class="preset-btn"        id="exp-preset-stagflation" onclick="expApplyPreset('stagflation')">Stagflation</button>
-          <button class="preset-btn"        id="exp-preset-recession"   onclick="expApplyPreset('recession')">Deep Recession</button>
-          <button class="preset-btn"        id="exp-preset-softlanding" onclick="expApplyPreset('softlanding')">Soft Landing</button>
-          <button class="preset-btn"        id="exp-preset-ratehike"    onclick="expApplyPreset('ratehike')">Aggressive Hike</button>
-          <button class="preset-btn"        id="exp-preset-oilshock"    onclick="expApplyPreset('oilshock')">Oil Shock $155</button>
-        </div>
-      </div>
-
-      <!-- 3-column layout: cascade | sliders | outputs -->
-      <div class="exp-layout mt-16">
-        <div class="card">
-          <div class="card-header"><div class="card-label green" id="exp-cascade-title">Click an indicator above</div></div>
-          <div id="exp-cascade-content"><div class="cascade-hint">Select any gauge card to see what drives it and what it pushes in the economy.</div></div>
-        </div>
+      <!-- 3. Two-column: Sliders | Projected Impacts -->
+      <div class="exp-layout-2col mt-16">
         <div class="card">
           <div class="card-header"><div class="card-label blue">Adjust Variables — all gauges update live</div></div>
           <div class="slider-2col" style="margin-top:12px">
@@ -568,11 +564,18 @@
             </div>
           </div>
         </div>
-        <div class="card">
+        <div class="card" data-accent="amber">
           <div class="card-header"><div class="card-label amber">Projected Impacts</div></div>
-          <div class="sim-output" id="exp-sim-output" style="margin-top:12px"></div>
-          <p style="font-size:11px;color:var(--dim);margin-top:10px;line-height:1.5">5-yr rolling correlations. Bond duration ~7.5. Effects have 12–18mo lags in reality.</p>
+          <div id="exp-narrative" class="exp-narrative"></div>
+          <div class="sim-output-lg" id="exp-sim-output"></div>
+          <p style="font-size:11px;color:var(--dim);margin-top:12px;line-height:1.5">5-yr rolling correlations. Bond duration ~7.5. Effects have 12–18mo lags in reality.</p>
         </div>
+      </div>
+
+      <!-- 4. Cascade detail at bottom -->
+      <div class="card mt-16">
+        <div class="card-header"><div class="card-label green" id="exp-cascade-title">Click an indicator above</div></div>
+        <div id="exp-cascade-content"><div class="cascade-hint">Select any gauge card to see what drives it and what it pushes in the economy.</div></div>
       </div>
     </section>
 
@@ -602,6 +605,35 @@
     <div class="drawer-body" id="drawer-body"></div>
   </div>
   <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+
+  <!-- Dr. Webb Chat -->
+  <div id="webb-btn" class="webb-btn" onclick="webbOpen()">
+    <span class="webb-btn-icon">💬</span>
+    <span class="webb-btn-label">Ask Dr. Webb</span>
+  </div>
+
+  <div id="webb-drawer" class="webb-drawer">
+    <div class="webb-header">
+      <div class="webb-header-info">
+        <div class="webb-name">Dr. Marcus Webb</div>
+        <div class="webb-title">PhD Geopolitical Economics · 22yr Macro Trader</div>
+      </div>
+      <button class="webb-close" onclick="webbClose()">✕</button>
+    </div>
+    <div class="webb-messages" id="webb-messages">
+      <div class="webb-msg webb-msg-assistant">
+        <div class="webb-msg-text">I'm watching the same data you are. What do you want to understand?</div>
+      </div>
+    </div>
+    <div class="webb-input-area">
+      <div id="webb-context-bar" class="webb-context-bar" style="display:none"></div>
+      <div class="webb-input-row">
+        <textarea id="webb-input" class="webb-input" placeholder="Ask about anything on the dashboard..." rows="2"></textarea>
+        <button class="webb-send" id="webb-send" onclick="webbSend()">↑</button>
+      </div>
+    </div>
+  </div>
+  <div id="webb-overlay" class="webb-overlay" onclick="webbClose()"></div>
 
   <script src="app.js"></script>
 </body>
