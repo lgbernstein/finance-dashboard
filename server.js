@@ -1,7 +1,66 @@
 require('dotenv').config();
 const express = require('express');
+const https = require('https');
 const path = require('path');
 const db = require('./db');
+
+// ── Live market quote helper (Yahoo Finance) ──────────────────
+const LIVE_SYMS = ['^GSPC', '^DJI', '^IXIC', 'CL=F', '^VIX', '^TNX'];
+let liveCache = null;
+let liveCacheAt = 0;
+
+function fetchLiveQuote(symbol) {
+  return new Promise((resolve) => {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=2d`;
+    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        try {
+          const meta = JSON.parse(data)?.chart?.result?.[0]?.meta;
+          if (!meta) return resolve(null);
+          const price = meta.regularMarketPrice ?? meta.previousClose;
+          const prev = meta.chartPreviousClose ?? meta.previousClose;
+          const chg = prev ? ((price - prev) / prev) * 100 : null;
+          resolve({ symbol, value: price, change_pct: chg ? parseFloat(chg.toFixed(2)) : null });
+        } catch { resolve(null); }
+      });
+    }).on('error', () => resolve(null));
+  });
+}
+
+// ── FRED yield curve helper ───────────────────────────────────
+const YIELD_SERIES = [
+  { id:'DGS1MO', label:'1-Mo',  group:'T-Bill' },
+  { id:'DGS3MO', label:'3-Mo',  group:'T-Bill' },
+  { id:'DGS6MO', label:'6-Mo',  group:'T-Bill' },
+  { id:'DGS1',   label:'1-Yr',  group:'T-Bill' },
+  { id:'DGS2',   label:'2-Yr',  group:'T-Note' },
+  { id:'DGS5',   label:'5-Yr',  group:'T-Note' },
+  { id:'DGS7',   label:'7-Yr',  group:'T-Note' },
+  { id:'DGS10',  label:'10-Yr', group:'T-Note' },
+  { id:'DGS20',  label:'20-Yr', group:'T-Bond' },
+  { id:'DGS30',  label:'30-Yr', group:'T-Bond' },
+];
+let yieldsCache = null;
+let yieldsCacheAt = 0;
+
+function fetchFredSeries(id, apiKey) {
+  return new Promise((resolve) => {
+    const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${id}&api_key=${apiKey}&limit=5&sort_order=desc&file_type=json`;
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        try {
+          const obs = (JSON.parse(data).observations || []).filter(o => o.value !== '.');
+          if (!obs.length) return resolve(null);
+          resolve({ id, value: parseFloat(obs[0].value), date: obs[0].date });
+        } catch { resolve(null); }
+      });
+    }).on('error', () => resolve(null));
+  });
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -90,6 +149,36 @@ Rules:
   } catch (err) {
     console.error('Chat error:', err.message);
     res.status(500).json({ error: 'Chat unavailable' });
+  }
+});
+
+app.get('/api/market-live', async (req, res) => {
+  if (liveCache && Date.now() - liveCacheAt < 30000)
+    return res.json(liveCache);
+  try {
+    const results = await Promise.all(LIVE_SYMS.map(fetchLiveQuote));
+    liveCache = results.filter(Boolean);
+    liveCacheAt = Date.now();
+    res.json(liveCache);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/yields', async (req, res) => {
+  if (yieldsCache && Date.now() - yieldsCacheAt < 4 * 3600 * 1000)
+    return res.json(yieldsCache);
+  const apiKey = process.env.FRED_API_KEY;
+  if (!apiKey) return res.status(400).json({ error: 'FRED_API_KEY not configured' });
+  try {
+    const results = await Promise.all(YIELD_SERIES.map(s =>
+      fetchFredSeries(s.id, apiKey).then(r => r ? { ...s, value: r.value, date: r.date } : null)
+    ));
+    yieldsCache = results.filter(Boolean);
+    yieldsCacheAt = Date.now();
+    res.json(yieldsCache);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

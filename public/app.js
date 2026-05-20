@@ -87,37 +87,43 @@ function bulletPanel(panel, expandId) {
   try { bullets = JSON.parse(panel.bullets || '[]'); } catch {}
   if (!Array.isArray(bullets)) bullets = [];
 
-  let html = '';
-  let shortBuf = [];
+  let ledeSrc = '';
+  let expandSrc = '';
   let proseCount = 0;
+  let shortBuf = [];
 
-  const flushShort = () => {
+  const flushShort = (dest) => {
     if (!shortBuf.length) return;
-    html += `<ul class="bullet-list">${shortBuf.map(b =>
-      `<li>${md(b).replace(/<\/?p>/g,'')}</li>`
-    ).join('')}</ul>`;
+    dest === 'lede'
+      ? ledeSrc += `<ul class="bullet-list">${shortBuf.map(b => `<li>${md(b).replace(/<\/?p>/g,'')}</li>`).join('')}</ul>`
+      : expandSrc += `<ul class="bullet-list">${shortBuf.map(b => `<li>${md(b).replace(/<\/?p>/g,'')}</li>`).join('')}</ul>`;
     shortBuf = [];
   };
 
   bullets.forEach(b => {
     if (isProse(b)) {
-      flushShort();
-      const cls = proseCount === 0 ? 'card-lede' : 'card-body-para';
-      html += `<p class="${cls}">${md(b).replace(/<\/?p>/g,'')}</p>`;
+      if (proseCount === 0) {
+        flushShort('lede');
+        ledeSrc += `<p class="card-lede">${md(b).replace(/<\/?p>/g,'')}</p>`;
+      } else {
+        flushShort('expand');
+        expandSrc += `<p class="card-body-para">${md(b).replace(/<\/?p>/g,'')}</p>`;
+      }
       proseCount++;
     } else {
       shortBuf.push(b);
     }
   });
-  flushShort();
+  flushShort(proseCount > 1 ? 'expand' : 'lede');
 
   const hasBody = panel.body && panel.body.trim().length > 20;
-  const expandBtn = hasBody
+  const extraContent = expandSrc + (hasBody ? md(panel.body) : '');
+  const expandBtn = extraContent
     ? `<button class="expand-toggle" onclick="toggleExpand('${expandId}', this)">Read more ↓</button>
-       <div class="expand-body" id="${expandId}">${md(panel.body)}</div>`
+       <div class="expand-body" id="${expandId}">${extraContent}</div>`
     : '';
 
-  return html + expandBtn;
+  return ledeSrc + expandBtn;
 }
 
 function toggleExpand(id, btn) {
@@ -253,10 +259,10 @@ function renderCuratedNews(items) {
 }
 
 // ── Market snapshot (overview top row) ───────────────────────
-const SNAPSHOT_SYMS  = ['^GSPC','^IXIC','^TNX','CL=F','^VIX'];
+const SNAPSHOT_SYMS  = ['^GSPC','^DJI','^IXIC','CL=F','^VIX','^TNX'];
 const SNAPSHOT_NAMES = {
-  '^GSPC':'S&P 500', '^IXIC':'NASDAQ', '^TNX':'10-Yr Yield',
-  'CL=F':'WTI Crude', '^VIX':'VIX'
+  '^GSPC':'S&P 500', '^DJI':'Dow Jones', '^IXIC':'NASDAQ',
+  'CL=F':'WTI Crude', '^VIX':'VIX', '^TNX':'10-Yr Yield'
 };
 
 function renderMarketSnapshot(market) {
@@ -270,7 +276,7 @@ function renderMarketSnapshot(market) {
     const chg = m.change_pct;
     const cls = chg == null ? 'flat' : chg > 0 ? 'up' : 'down';
     const arrow = chg > 0 ? '▲' : chg < 0 ? '▼' : '';
-    const isIdx = ['^GSPC','^IXIC'].includes(sym);
+    const isIdx = ['^GSPC','^DJI','^IXIC'].includes(sym);
     const isYld = sym === '^TNX';
     const val = isIdx ? fmt(m.value, 0) : isYld ? m.value.toFixed(2) + '%' : '$' + m.value.toFixed(2);
     return `<div class="snapshot-card ${cls}">
@@ -710,6 +716,67 @@ async function load() {
 
 load();
 setInterval(load, 5 * 60 * 1000);
+
+// ── Live market snapshot (polls every 60s from Yahoo Finance) ─
+async function liveMarketPoll() {
+  try {
+    const r = await fetch('/api/market-live');
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.length) {
+      renderMarketSnapshot(data);
+      renderKeyLevels(data);
+    }
+  } catch {}
+}
+liveMarketPoll();
+setInterval(liveMarketPoll, 60000);
+
+// ── Treasury yield curve ───────────────────────────────────────
+async function renderYieldCurve() {
+  const el = document.getElementById('yield-curve-grid');
+  if (!el) return;
+  try {
+    const r = await fetch('/api/yields');
+    if (!r.ok) throw new Error('failed');
+    const yields = await r.json();
+    if (!yields.length) throw new Error('empty');
+
+    const groups = { 'T-Bill': [], 'T-Note': [], 'T-Bond': [] };
+    yields.forEach(y => { if (groups[y.group]) groups[y.group].push(y); });
+
+    const labels = {
+      'T-Bill': 'Treasury Bills — Short-Term (under 1 year)',
+      'T-Note': 'Treasury Notes — Medium-Term (2–10 years)',
+      'T-Bond': 'Treasury Bonds — Long-Term (20–30 years)',
+    };
+    const descs = {
+      'T-Bill': 'Track the Fed funds rate closely. The benchmark for money market funds and short-term cash.',
+      'T-Note': 'The 10-Yr is the most important rate in the world — it sets 30-yr mortgage rates and prices all risk assets against it.',
+      'T-Bond': 'Sensitive to long-run inflation expectations. High 30-Yr yields mean markets expect inflation to persist for decades.',
+    };
+
+    el.innerHTML = Object.entries(groups).map(([grp, items]) => {
+      if (!items.length) return '';
+      return `<div class="yield-group">
+        <div class="yield-group-name">${labels[grp]}</div>
+        <div class="yield-group-desc">${descs[grp]}</div>
+        <div class="yield-row">
+          ${items.map(y => {
+            const cls = y.value >= 5 ? 'yield-high' : y.value >= 4 ? 'yield-mid' : 'yield-low';
+            return `<div class="yield-cell">
+              <div class="yield-maturity">${y.label}</div>
+              <div class="yield-rate ${cls}">${y.value.toFixed(2)}%</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  } catch {
+    if (el) el.innerHTML = '<div class="section-note" style="color:var(--dim)">Yield data unavailable — FRED API key required.</div>';
+  }
+}
+renderYieldCurve();
 
 // ═══════════════════════════════════════════════════════════════
 // COMPOSITE INDICATORS — NFCI + NY Fed Recession Probability
