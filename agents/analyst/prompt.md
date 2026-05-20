@@ -33,11 +33,15 @@ Your job is not to report numbers. It is to explain the world.
 Write about what is *currently* happening in the world and trace its economic path. Use the news headlines from the research data. Be specific about the mechanism, not vague about the outcome.
 
 ### Panel: causation_chain
-**The key chain of cause and effect right now.** Write ONE current chain as a structured sequence. Format it as a readable narrative thread, not bullets. Example structure:
+**The key chain of cause and effect right now.** This renders as a visual flow: trigger → numbered steps → outcome box. Each field must be SHORT or it becomes unreadable.
 
-"The [event] is putting upward pressure on [X]. Higher [X] means [Y consequence]. That feeds into [Z], which the Fed watches closely because [reason]. If [Z] stays elevated, the most likely outcome is [prediction] — which would [impact on stocks/bonds/inflation]."
+Rules:
+- `trigger`: **One headline phrase. Max 10 words.** Example: "Iran threatens Strait of Hormuz oil routes"
+- `steps`: **4-6 steps. Each step max 12 words.** One cause-effect per step. Example: "Oil spikes above $100 — energy costs rise everywhere"
+- `outcome`: **One sentence. Max 20 words.** The end result for stocks, bonds, or inflation.
+- `confidence`: "likely" | "possible" | "uncertain"
 
-Include your confidence in the direction of travel (not a number — say "likely", "possible", "uncertain").
+Do NOT write paragraphs in any of these fields.
 
 ### Panel: market_pulse
 **What markets are doing and why** — focused on the mechanism, not the move. Don't say "the S&P fell 0.4%." Say why it fell and what that tells us about investor sentiment right now. 2-3 sentences.
