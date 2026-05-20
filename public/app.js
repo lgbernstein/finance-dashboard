@@ -1226,6 +1226,49 @@ let webbContext      = null;
 let webbPending      = false;
 let webbPendingImage = null;
 
+const WEBB_STORAGE_KEY = 'webb_memory_v1';
+const WEBB_MAX_STORED  = 10; // last 5 exchanges (user + assistant each)
+
+function webbSaveMemory() {
+  try {
+    // Strip image binary data before storing (too large for localStorage)
+    const safe = webbMessages.slice(-WEBB_MAX_STORED).map(m => {
+      if (typeof m.content === 'string') return m;
+      const text = m.content.find(b => b.type === 'text')?.text || '(sent a screenshot)';
+      return { role: m.role, content: text };
+    });
+    localStorage.setItem(WEBB_STORAGE_KEY, JSON.stringify(safe));
+  } catch {}
+}
+
+function webbClearMemory() {
+  try { localStorage.removeItem(WEBB_STORAGE_KEY); } catch {}
+  webbMessages = [];
+  const el = document.getElementById('webb-messages');
+  if (el) el.innerHTML = '<div class="webb-msg webb-msg-assistant"><div class="webb-msg-text">Memory cleared. Fresh start — what do you want to understand?</div></div>';
+}
+
+// Restore previous conversation from localStorage on page load
+(function webbRestoreMemory() {
+  try {
+    const raw = localStorage.getItem(WEBB_STORAGE_KEY);
+    if (!raw) return;
+    const msgs = JSON.parse(raw);
+    if (!msgs?.length) return;
+    webbMessages = msgs;
+    const el = document.getElementById('webb-messages');
+    if (!el) return;
+    el.innerHTML = '';
+    msgs.forEach(m => webbAddMsg(m.role, typeof m.content === 'string' ? m.content : '(screenshot)'));
+    const count = Math.floor(msgs.filter(m => m.role === 'user').length);
+    const sep = document.createElement('div');
+    sep.className = 'webb-memory-sep';
+    sep.textContent = `— ${count} previous exchange${count !== 1 ? 's' : ''} remembered —`;
+    el.appendChild(sep);
+    el.scrollTop = el.scrollHeight;
+  } catch {}
+})();
+
 function webbReadImage(file) {
   if (!file || !file.type.startsWith('image/')) return;
   const reader = new FileReader();
@@ -1346,6 +1389,7 @@ async function webbSend() {
     const reply = data.reply || 'No response.';
     webbMessages.push({ role: 'assistant', content: reply });
     webbAddMsg('assistant', reply);
+    webbSaveMemory();
   } catch (e) {
     thinking.remove();
     webbAddMsg('assistant', 'Connection error — try again.');
