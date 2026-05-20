@@ -2,17 +2,17 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Maya/Autodesk palette — authentic mid-grey, centered ~#444 */
+  /* Maya/Autodesk palette — mid-grey surfaces, bright text for contrast */
   --bg:        #3c3c3c;
   --surface:   #464646;
   --surface2:  #505050;
   --surface3:  #585858;
   --border:    #2e2e2e;
   --border2:   #252525;
-  --text:      #cccccc;
-  --text2:     #969696;
-  --muted:     #777777;
-  --dim:       #999999;
+  --text:      #e8e8e8;
+  --text2:     #c0c0c0;
+  --muted:     #969696;
+  --dim:       #b0b0b0;
 
   /* Accents — single steel blue primary, muted functional colors */
   --green:     #5aab78;
@@ -151,7 +151,7 @@ body {
   border-left: 1px solid var(--surface3);
   border-radius: var(--radius);
   padding: 20px 24px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 .mt-16 { margin-top: 16px; }
 
