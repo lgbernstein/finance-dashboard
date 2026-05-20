@@ -2,19 +2,19 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Maya/Autodesk palette — mid-grey surfaces, bright text for contrast */
-  --bg:        #3c3c3c;
-  --surface:   #464646;
-  --surface2:  #505050;
-  --surface3:  #585858;
-  --border:    #2e2e2e;
-  --border2:   #252525;
-  --text:      #f0f0f0;
-  --text2:     #d0d0d0;
-  --muted:     #a0a0a0;
-  --dim:       #c0c0c0;
+  /* Dark palette — near-black base, vivid accents pop */
+  --bg:        #0f1419;
+  --surface:   #1a2030;
+  --surface2:  #1e2a3a;
+  --surface3:  #243040;
+  --border:    #2a3a4a;
+  --border2:   #1e2a3a;
+  --text:      #e2e8f0;
+  --text2:     #c4cdd9;
+  --muted:     #8b95a7;
+  --dim:       #a0aab8;
 
-  /* Accents — vivid, high-contrast against mid-grey surfaces */
+  /* Accents — vivid against dark base */
   --green:     #4ade80;
   --green-dim: rgba(74,222,128,0.15);
   --green-b:   rgba(74,222,128,0.30);
@@ -34,7 +34,7 @@
   --sidebar-w: 210px;
   --drawer-w:  380px;
   --radius:    8px;
-  --shadow:    0 2px 8px rgba(0,0,0,0.4);
+  --shadow:    0 2px 12px rgba(0,0,0,0.6);
 }
 
 html { height: 100%; }
@@ -52,7 +52,7 @@ body {
 .sidebar {
   width: var(--sidebar-w);
   min-height: 100vh;
-  background: #1e1e1e;
+  background: #080d12;
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -491,7 +491,7 @@ body {
   position: fixed;
   top: 0; right: 0; bottom: 0;
   width: var(--drawer-w);
-  background: #1e1e1e;
+  background: #080d12;
   border-left: 1px solid var(--border);
   z-index: 200;
   display: flex;
