@@ -30,6 +30,12 @@
       <button class="nav-item" data-tab="indicators">
         <span class="nav-icon">◈</span> Indicators
       </button>
+      <button class="nav-item" data-tab="energy">
+        <span class="nav-icon">⚡</span> Energy
+      </button>
+      <button class="nav-item" data-tab="macro-tools">
+        <span class="nav-icon">◇</span> Macro Tools
+      </button>
       <button class="nav-item" data-tab="my-position">
         <span class="nav-icon">◎</span> My Position
       </button>
@@ -107,10 +113,97 @@
         <h2>Markets</h2>
         <p class="page-sub">Live quotes + AI market pulse</p>
       </div>
+      <!-- Composite Indicators -->
+      <div class="section-heading">Forward-Looking Composite Indicators</div>
+      <p class="section-note">Four models that aggregate dozens of inputs into a single signal — how stressed is the financial system and are we heading into recession?</p>
+      <div class="composite-grid">
+        <div class="comp-card">
+          <div class="comp-header">
+            <div><div class="comp-name">Chicago Fed NFCI</div><div class="comp-sub">National Financial Conditions Index</div></div>
+            <div class="comp-badge" id="nfci-badge">Loading…</div>
+          </div>
+          <div class="comp-value-row">
+            <div class="comp-value" id="nfci-value">—</div>
+            <div class="comp-signal" id="nfci-signal"></div>
+          </div>
+          <div style="position:relative;height:60px;margin:4px 0;"><canvas id="chart-nfci"></canvas></div>
+          <div class="comp-interp" id="nfci-interp">Loading…</div>
+          <div class="comp-scale"><span>Loose ← 0 → Tight</span><a href="https://www.chicagofed.org/research/data/nfci/current-data" target="_blank" rel="noopener">Chicago Fed ↗</a></div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-header">
+            <div><div class="comp-name">NY Fed Recession Probability</div><div class="comp-sub">12-month forward, from yield curve</div></div>
+            <div class="comp-badge" id="recprob-badge">Loading…</div>
+          </div>
+          <div class="comp-value-row">
+            <div class="comp-value" id="recprob-value">—</div>
+            <div class="comp-signal" id="recprob-signal"></div>
+          </div>
+          <div style="position:relative;height:60px;margin:4px 0;"><canvas id="chart-recprob"></canvas></div>
+          <div class="comp-interp" id="recprob-interp">Loading…</div>
+          <div class="comp-scale"><span><span style="color:var(--green)">below 20%</span> safe · <span style="color:var(--red)">above 30%</span> warning</span><a href="https://www.newyorkfed.org/research/capital_markets/ycfaq" target="_blank" rel="noopener">NY Fed ↗</a></div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-header">
+            <div><div class="comp-name">Atlanta Fed GDPNow</div><div class="comp-sub">Real-time Q2 2026 GDP estimate</div></div>
+            <div class="comp-badge badge-watch">Live model</div>
+          </div>
+          <div class="comp-value-row">
+            <div class="comp-value" style="color:var(--amber)">+1.2%</div>
+            <div class="comp-signal" style="color:var(--amber)">Slowing</div>
+          </div>
+          <div style="position:relative;height:60px;margin:4px 0;"><canvas id="chart-gdpnow"></canvas></div>
+          <div class="comp-interp">Q2 2026 tracking estimate. Slowing from Q1's ~2.5% as energy shock hits consumer spending. Updates with each major data release (retail sales, jobs, trade).</div>
+          <div class="comp-scale"><span>Updates with each major release</span><a href="https://www.atlantafed.org/cdo/research/gdpnow" target="_blank" rel="noopener">Atlanta Fed ↗</a></div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-header">
+            <div><div class="comp-name">BofA Bull &amp; Bear</div><div class="comp-sub">18-input sentiment model (0–10)</div></div>
+            <div class="comp-badge badge-watch">Neutral</div>
+          </div>
+          <div class="comp-value-row">
+            <div class="comp-value" style="color:var(--amber)">4.5</div>
+            <div class="comp-signal" style="color:var(--amber)">Neutral</div>
+          </div>
+          <div style="position:relative;height:60px;margin:4px 0;"><canvas id="chart-bb"></canvas></div>
+          <div class="comp-interp">Score of 4.5/10 — neither extreme greed nor capitulation. Contrarian signal: readings below 2 = buy, above 8 = sell. Weekly from BofA Global Research.</div>
+          <div class="comp-scale"><span><span style="color:var(--green)">0–2</span> bull · <span style="color:var(--amber)">4–6</span> neutral · <span style="color:var(--red)">8–10</span> bear</span></div>
+        </div>
+      </div>
+
       <div id="markets-grid" class="markets-grid"></div>
       <div class="card mt-16" id="panel-market_pulse">
         <div class="card-label blue">Market Pulse — AI Analysis</div>
         <div class="skeleton">Loading...</div>
+      </div>
+
+      <!-- TradingView live charts -->
+      <div class="section-heading mt-24">Live Market Charts — TradingView</div>
+      <div class="tv-grid">
+        <div class="tv-widget">
+          <div class="tradingview-widget-container" style="height:340px">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+            {"colorTheme":"dark","dateRange":"3M","showChart":true,"locale":"en","width":"100%","height":340,"isTransparent":true,"showSymbolLogo":false,"plotLineColorGrowing":"rgba(74,222,128,1)","plotLineColorFalling":"rgba(248,113,113,1)","gridLineColor":"rgba(58,58,58,0)","scaleFontColor":"rgba(136,136,136,1)","belowLineFillColorGrowing":"rgba(74,222,128,0.06)","belowLineFillColorFalling":"rgba(248,113,113,0.06)","belowLineFillColorGrowingBottom":"rgba(74,222,128,0)","belowLineFillColorFallingBottom":"rgba(248,113,113,0)","symbolActiveColor":"rgba(74,222,128,0.10)","tabs":[{"title":"Stocks","symbols":[{"s":"FOREXCOM:SPXUSD","d":"S&P 500"},{"s":"AMEX:DIA","d":"Dow Jones ETF"},{"s":"FOREXCOM:NSXUSD","d":"NASDAQ 100"},{"s":"TVC:RUT","d":"Russell 2000"}],"originalTitle":"Stocks"}]}
+            </script>
+          </div>
+        </div>
+        <div class="tv-widget">
+          <div class="tradingview-widget-container" style="height:340px">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+            {"colorTheme":"dark","dateRange":"3M","showChart":true,"locale":"en","width":"100%","height":340,"isTransparent":true,"showSymbolLogo":false,"plotLineColorGrowing":"rgba(74,222,128,1)","plotLineColorFalling":"rgba(248,113,113,1)","gridLineColor":"rgba(58,58,58,0)","scaleFontColor":"rgba(136,136,136,1)","belowLineFillColorGrowing":"rgba(74,222,128,0.06)","belowLineFillColorFalling":"rgba(248,113,113,0.06)","belowLineFillColorGrowingBottom":"rgba(74,222,128,0)","belowLineFillColorFallingBottom":"rgba(248,113,113,0)","symbolActiveColor":"rgba(74,222,128,0.10)","tabs":[{"title":"Energy","symbols":[{"s":"TVC:USOIL","d":"WTI Crude Oil"},{"s":"TVC:UKOIL","d":"Brent Crude"},{"s":"TVC:NATURALGAS","d":"Natural Gas"}]},{"title":"Metals","symbols":[{"s":"TVC:GOLD","d":"Gold"},{"s":"TVC:SILVER","d":"Silver"},{"s":"COMEX:HG1!","d":"Copper"}]},{"title":"Agriculture","symbols":[{"s":"AMEX:WEAT","d":"Wheat ETF"},{"s":"AMEX:CORN","d":"Corn ETF"},{"s":"AMEX:SOYB","d":"Soybean ETF"}]}]}
+            </script>
+          </div>
+        </div>
+        <div class="tv-widget">
+          <div class="tradingview-widget-container" style="height:340px">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+            {"colorTheme":"dark","dateRange":"3M","showChart":true,"locale":"en","width":"100%","height":340,"isTransparent":true,"showSymbolLogo":false,"plotLineColorGrowing":"rgba(74,222,128,1)","plotLineColorFalling":"rgba(248,113,113,1)","gridLineColor":"rgba(58,58,58,0)","scaleFontColor":"rgba(136,136,136,1)","belowLineFillColorGrowing":"rgba(74,222,128,0.06)","belowLineFillColorFalling":"rgba(248,113,113,0.06)","belowLineFillColorGrowingBottom":"rgba(74,222,128,0)","belowLineFillColorFallingBottom":"rgba(248,113,113,0)","symbolActiveColor":"rgba(74,222,128,0.10)","tabs":[{"title":"Bonds","symbols":[{"s":"TVC:US10Y","d":"10-Year Treasury"},{"s":"TVC:US30Y","d":"30-Year Treasury"},{"s":"TVC:US02Y","d":"2-Year Treasury"},{"s":"TVC:US05Y","d":"5-Year Treasury"}]},{"title":"Crypto","symbols":[{"s":"COINBASE:BTCUSD","d":"Bitcoin"},{"s":"COINBASE:ETHUSD","d":"Ethereum"},{"s":"COINBASE:SOLUSD","d":"Solana"}]}]}
+            </script>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -121,6 +214,301 @@
         <p class="page-sub">24-month trend — hover chart for crosshair detail</p>
       </div>
       <div id="indicators-grid" class="indicators-grid"></div>
+    </section>
+
+    <!-- ENERGY & COMMODITIES -->
+    <section class="tab-content" id="tab-energy">
+      <div class="page-header">
+        <h2>Energy &amp; Commodities</h2>
+        <p class="page-sub">Oil, natural gas, fertilizer, and supply chain indicators — the inputs that drive inflation</p>
+      </div>
+
+      <!-- Natural Gas -->
+      <div class="section-heading">Natural Gas</div>
+      <div class="energy-row-2">
+        <div class="energy-chart-card">
+          <div class="energy-chart-name">Henry Hub Natural Gas — Annual avg ($/MMBtu)</div>
+          <div class="energy-chart-value">~$2.50</div>
+          <div class="energy-chart-sub">Spring lull. Watch for summer spike as LNG exports rise and cooling demand peaks in June–August.</div>
+          <div class="energy-chart-canvas"><canvas id="chart-gas"></canvas></div>
+          <a class="energy-chart-link" href="https://www.eia.gov/naturalgas/weekly/" target="_blank" rel="noopener">EIA Gas Weekly ↗</a>
+        </div>
+        <div class="energy-info-card">
+          <div class="energy-info-title">Why Natural Gas Matters Now</div>
+          <p><strong>Fertilizer link:</strong> About 80% of the cost of nitrogen fertilizer (urea, anhydrous ammonia) is natural gas. When gas spikes, fertilizer costs spike — and food prices follow 6–12 months later.</p>
+          <p><strong>Electricity:</strong> About 40% of US electricity comes from natural gas. Higher gas prices mean higher utility bills for homes and businesses.</p>
+          <p><strong>LNG exports:</strong> 100% of US production gains are exported. More LNG terminals = tighter domestic supply = higher bills. Trump reversed Biden's LNG export slowdown.</p>
+          <p><strong>Europe:</strong> Far more gas-dependent than the US. Prolonged Middle East disruption puts European energy security at risk, which moves global gas markets.</p>
+        </div>
+      </div>
+
+      <!-- Agricultural Inputs -->
+      <div class="section-heading mt-24">Agricultural Inputs &amp; Fertilizer</div>
+      <p class="section-note">Fertilizer prices lead CPI food components by 6–12 months. Mosaic (MOS) is a live proxy for fertilizer sector health.</p>
+      <div class="energy-row-3">
+        <div class="energy-chart-card">
+          <div class="energy-chart-name">Urea (Nitrogen) — approx $/MT</div>
+          <div class="energy-chart-value">~$340</div>
+          <div class="energy-chart-sub">Main nitrogen fertilizer. ~80% of cost is natural gas. Spiked to $850 in 2022 energy crisis.</div>
+          <div class="energy-chart-canvas"><canvas id="chart-urea"></canvas></div>
+          <a class="energy-chart-link" href="https://www.indexmundi.com/commodities/?commodity=urea" target="_blank" rel="noopener">IndexMundi ↗</a>
+        </div>
+        <div class="energy-chart-card">
+          <div class="energy-chart-name">DAP (Phosphate) — approx $/MT</div>
+          <div class="energy-chart-value">~$445</div>
+          <div class="energy-chart-sub">Key phosphate fertilizer. Linked to mining costs and China export policy.</div>
+          <div class="energy-chart-canvas"><canvas id="chart-dap"></canvas></div>
+          <a class="energy-chart-link" href="https://www.indexmundi.com/commodities/?commodity=dap-fertilizer" target="_blank" rel="noopener">IndexMundi ↗</a>
+        </div>
+        <div class="energy-chart-card">
+          <div class="energy-chart-name">Mosaic Co. (MOS) — Fertilizer Proxy</div>
+          <div class="energy-chart-value">~$21</div>
+          <div class="energy-chart-sub">Largest N. American fertilizer producer. Peaked at $72 in 2022 energy crisis.</div>
+          <div class="energy-chart-canvas"><canvas id="chart-mos"></canvas></div>
+          <a class="energy-chart-link" href="https://finance.yahoo.com/quote/MOS" target="_blank" rel="noopener">Yahoo Finance ↗</a>
+        </div>
+      </div>
+
+      <!-- Mr. Global Energy Monitor -->
+      <div class="section-heading mt-24" style="color:var(--amber)">⚡ Energy Supply Monitor — Mr. Global</div>
+      <p class="section-note">Key indicators tracked by Matt Randolph — 33 years in oil &amp; gas, owns an operating oil company. <a href="https://www.youtube.com/@MrGlobalYouTube" target="_blank" rel="noopener" style="color:var(--blue)">@MrGlobalYouTube</a></p>
+      <div class="mg-grid">
+        <div class="mg-card">
+          <div class="mg-card-title">WTI Crude Oil Price</div>
+          <div class="mg-card-value">$62<span class="mg-unit">/bbl</span></div>
+          <div class="mg-thresholds">
+            <div class="mg-threshold mg-red">$70 — new well break-even floor</div>
+            <div class="mg-threshold mg-yellow">$60 — existing well profitability floor</div>
+          </div>
+          <div class="mg-signal mg-red">Below new well break-even — drilling stops</div>
+          <div class="mg-implication"><strong>Implication:</strong> At $62, oil companies will not drill new wells — it costs more than they make. "Drill Baby Drill" is economically impossible at this price. The US needs ~$70/bbl to incentivize new drilling. 100% of US production gains since 2016 have been exported.</div>
+          <div class="mg-assess"><strong>How to assess:</strong> $60–$70 = no new drilling but existing wells continue. Below $60 = some existing wells go offline. Above $70 = new drilling resumes in 6–12 months. Watch Baker Hughes rig count as the lagging confirmation.</div>
+          <a class="mg-link" href="https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=RWTC&f=D" target="_blank" rel="noopener">EIA WTI daily ↗</a>
+        </div>
+        <div class="mg-card">
+          <div class="mg-card-title">Baker Hughes US Rig Count</div>
+          <div class="mg-card-value" style="color:var(--amber)">↓ Declining</div>
+          <div class="mg-thresholds">
+            <div class="mg-threshold mg-yellow">Need ~700 rigs for flat production</div>
+            <div class="mg-threshold mg-red">Fewer rigs than Inauguration Day</div>
+          </div>
+          <div class="mg-signal mg-red">Supply contraction signal — watch weekly</div>
+          <div class="mg-implication"><strong>Implication:</strong> The US needs 7,000–8,000 new wells per year just to hold production flat — every existing well declines from day one. Fewer rigs = fewer new wells = US output falls 12–18 months out. The rig count is the earliest reliable signal of future production direction.</div>
+          <div class="mg-assess"><strong>How to assess:</strong> Baker Hughes publishes every Friday. Three consecutive weekly declines = contraction confirmed. Three weekly gains = supply recovery beginning. "Drill Baby Drill" is directly falsifiable — this is the scoreboard.</div>
+          <a class="mg-link" href="https://rigcount.bakerhughes.com/na-rig-count" target="_blank" rel="noopener">Baker Hughes weekly ↗</a>
+        </div>
+        <div class="mg-card">
+          <div class="mg-card-title">Strait of Hormuz Status</div>
+          <div class="mg-card-value" style="color:var(--red)">Day ~80</div>
+          <div class="mg-thresholds">
+            <div class="mg-threshold mg-red">Normal: 20M b/d pass through</div>
+            <div class="mg-threshold mg-yellow">Bypassed via Cape route: ~8M b/d</div>
+            <div class="mg-threshold mg-red">Net lost to market: ~12–13M b/d</div>
+          </div>
+          <div class="mg-signal mg-red">Closure ongoing — cannot be rerouted at scale</div>
+          <div class="mg-implication"><strong>Implication:</strong> There is no infrastructure to replace 12–13M b/d. Rerouting around Africa adds weeks and triples shipping costs. Global SPRs are being drawn down daily — but they have floors. Once SPRs are exhausted, the market has no cushion left.</div>
+          <div class="mg-assess"><strong>How to assess:</strong> Oil $90–$110 = market absorbing via SPR draw. Oil $130+ = cushion thinning fast. Diplomatic talks with Iran = most bullish signal. Ceasefire = buy signal. New military ultimatum = no progress.</div>
+        </div>
+        <div class="mg-card">
+          <div class="mg-card-title">US Strategic Petroleum Reserve</div>
+          <div class="mg-card-value">~340M<span class="mg-unit"> bbl</span></div>
+          <div class="mg-thresholds">
+            <div class="mg-threshold mg-red">Release: 1.22M b/d (record)</div>
+            <div class="mg-threshold mg-red">Gap filled: ~10% of disruption</div>
+          </div>
+          <div class="mg-signal mg-red">Record release rate — still can't fill the gap</div>
+          <div class="mg-implication"><strong>Implication:</strong> Even at record 1.22M b/d release, the SPR plugs only ~10% of the 12–13M b/d disruption. SPR "loans" do not suppress prices — the market expects that oil back. Only outright sales suppress spot prices.</div>
+          <div class="mg-assess"><strong>How to assess:</strong> EIA publishes SPR levels weekly. Below 300M bbl = serious. Below 250M bbl = critical. Watch whether releases are loans vs. sales — only sales create real price suppression.</div>
+          <a class="mg-link" href="https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=WCSSTUS1&f=W" target="_blank" rel="noopener">EIA SPR weekly ↗</a>
+        </div>
+        <div class="mg-card">
+          <div class="mg-card-title">Henry Hub Natural Gas</div>
+          <div class="mg-card-value">~$2.50<span class="mg-unit">/MMBtu</span></div>
+          <div class="mg-thresholds">
+            <div class="mg-threshold mg-green">Now: spring lull, mild demand</div>
+            <div class="mg-threshold mg-yellow">Summer + LNG exports → price spike</div>
+          </div>
+          <div class="mg-signal mg-yellow">Deceptively quiet — watch June–August</div>
+          <div class="mg-implication"><strong>Implication:</strong> Spring prices look calm — but they are seasonal. Once summer heat arrives and LNG exports ramp up, domestic supply tightens rapidly. People in deregulated NE states have seen $1,200–$1,400 monthly electric bills.</div>
+          <div class="mg-assess"><strong>How to assess:</strong> Henry Hub below $3 = stable bills. $3–$5 = elevated. Above $5 = utility bill shock. Watch: summer temperature forecasts, LNG export terminal utilization, storage injection vs. 5-year average.</div>
+          <a class="mg-link" href="https://www.eia.gov/naturalgas/weekly/" target="_blank" rel="noopener">EIA Gas weekly ↗</a>
+        </div>
+        <div class="mg-card">
+          <div class="mg-card-title">Bab-el-Mandeb Strait</div>
+          <div class="mg-card-value" style="color:var(--amber)">Watch</div>
+          <div class="mg-thresholds">
+            <div class="mg-threshold mg-yellow">Connects Red Sea to Indian Ocean</div>
+            <div class="mg-threshold mg-red">If closed: second chokepoint gone</div>
+          </div>
+          <div class="mg-signal mg-yellow">Open but at risk — escalation path close</div>
+          <div class="mg-implication"><strong>Implication:</strong> If Bab-el-Mandeb closes alongside Hormuz, two of the world's critical maritime arteries fail simultaneously. At that point we are no longer discussing recession — we are discussing a depression on the scale of the 1930s. Saudi Arabia's Abqaiq alone processes 7% of global oil supply.</div>
+          <div class="mg-assess"><strong>How to assess:</strong> Houthi attack frequency in the Red Sea is the leading indicator. Any confirmed strike on Abqaiq or major Gulf infrastructure = immediate price spike. Two straits closing simultaneously = scenario outside normal financial modeling.</div>
+        </div>
+        <div class="mg-card">
+          <div class="mg-card-title">Food Price Inflation</div>
+          <div class="mg-card-value" style="color:var(--red)">4-yr High</div>
+          <div class="mg-thresholds">
+            <div class="mg-threshold mg-red">Fastest rise in 4 years</div>
+            <div class="mg-threshold mg-red">Oil → fertilizer → shipping → food</div>
+          </div>
+          <div class="mg-signal mg-red">Oil shock transmitting into food prices</div>
+          <div class="mg-implication"><strong>Implication:</strong> Food prices rising at a 4-year high is the first visible consumer sign that the oil supply shock is spreading. The chain: high fuel costs raise fertilizer costs, which raise farming costs, which raise shipping costs, which raise grocery prices.</div>
+          <div class="mg-assess"><strong>How to assess:</strong> USDA Food Price Outlook and CPI food sub-index. If food inflation persists even after oil stabilizes, second-round effects are embedded — the Fed cannot ignore this, may raise rates into a slowing economy. That is stagflation.</div>
+        </div>
+        <div class="mg-card">
+          <div class="mg-card-title">LNG Export Volumes</div>
+          <div class="mg-card-value" style="color:var(--amber)">↑ Rising</div>
+          <div class="mg-thresholds">
+            <div class="mg-threshold mg-red">100% of US gas gains go to export</div>
+            <div class="mg-threshold mg-red">More exports = higher domestic prices</div>
+          </div>
+          <div class="mg-signal mg-red">Exports pulling domestic prices higher</div>
+          <div class="mg-implication"><strong>Implication:</strong> Every increase in US natural gas production has been exported — domestic consumers do not benefit. LNG exports are rising under Trump (Biden tried to slow approvals to protect domestic bills; Trump reversed this). More LNG terminals = tighter domestic supply = higher bills.</div>
+          <div class="mg-assess"><strong>How to assess:</strong> EIA publishes weekly LNG export data. Rising exports correlated with rising Henry Hub prices confirm the squeeze. Any new LNG terminal approved = future domestic price pressure in 18–24 months.</div>
+          <a class="mg-link" href="https://www.eia.gov/naturalgas/weekly/" target="_blank" rel="noopener">EIA LNG data ↗</a>
+        </div>
+      </div>
+      <!-- Worst-case scenarios -->
+      <div class="mg-scenario-bar">
+        <div class="mg-scenario-title">⚠ Worst-Case Scenarios — if Hormuz stays closed through summer</div>
+        <div class="mg-scenarios">
+          <div class="mg-scenario-item">
+            <div class="mg-s-label">Oil Price</div>
+            <div class="mg-s-value" style="color:var(--red)">→ $200/bbl</div>
+            <div class="mg-s-note">"That's arithmetic, not a prediction." SPR depletion + no reroute capacity + summer demand = price formula with no natural ceiling.</div>
+          </div>
+          <div class="mg-scenario-item">
+            <div class="mg-s-label">Global GDP</div>
+            <div class="mg-s-value" style="color:var(--red)">−3 to −4%</div>
+            <div class="mg-s-note">Worse than 2008. Simultaneous global recession with no coordinated fiscal response — all governments already stretched from COVID stimulus.</div>
+          </div>
+          <div class="mg-scenario-item">
+            <div class="mg-s-label">Both Straits Close</div>
+            <div class="mg-s-value" style="color:var(--red)">Depression</div>
+            <div class="mg-s-note">Hormuz + Bab-el-Mandeb simultaneously = global supply chain rupture. 1930s-scale contraction. Cannot be fixed by any "transition to alternatives."</div>
+          </div>
+          <div class="mg-scenario-item">
+            <div class="mg-s-label">Infrastructure Damage</div>
+            <div class="mg-s-value" style="color:var(--amber)">Years of Pain</div>
+            <div class="mg-s-note">Abqaiq processes 7% of global oil. Significant damage = years to rebuild. This scenario outlasts any ceasefire — the sleeper risk.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MACRO TOOLS -->
+    <section class="tab-content" id="tab-macro-tools">
+      <div class="page-header">
+        <h2>Macro Tools</h2>
+        <p class="page-sub">Interactive simulation — adjust variables or pick a scenario to see how indicators cascade through the economy</p>
+      </div>
+
+      <!-- 7 gauge cards -->
+      <div class="exp-gauges">
+        <div class="exp-gauge-card" id="eg-card-rate" onclick="expSelectGauge('rate')">
+          <div class="exp-gauge-name">Fed Funds Rate</div>
+          <div class="exp-gauge-value" id="eg-val-rate">4.33%</div>
+          <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-rate"></div></div>
+          <div class="exp-gauge-stress" id="eg-lbl-rate">Normal</div>
+        </div>
+        <div class="exp-gauge-card" id="eg-card-cpi" onclick="expSelectGauge('cpi')">
+          <div class="exp-gauge-name">CPI Inflation</div>
+          <div class="exp-gauge-value" id="eg-val-cpi">3.2%</div>
+          <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-cpi"></div></div>
+          <div class="exp-gauge-stress" id="eg-lbl-cpi">Normal</div>
+        </div>
+        <div class="exp-gauge-card" id="eg-card-oil" onclick="expSelectGauge('oil')">
+          <div class="exp-gauge-name">Oil Price</div>
+          <div class="exp-gauge-value" id="eg-val-oil">$105</div>
+          <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-oil"></div></div>
+          <div class="exp-gauge-stress" id="eg-lbl-oil">Watch</div>
+        </div>
+        <div class="exp-gauge-card" id="eg-card-yield" onclick="expSelectGauge('yield')">
+          <div class="exp-gauge-name">Bond Yields</div>
+          <div class="exp-gauge-value" id="eg-val-yield">4.59%</div>
+          <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-yield"></div></div>
+          <div class="exp-gauge-stress" id="eg-lbl-yield">Normal</div>
+        </div>
+        <div class="exp-gauge-card" id="eg-card-bond" onclick="expSelectGauge('bond')">
+          <div class="exp-gauge-name">Bond Prices</div>
+          <div class="exp-gauge-value" id="eg-val-bond">92.4</div>
+          <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-bond"></div></div>
+          <div class="exp-gauge-stress" id="eg-lbl-bond">Normal</div>
+        </div>
+        <div class="exp-gauge-card" id="eg-card-stock" onclick="expSelectGauge('stock')">
+          <div class="exp-gauge-name">S&amp;P 500</div>
+          <div class="exp-gauge-value" id="eg-val-stock">5,820</div>
+          <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-stock"></div></div>
+          <div class="exp-gauge-stress" id="eg-lbl-stock">Normal</div>
+        </div>
+        <div class="exp-gauge-card" id="eg-card-emp" onclick="expSelectGauge('emp')">
+          <div class="exp-gauge-name">Unemployment</div>
+          <div class="exp-gauge-value" id="eg-val-emp">4.1%</div>
+          <div class="exp-gauge-bar-wrap"><div class="exp-gauge-bar" id="eg-bar-emp"></div></div>
+          <div class="exp-gauge-stress" id="eg-lbl-emp">Normal</div>
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="card mt-16">
+        <div class="card-label blue">Scenario Presets — jump to a macro environment</div>
+        <div class="exp-presets-row">
+          <button class="preset-btn active" id="exp-preset-baseline"    onclick="expApplyPreset('baseline')">Today (baseline)</button>
+          <button class="preset-btn"        id="exp-preset-stagflation" onclick="expApplyPreset('stagflation')">Stagflation</button>
+          <button class="preset-btn"        id="exp-preset-recession"   onclick="expApplyPreset('recession')">Deep Recession</button>
+          <button class="preset-btn"        id="exp-preset-softlanding" onclick="expApplyPreset('softlanding')">Soft Landing</button>
+          <button class="preset-btn"        id="exp-preset-ratehike"    onclick="expApplyPreset('ratehike')">Aggressive Hike</button>
+          <button class="preset-btn"        id="exp-preset-oilshock"    onclick="expApplyPreset('oilshock')">Oil Shock $155</button>
+        </div>
+      </div>
+
+      <!-- 3-column layout: cascade | sliders | outputs -->
+      <div class="exp-layout mt-16">
+        <div class="card">
+          <div class="card-label green" id="exp-cascade-title">Click an indicator above</div>
+          <div id="exp-cascade-content"><div class="cascade-hint">Select any gauge card to see what drives it and what it pushes in the economy.</div></div>
+        </div>
+        <div class="card">
+          <div class="card-label blue">Adjust Variables — all gauges update live</div>
+          <div class="slider-2col" style="margin-top:12px">
+            <div class="slider-group">
+              <div class="slider-label"><span>Fed Funds Rate</span><span class="slider-current" id="exp-v-fedrate">4.33%</span></div>
+              <input type="range" id="exp-s-fedrate" min="0" max="10" step="0.25" value="4.33">
+              <div class="slider-range">0% → 10% &nbsp;|&nbsp; base: 4.33%</div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>CPI Inflation (YoY)</span><span class="slider-current" id="exp-v-cpi">3.2%</span></div>
+              <input type="range" id="exp-s-cpi" min="0" max="12" step="0.25" value="3.2">
+              <div class="slider-range">0% → 12% &nbsp;|&nbsp; base: 3.2%</div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>10-Year Yield</span><span class="slider-current" id="exp-v-yield">4.59%</span></div>
+              <input type="range" id="exp-s-yield" min="0.5" max="9" step="0.25" value="4.59">
+              <div class="slider-range">0.5% → 9% &nbsp;|&nbsp; base: 4.59%</div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Unemployment</span><span class="slider-current" id="exp-v-unemp">4.1%</span></div>
+              <input type="range" id="exp-s-unemp" min="2" max="14" step="0.1" value="4.1">
+              <div class="slider-range">2% → 14% &nbsp;|&nbsp; base: 4.1%</div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>Oil Price ($/bbl)</span><span class="slider-current" id="exp-v-oil">$105</span></div>
+              <input type="range" id="exp-s-oil" min="30" max="200" step="5" value="105">
+              <div class="slider-range">$30 → $200 &nbsp;|&nbsp; base: $105</div>
+            </div>
+            <div class="slider-group">
+              <div class="slider-label"><span>S&amp;P 500</span><span class="slider-current" id="exp-v-sp500">5,820</span></div>
+              <input type="range" id="exp-s-sp500" min="1500" max="8500" step="100" value="5820">
+              <div class="slider-range">1,500 → 8,500 &nbsp;|&nbsp; base: 5,820</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label amber">Projected Impacts</div>
+          <div class="sim-output" id="exp-sim-output" style="margin-top:12px"></div>
+          <p style="font-size:11px;color:var(--dim);margin-top:10px;line-height:1.5">5-yr rolling correlations. Bond duration ~7.5. Effects have 12–18mo lags in reality.</p>
+        </div>
+      </div>
     </section>
 
     <!-- MY POSITION -->
