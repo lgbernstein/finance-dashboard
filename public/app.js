@@ -189,25 +189,27 @@ function renderChain(panels) {
   }
 
   if (!chain || !chain.trigger) {
-    // Fall back to body text
     const bodyText = chainPanel.body || '';
     if (bodyText.trim().length > 10) {
-      el.innerHTML = `<div class="chain-trigger">${bodyText}</div>`;
+      el.innerHTML = `<div class="chain-fallback">${md(bodyText)}</div>`;
     } else {
       el.innerHTML = '<div class="skeleton">Chain data unavailable.</div>';
     }
     return;
   }
 
-  const steps = (chain.steps || []).map(s =>
-    `<div class="chain-step"><span class="chain-arrow">→</span><span>${s}</span></div>`
+  const steps = (chain.steps || []).map((s, i) =>
+    `<div class="chain-step"><span class="chain-arrow">${i + 1}</span><span>${s}</span></div>`
   ).join('');
 
   el.innerHTML = `
+    <div class="chain-section-label">Root Cause</div>
     <div class="chain-trigger">${chain.trigger}</div>
+    <div class="chain-section-label" style="margin-top:14px">Cascade</div>
     <div class="chain-steps">${steps}</div>
+    <div class="chain-section-label" style="margin-top:14px">Likely Outcome</div>
     <div class="chain-outcome">${chain.outcome || ''}</div>
-    ${chain.confidence ? `<div class="chain-conf-line">Direction: ${chain.confidence}</div>` : ''}
+    ${chain.confidence ? `<div class="chain-conf-line">Direction: <strong>${chain.confidence}</strong></div>` : ''}
   `;
 }
 
