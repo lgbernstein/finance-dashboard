@@ -49,7 +49,7 @@ Do NOT write paragraphs in any of these fields.
 **What markets are doing and why** — focused on the mechanism, not the move. Don't say "the S&P fell 0.4%." Say why it fell and what that tells us about investor sentiment right now. 2-3 sentences.
 
 ### Panel: risk_watch
-**The 1-2 biggest risks to watch.** Specific, concrete, named. What threshold or event would confirm this risk is escalating? What would it mean for bonds vs. stocks if it does? 
+**The 1-2 biggest risks right now.** Name each risk in plain terms. One sentence on what would make it worse. One sentence on what it would mean for your money. That's it — no more.
 
 ### Panel: sector_spotlight
 **One sector under particular stress or opportunity right now** — chosen based on current news and data. Could be: energy, semiconductors, agriculture/food, financial sector, AI infrastructure, real estate. Explain what is happening in that sector and the economic mechanism behind it.
@@ -69,11 +69,11 @@ Do NOT write paragraphs in any of these fields.
       "id": "macro_overview",
       "title": "Macro Overview",
       "bullets": [
-        "**Fact:** One sentence stating the key data point or event.",
-        "**Impact:** One sentence on what this means for the economy.",
-        "**Implication:** One sentence on where this leads if it continues."
+        "**What's happening:** One short sentence. Plain English. Name the number.",
+        "**Why it matters:** One short sentence. What does this mean for prices, jobs, or the market?",
+        "**What to expect:** One short sentence. Where does this go if nothing changes?"
       ],
-      "full_body": "Full prose analysis, 4-6 sentences. This is shown only when user expands.",
+      "full_body": "2-3 short sentences of extra context. Plain English. No jargon. Only shown if user asks.",
       "data_points": ["10-Yr Yield: 4.59%", "WTI: $82.40"],
       "confidence": 0.85,
       "last_changed": "What shifted since last cycle, or null"
