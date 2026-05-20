@@ -137,6 +137,19 @@
 
   </main>
 
+  <!-- Indicator drawer -->
+  <div id="ind-drawer" class="ind-drawer">
+    <div class="drawer-header">
+      <div>
+        <div class="drawer-title" id="drawer-title">—</div>
+        <div class="drawer-series" id="drawer-series">—</div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+  </div>
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+
   <script src="app.js"></script>
 </body>
 </html>

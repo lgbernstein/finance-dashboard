@@ -63,7 +63,12 @@ function bulletPanel(panel, expandId) {
   let chips = [];
   try { chips = JSON.parse(panel.data_points || '[]'); } catch {}
   const chipsHtml = chips.length
-    ? `<div class="data-chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>`
+    ? `<div class="data-chips">${chips.map(c => {
+        const isInd = IND_META[c] != null;
+        return isInd
+          ? `<span class="chip clickable" onclick="openDrawer('${c}')">${c}</span>`
+          : `<span class="chip">${c}</span>`;
+      }).join('')}</div>`
     : '';
 
   const conf = panel.confidence != null
@@ -104,7 +109,6 @@ function renderPanels(panels) {
     const el = document.getElementById(elId);
     if (!el) continue;
     const inner = bulletPanel(panel, `expand-${panel.panel_id}`);
-    // preserve the card-label div
     const label = el.querySelector('.card-label');
     el.innerHTML = '';
     if (label) el.appendChild(label);
@@ -156,14 +160,25 @@ function renderChain(panels) {
   const el = document.getElementById('chain-content');
   if (!el) return;
 
-  if (!chainPanel?.data_points) {
-    el.innerHTML = '<div class="skeleton">No chain data yet.</div>';
+  if (!chainPanel) {
+    el.innerHTML = '<div class="skeleton">No chain data yet — run a cycle.</div>';
     return;
   }
 
-  let chain;
-  try { chain = JSON.parse(chainPanel.data_points); } catch {
-    el.innerHTML = '<div class="skeleton">Could not parse chain.</div>';
+  // data_points holds the JSON chain; body holds the fallback text
+  let chain = null;
+  if (chainPanel.data_points) {
+    try { chain = JSON.parse(chainPanel.data_points); } catch {}
+  }
+
+  if (!chain || !chain.trigger) {
+    // Fall back to body text
+    const bodyText = chainPanel.body || '';
+    if (bodyText.trim().length > 10) {
+      el.innerHTML = `<div class="chain-trigger">${bodyText}</div>`;
+    } else {
+      el.innerHTML = '<div class="skeleton">Chain data unavailable.</div>';
+    }
     return;
   }
 
@@ -172,10 +187,10 @@ function renderChain(panels) {
   ).join('');
 
   el.innerHTML = `
-    <div class="chain-trigger">${chain.trigger || ''}</div>
+    <div class="chain-trigger">${chain.trigger}</div>
     <div class="chain-steps">${steps}</div>
     <div class="chain-outcome">${chain.outcome || ''}</div>
-    <div class="chain-conf-line">Direction: ${chain.confidence || '—'}</div>
+    ${chain.confidence ? `<div class="chain-conf-line">Direction: ${chain.confidence}</div>` : ''}
   `;
 }
 
@@ -273,6 +288,159 @@ const IND_META = {
   GDP:        { name: 'Real GDP',                dec: 0, color: '#0891b2' },
 };
 
+// ── Educational context for indicator drawer ──────────────────
+const IND_CONTEXT = {
+  DGS2: {
+    what: 'The 2-Year Treasury yield reflects market expectations for Fed rate policy over the next ~2 years. It is the most policy-sensitive bond — when the Fed raises or cuts rates, this moves first and fastest.',
+    rising: 'Markets expect the Fed to raise rates or hold them high longer. Borrowing costs rise across the economy. Often signals persistent inflation concerns.',
+    falling: 'Markets expect rate cuts ahead. Usually means economic slowdown fears or inflation coming under control.',
+    release: 'Daily — published each business day by the Treasury Department.',
+    watchLevel: 'Compare it to the 10-yr yield. When 2yr > 10yr (an "inverted yield curve"), recession risk historically rises within 12–18 months.',
+    relatedTo: ['DGS10', 'FEDFUNDS']
+  },
+  DGS10: {
+    what: 'The 10-Year Treasury yield is the benchmark for the entire US economy. It sets 30-year mortgage rates, corporate borrowing costs, and serves as the baseline for global financial risk. Every pension fund, insurer, and bond portfolio watches this number.',
+    rising: 'Mortgage rates rise. Stock valuations compress (future earnings worth less in today\'s dollars). Dollar typically strengthens. Signals market expectations of stronger growth or persistent inflation.',
+    falling: 'Mortgage rates drop, often triggering a refinancing boom. Growth stocks rally as future earnings become more valuable. May signal growth fears or a flight to safety.',
+    release: 'Daily — real-time market rate published each business day.',
+    watchLevel: '4.5%+ puts meaningful pressure on housing and corporate debt. Below 3% often indicates recession fears or deflationary pressure.',
+    relatedTo: ['DGS2', 'DGS30', 'T10YIE', 'FEDFUNDS']
+  },
+  DGS30: {
+    what: 'The 30-Year Treasury yield directly drives 30-year fixed mortgage rates. At 5%, a $500k mortgage costs roughly $2,685/month in principal and interest — that\'s how housing affordability gets made or broken. It also matters enormously for pension funds that hold long-duration bonds.',
+    rising: 'Housing becomes less affordable. Monthly mortgage payments increase substantially. Long-term corporate borrowing costs rise. Pension funds and insurers holding long bonds lose value on paper.',
+    falling: 'Housing affordability improves. Refinancing boom possible. Stimulus for real estate and rate-sensitive industries.',
+    release: 'Daily — Treasury market rate.',
+    watchLevel: '5%+ is historically restrictive for housing. Above 5.5% often triggers notable housing market slowdowns. Watch the spread to the Fed Funds Rate as a measure of long-term risk premium.',
+    relatedTo: ['DGS10', 'FEDFUNDS', 'CPIAUCSL']
+  },
+  FEDFUNDS: {
+    what: 'The Federal Funds Rate is the interest rate at which banks lend reserves to each other overnight. It is the Fed\'s primary policy lever. Every rate decision by the FOMC ripples through mortgages, auto loans, credit cards, corporate bonds, and the valuation of every financial asset.',
+    rising: 'Borrowing becomes more expensive everywhere. Deployed to fight inflation. Intentionally slows the economy. Painful for anyone carrying variable-rate debt.',
+    falling: 'Stimulus mode. Encourages borrowing, hiring, and investment. Used during recessions, crises, or periods of below-target inflation.',
+    release: 'FOMC meets 8 times per year — roughly every 6–7 weeks. Dates are published a year in advance. Each meeting is a major market event.',
+    watchLevel: 'The "neutral rate" is estimated around 2.5%. Anything significantly above that is restrictive. At 4%+, the Fed is actively pressing the brake pedal on the economy.',
+    relatedTo: ['DGS2', 'DGS10', 'CPIAUCSL', 'UNRATE']
+  },
+  T10YIE: {
+    what: 'The 10-Year Breakeven Inflation Rate is the bond market\'s forecast for average annual inflation over the next decade. It is calculated as the difference between the nominal 10-year Treasury yield and the 10-year TIPS (inflation-protected) yield. This is what professional money managers believe inflation will average.',
+    rising: 'Markets see more inflation ahead. The Fed faces pressure to keep rates higher for longer or to hike. Bond prices fall.',
+    falling: 'Markets see inflation coming down toward or below the Fed\'s 2% target. Gives the Fed room to cut rates. Good for bonds and rate-sensitive sectors.',
+    release: 'Daily — calculated from Treasury and TIPS market prices.',
+    watchLevel: 'The Fed\'s target is 2%. At 2.3–2.5%, markets are modestly above target. A sustained move above 3% would be alarming and force Fed action.',
+    relatedTo: ['DGS10', 'FEDFUNDS', 'CPIAUCSL', 'DCOILWTICO']
+  },
+  CPIAUCSL: {
+    what: 'The Consumer Price Index (All Urban Consumers) measures the average change in prices paid by US consumers for a representative basket of goods and services. This is the headline inflation number reported in the news each month. Social Security cost-of-living adjustments are tied directly to this index.',
+    rising: 'Your purchasing power erodes. The Fed feels pressure to raise rates or stay restrictive. Fixed-income investments (bonds) lose real value. Retirees on fixed incomes are most exposed.',
+    falling: 'Disinflation or deflation. Excellent for bonds and cash. May signal economic weakness if the decline is sharp.',
+    release: 'Monthly — published by the Bureau of Labor Statistics approximately 2 weeks after month-end. One of the most market-moving scheduled releases of any month.',
+    watchLevel: 'The index value shown is the price level (not the % change). The year-over-year % change is what matters — 2% is the Fed\'s target. Above 3% keeps the Fed cautious; below 2% gives room to cut.',
+    relatedTo: ['FEDFUNDS', 'T10YIE', 'DGS10', 'UNRATE']
+  },
+  UNRATE: {
+    what: 'The Unemployment Rate is the percentage of the labor force actively seeking work but unable to find it. It is a lagging indicator — by the time it rises significantly, the economy has usually already been deteriorating for months. It is also a key input in the Fed\'s dual mandate (price stability + maximum employment).',
+    rising: 'People are losing jobs. Consumer spending falls. Corporate revenues and profits decline. The Fed will likely begin considering rate cuts to stimulate hiring.',
+    falling: 'The labor market is tight. Workers gain bargaining power. Wage growth can fuel inflation — a dynamic the Fed watches closely. May also mean the economy is absorbing workers faster than expected.',
+    release: 'Monthly — the Bureau of Labor Statistics "Jobs Report" is released the first Friday of each month. It is one of the most anticipated data releases on the economic calendar.',
+    watchLevel: 'Full employment is generally considered around 4%. Below 3.5% is historically very tight. Above 5% signals meaningful weakness. A rapid rise from a low base is often a recession signal.',
+    relatedTo: ['FEDFUNDS', 'CPIAUCSL', 'GDP']
+  },
+  DCOILWTICO: {
+    what: 'West Texas Intermediate (WTI) is the US benchmark crude oil price, quoted in dollars per barrel. Oil is an input cost for nearly everything — transportation, plastics, agriculture, manufacturing, and electricity. It is also a geopolitical thermometer: the Strait of Hormuz, Middle East tension, Russia-Ukraine, OPEC+ decisions, and China demand all show up here.',
+    rising: 'Gas prices rise at the pump within days. Freight, airline, and manufacturing costs increase. Inflation picks up. Energy company stocks rally. Often signals geopolitical tension or supply disruption.',
+    falling: 'Consumer relief — gas becomes cheaper. Overall inflation moderates. Energy sector profits decline. May signal weak global demand, a recession forecast, or OPEC+ oversupply.',
+    release: 'Daily — commodities futures markets. EIA Weekly Petroleum Status Report (every Wednesday) is the key near-term data point.',
+    watchLevel: 'Below $60 is historically deflationary for energy. $70–$90 is the "comfortable" range for producers and consumers. Above $90 starts causing economic pain. Above $120 has historically triggered or deepened recessions.',
+    relatedTo: ['CPIAUCSL', 'T10YIE', 'VIXCLS']
+  },
+  VIXCLS: {
+    what: 'The VIX (CBOE Volatility Index) measures the stock market\'s expectation of S&P 500 volatility over the next 30 days, derived from options prices. Traders call it the "Fear Index." A high VIX means investors are paying a premium to protect their portfolios. A low VIX means complacency — which can itself be a warning sign.',
+    rising: 'Markets are nervous. Investors are buying protective options. Often coincides with sell-offs, geopolitical shocks, Fed uncertainty, or systemic financial stress.',
+    falling: 'Markets are calm and confident. Low VIX reduces hedging costs. Can be a contrarian warning — prolonged complacency historically precedes volatility spikes.',
+    release: 'Real-time during market hours — calculated continuously from S&P 500 options.',
+    watchLevel: 'Below 15: very calm. 15–20: normal. 20–30: elevated anxiety. Above 30: significant fear. Above 40: crisis territory. For reference: COVID-19 peak was 82, 2008 financial crisis was 80, 2020 market crash was 65.',
+    relatedTo: ['^GSPC', 'DGS10', 'DCOILWTICO']
+  },
+  GDP: {
+    what: 'Real GDP (Gross Domestic Product) measures the total inflation-adjusted economic output of the United States — the sum of everything produced: goods, services, investment, government spending. Two consecutive quarters of negative GDP growth is the classic definition of a recession. It is the single broadest measure of economic health.',
+    rising: 'The economy is expanding. Companies are investing, consumers are spending, jobs are being created. Generally positive for equities. May fuel inflation if growth is too rapid.',
+    falling: 'The economy is contracting or decelerating sharply. May precede or confirm a recession. Watch for Fed response — typically rate cuts and stimulus.',
+    release: 'Quarterly — the Bureau of Economic Analysis releases an "advance" estimate approximately 30 days after quarter-end, then two revisions (30 and 90 days later). This is a heavily lagging indicator; by the time you see it, markets have usually moved.',
+    watchLevel: '2–3% annual growth is considered healthy. Below 1% is "stall speed" — the economy is vulnerable. Negative = contraction. Above 4% can fuel inflation concerns.',
+    relatedTo: ['UNRATE', 'FEDFUNDS', 'CPIAUCSL']
+  }
+};
+
+// ── Indicator drawer ──────────────────────────────────────────
+function openDrawer(seriesId) {
+  const ctx = IND_CONTEXT[seriesId];
+  const meta = IND_META[seriesId];
+  if (!ctx || !meta) return;
+
+  document.getElementById('drawer-title').textContent = meta.name;
+  document.getElementById('drawer-series').textContent = seriesId;
+
+  const related = (ctx.relatedTo || []).map(id => {
+    const m = IND_META[id];
+    if (!m) return `<span class="chip">${id}</span>`;
+    return `<span class="chip clickable" onclick="openDrawer('${id}')">${m.name}</span>`;
+  }).join('');
+
+  document.getElementById('drawer-body').innerHTML = `
+    <div>
+      <div class="drawer-section-title">What it is</div>
+      <div class="drawer-section-body">${ctx.what}</div>
+    </div>
+
+    <div>
+      <div class="drawer-section-title">Market impact</div>
+      <div class="drawer-impact-row">
+        <div class="impact-box up-box">
+          <div class="impact-label up">Rising</div>
+          <div class="impact-text">${ctx.rising}</div>
+        </div>
+        <div class="impact-box down-box">
+          <div class="impact-label down">Falling</div>
+          <div class="impact-text">${ctx.falling}</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="drawer-section-title">Release schedule</div>
+      <div class="release-row">
+        <span class="release-icon">📅</span>
+        <span class="drawer-section-body">${ctx.release}</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="drawer-section-title">Key levels to watch</div>
+      <div class="drawer-section-body">${ctx.watchLevel}</div>
+    </div>
+
+    ${related ? `<div>
+      <div class="drawer-section-title">Related indicators</div>
+      <div class="data-chips" style="margin-top:8px">${related}</div>
+    </div>` : ''}
+  `;
+
+  document.getElementById('ind-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+
+  // highlight the card
+  document.querySelectorAll('.ind-card').forEach(c => c.classList.remove('selected'));
+  const card = document.querySelector(`.ind-card[data-series="${seriesId}"]`);
+  if (card) card.classList.add('selected');
+}
+
+function closeDrawer() {
+  document.getElementById('ind-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.querySelectorAll('.ind-card').forEach(c => c.classList.remove('selected'));
+}
+
 const chartInstances = {};
 
 function renderSparkline(canvasId, history, color) {
@@ -324,6 +492,7 @@ function renderIndicators(indicators, history) {
     const suffix = unitSfx(ind.unit);
     const hist = history?.[id] || [];
     const canvasId = `chart-${id}`;
+    const hasContext = !!IND_CONTEXT[id];
 
     let delta = '';
     if (hist.length >= 2) {
@@ -337,8 +506,9 @@ function renderIndicators(indicators, history) {
     }
 
     return `
-      <div class="ind-card">
+      <div class="ind-card${hasContext ? ' clickable' : ''}" data-series="${id}"${hasContext ? ` onclick="openDrawer('${id}')"` : ''}>
         <div class="ind-name">${meta.name}</div>
+        ${hasContext ? '<div class="ind-click-hint">↗ click for details &amp; context</div>' : ''}
         <div class="ind-row">
           <div class="ind-value">${fmt(ind.value, meta.dec)}</div>
           <div class="ind-unit">${suffix}</div>
