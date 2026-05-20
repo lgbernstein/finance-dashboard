@@ -11,6 +11,7 @@ const SERIES = {
   UNRATE:   { name: 'Unemployment Rate',            unit: 'percent' },
   GDP:      { name: 'Real GDP',                     unit: 'billions' },
   T10YIE:   { name: '10-Yr Breakeven Inflation',   unit: 'percent' },
+  T5YIE:    { name: '5-Yr Breakeven Inflation',    unit: 'percent' },
   DCOILWTICO: { name: 'WTI Crude Oil',             unit: 'usd_per_barrel' },
   VIXCLS:   { name: 'VIX Volatility Index',        unit: 'index' },
 };

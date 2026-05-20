@@ -493,6 +493,13 @@ body {
 .ind-date  { font-size: 10px; color: var(--dim); margin-bottom: 10px; }
 .ind-chart { height: 68px; }
 .ind-delta { font-size: 11px; margin-top: 8px; font-variant-numeric: tabular-nums; font-weight: 600; }
+.ind-levels { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; }
+.ind-level { display: flex; gap: 6px; align-items: baseline; font-size: 11px; line-height: 1.4; }
+.ind-level-val { font-family: monospace; font-weight: 700; flex-shrink: 0; }
+.ind-level-txt { color: var(--text2); }
+.ind-level-green .ind-level-val { color: var(--green); }
+.ind-level-amber .ind-level-val { color: var(--amber); }
+.ind-level-red   .ind-level-val { color: var(--red);   }
 
 /* ── Right drawer ──────────────────────────────── */
 .ind-drawer {

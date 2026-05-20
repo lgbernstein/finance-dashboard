@@ -430,18 +430,60 @@ const crosshairPlugin = {
 Chart.register(crosshairPlugin);
 
 // ── Indicators with charts ────────────────────────────────────
-const IND_ORDER = ['DGS2','DGS10','DGS30','FEDFUNDS','T10YIE','CPIAUCSL','UNRATE','DCOILWTICO','VIXCLS','GDP'];
+const IND_ORDER = ['DGS2','DGS10','DGS30','FEDFUNDS','T10YIE','T5YIE','CPIAUCSL','UNRATE','DCOILWTICO','VIXCLS','GDP'];
 const IND_META = {
-  DGS2:       { name: '2-Yr Treasury',           dec: 2, color: '#2563eb' },
-  DGS10:      { name: '10-Yr Treasury',          dec: 2, color: '#7c3aed' },
-  DGS30:      { name: '30-Yr Treasury',          dec: 2, color: '#db2777' },
-  FEDFUNDS:   { name: 'Fed Funds Rate',          dec: 2, color: '#dc2626' },
-  T10YIE:     { name: '10-Yr Breakeven Infl.',   dec: 2, color: '#d97706' },
-  CPIAUCSL:   { name: 'CPI Index',               dec: 1, color: '#d97706' },
-  UNRATE:     { name: 'Unemployment Rate',       dec: 1, color: '#16a34a' },
-  DCOILWTICO: { name: 'WTI Crude Oil',           dec: 2, color: '#92400e' },
-  VIXCLS:     { name: 'VIX — Fear Index',        dec: 2, color: '#64748b' },
-  GDP:        { name: 'Real GDP',                dec: 0, color: '#0891b2' },
+  DGS2: { name: '2-Yr Treasury', dec: 2, color: '#2563eb', levels: [
+    { value: 2.5, color: 'green', label: '2.5% — neutral rate, Fed neither stimulating nor braking' },
+    { value: 4.0, color: 'amber', label: '4% — restrictive, all borrowing costs rise across economy' },
+    { value: 5.0, color: 'red',   label: '5% — very restrictive, last seen 2006–07 before the crisis' },
+  ]},
+  DGS10: { name: '10-Yr Treasury', dec: 2, color: '#7c3aed', levels: [
+    { value: 3.0, color: 'green', label: '3% — historically normal, housing affordable' },
+    { value: 4.5, color: 'amber', label: '4.5% — 30yr mortgage ~7%, stock valuations under pressure' },
+    { value: 5.0, color: 'red',   label: '5% — last seen 2007, equity/bond competition intensifies' },
+  ]},
+  DGS30: { name: '30-Yr Treasury', dec: 2, color: '#db2777', levels: [
+    { value: 4.0, color: 'green', label: '4% — normal long-term rate, housing functional' },
+    { value: 5.0, color: 'amber', label: '5% — $500k mortgage costs ~$2,685/mo; pension funds hurting' },
+    { value: 5.5, color: 'red',   label: '5.5% — housing market freezes, new construction collapses' },
+  ]},
+  FEDFUNDS: { name: 'Fed Funds Rate', dec: 2, color: '#dc2626', levels: [
+    { value: 2.5, color: 'green', label: '2.5% — neutral rate, economy neither helped nor hurt' },
+    { value: 4.0, color: 'amber', label: '4% — actively restrictive, Fed pressing the brake pedal' },
+    { value: 5.5, color: 'red',   label: '5.5% — very restrictive, every variable-rate debt hurts' },
+  ]},
+  T10YIE: { name: '10-Yr Breakeven Infl.', dec: 2, color: '#d97706', levels: [
+    { value: 2.0, color: 'green', label: "2% — Fed's target, bond market sees inflation under control" },
+    { value: 2.5, color: 'amber', label: '2.5% — elevated, Fed stays cautious, rate cuts off the table' },
+    { value: 3.0, color: 'red',   label: '3% — alarm level, implies Fed must stay high for a decade' },
+    { value: 3.5, color: 'red',   label: '3.5% — serious crisis signal, bond market has lost faith in Fed' },
+  ]},
+  T5YIE: { name: '5-Yr Breakeven Infl.', dec: 2, color: '#f59e0b', levels: [
+    { value: 2.0, color: 'green', label: "2% — Fed's target; bond market expects inflation solved in 5 yrs" },
+    { value: 2.5, color: 'amber', label: '2.5% — near-term inflation embedding, Fed cannot cut rates yet' },
+    { value: 3.0, color: 'red',   label: '3% — bond market expects high inflation for next 5 years' },
+    { value: 3.5, color: 'red',   label: '3.5% — serious alarm; implies rate cuts are years away, bonds fall' },
+  ]},
+  CPIAUCSL: { name: 'CPI Index', dec: 1, color: '#d97706', levels: [] },
+  UNRATE: { name: 'Unemployment Rate', dec: 1, color: '#16a34a', levels: [
+    { value: 3.5, color: 'amber', label: '3.5% — very tight, wage inflation risk, workers have all the power' },
+    { value: 4.0, color: 'green', label: '4% — full employment (Fed target zone), healthy balance' },
+    { value: 5.0, color: 'amber', label: '5% — softening economy, hiring slowdown underway' },
+    { value: 6.5, color: 'red',   label: '6.5% — recession territory, Fed likely cutting aggressively' },
+  ]},
+  DCOILWTICO: { name: 'WTI Crude Oil', dec: 2, color: '#92400e', levels: [
+    { value: 60,  color: 'red',   label: '$60 — below new-well break-even; "Drill Baby Drill" is impossible here' },
+    { value: 80,  color: 'green', label: '$80 — upper bound of comfortable range for consumers and drillers' },
+    { value: 100, color: 'amber', label: '$100 — oil shock territory, adds ~0.5–1% to CPI within months' },
+    { value: 130, color: 'red',   label: '$130 — historical recession trigger, last seen 2008 and 2022' },
+  ]},
+  VIXCLS: { name: 'VIX — Fear Index', dec: 2, color: '#64748b', levels: [
+    { value: 15,  color: 'green', label: '15 — calm markets, complacency (can itself be a warning)' },
+    { value: 20,  color: 'amber', label: '20 — normal upper bound, some nervousness in options pricing' },
+    { value: 30,  color: 'red',   label: '30 — fear mode, investors paying heavily to protect portfolios' },
+    { value: 40,  color: 'red',   label: '40 — crisis territory (COVID peak: 82, 2008 crisis: 80)' },
+  ]},
+  GDP: { name: 'Real GDP', dec: 0, color: '#0891b2', levels: [] },
 };
 
 // ── Educational context for indicator drawer ──────────────────
@@ -483,8 +525,16 @@ const IND_CONTEXT = {
     rising: 'Markets see more inflation ahead. The Fed faces pressure to keep rates higher for longer or to hike. Bond prices fall.',
     falling: 'Markets see inflation coming down toward or below the Fed\'s 2% target. Gives the Fed room to cut rates. Good for bonds and rate-sensitive sectors.',
     release: 'Daily — calculated from Treasury and TIPS market prices.',
-    watchLevel: 'The Fed\'s target is 2%. At 2.3–2.5%, markets are modestly above target. A sustained move above 3% would be alarming and force Fed action.',
-    relatedTo: ['DGS10', 'FEDFUNDS', 'CPIAUCSL', 'DCOILWTICO']
+    watchLevel: 'The Fed\'s target is 2%. At 2.3–2.5%, markets are modestly above target. A sustained move above 3% would be alarming and force Fed action. 3.5% would be a serious crisis signal.',
+    relatedTo: ['T5YIE', 'DGS10', 'FEDFUNDS', 'CPIAUCSL', 'DCOILWTICO']
+  },
+  T5YIE: {
+    what: 'The 5-Year Breakeven Inflation Rate is what the bond market expects average inflation to be over the next 5 years — a shorter and more policy-relevant window than the 10-year version. It is calculated as the difference between the 5-year Treasury yield and the 5-year TIPS yield. Traders watch this more closely than the 10-year because it reflects near-term Fed credibility.',
+    rising: 'Markets expect inflation to persist over the next five years. The Fed cannot cut rates. Bonds sell off. Variable-rate borrowers suffer. This is the number that tells you whether the inflation fight is actually being won.',
+    falling: 'The bond market believes inflation is being brought under control. Gives the Fed room to cut rates. Positive for bonds, mortgages, and rate-sensitive stocks like REITs.',
+    release: 'Daily — calculated from 5-year Treasury and 5-year TIPS market prices.',
+    watchLevel: '2% is the target. Above 2.5% means markets see near-term inflation as a real problem — Fed cuts are off the table. Above 3% is an alarm. 3.5% means the bond market has priced in years of elevated inflation and sees no imminent relief.',
+    relatedTo: ['T10YIE', 'FEDFUNDS', 'CPIAUCSL', 'DGS5']
   },
   CPIAUCSL: {
     what: 'The Consumer Price Index (All Urban Consumers) measures the average change in prices paid by US consumers for a representative basket of goods and services. This is the headline inflation number reported in the news each month. Social Security cost-of-living adjustments are tied directly to this index.',
@@ -599,7 +649,7 @@ function closeDrawer() {
 
 const chartInstances = {};
 
-function renderSparkline(canvasId, history, color) {
+function renderSparkline(canvasId, history, color, levels) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || !history?.length) return;
   if (chartInstances[canvasId]) { chartInstances[canvasId].destroy(); }
@@ -612,12 +662,31 @@ function renderSparkline(canvasId, history, color) {
   grad.addColorStop(0, color + '33');
   grad.addColorStop(1, color + '00');
 
+  // Build threshold line datasets — only those within visible data range
+  const dataMin = Math.min(...values);
+  const dataMax = Math.max(...values);
+  const range   = dataMax - dataMin || 1;
+  const levelDatasets = (levels || [])
+    .filter(l => l.value >= dataMin - range * 0.3 && l.value <= dataMax + range * 0.3)
+    .map(l => ({
+      data: Array(labels.length).fill(l.value),
+      borderColor: l.color === 'red' ? 'rgba(248,113,113,0.55)' : l.color === 'amber' ? 'rgba(251,191,36,0.55)' : 'rgba(74,222,128,0.45)',
+      borderWidth: 1,
+      borderDash: [4, 3],
+      pointRadius: 0,
+      fill: false,
+      tension: 0,
+    }));
+
   chartInstances[canvasId] = new Chart(ctx, {
     type: 'line',
     data: {
       labels,
-      datasets: [{ data: values, borderColor: color, borderWidth: 2,
-        backgroundColor: grad, pointRadius: 0, tension: 0.35, fill: true }]
+      datasets: [
+        { data: values, borderColor: color, borderWidth: 2,
+          backgroundColor: grad, pointRadius: 0, tension: 0.35, fill: true },
+        ...levelDatasets
+      ]
     },
     options: {
       responsive: true, maintainAspectRatio: false, animation: false,
@@ -627,7 +696,7 @@ function renderSparkline(canvasId, history, color) {
         tooltip: {
           backgroundColor: '#0f172a', titleColor: '#94a3b8',
           bodyColor: '#f1f5f9', padding: 10, borderWidth: 0,
-          callbacks: { label: ctx => `${fmt(ctx.parsed.y)} (${labels[ctx.dataIndex]})` }
+          callbacks: { label: ctx => ctx.datasetIndex === 0 ? `${fmt(ctx.parsed.y)} (${labels[ctx.dataIndex]})` : null }
         }
       },
       scales: { x: { display: false }, y: { display: false } }
@@ -672,13 +741,16 @@ function renderIndicators(indicators, history) {
         <div class="ind-date">${ind.observation_date}</div>
         ${hist.length > 1 ? `<div class="ind-chart"><canvas id="${canvasId}"></canvas></div>` : ''}
         ${delta}
+        ${(meta.levels||[]).length ? `<div class="ind-levels">${(meta.levels).map(l =>
+          `<div class="ind-level ind-level-${l.color}"><span class="ind-level-val">${l.value}${suffix}</span><span class="ind-level-txt">${l.label}</span></div>`
+        ).join('')}</div>` : ''}
       </div>`;
   }).join('');
 
   requestAnimationFrame(() => {
     for (const id of order) {
       const hist = history?.[id] || [];
-      if (hist.length > 1) renderSparkline(`chart-${id}`, hist, IND_META[id]?.color || '#64748b');
+      if (hist.length > 1) renderSparkline(`chart-${id}`, hist, IND_META[id]?.color || '#64748b', IND_META[id]?.levels);
     }
   });
 }
