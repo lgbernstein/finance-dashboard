@@ -43,7 +43,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--text);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
   display: flex;
 }
@@ -463,12 +463,12 @@ body {
 
 /* ── Section headings within tabs ─────────────────── */
 .section-heading {
-  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
   letter-spacing: 1px; color: var(--muted);
   margin-bottom: 14px; padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
 }
-.section-note { font-size: 12px; color: var(--text2); margin-bottom: 14px; font-style: italic; line-height: 1.5; }
+.section-note { font-size: 14px; color: var(--text2); margin-bottom: 14px; font-style: italic; line-height: 1.5; }
 .mt-16 { margin-top: 16px; }
 .mt-24 { margin-top: 24px; }
 
@@ -483,8 +483,8 @@ body {
   display: flex; flex-direction: column; gap: 10px;
 }
 .comp-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.comp-name { font-size: 13px; font-weight: 700; color: var(--text); }
-.comp-sub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.comp-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.comp-sub  { font-size: 13px; color: var(--muted); margin-top: 2px; }
 .comp-badge {
   font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
   border: 1px solid; white-space: nowrap; flex-shrink: 0;
@@ -497,7 +497,7 @@ body {
 .comp-value-row { display: flex; align-items: baseline; gap: 12px; }
 .comp-value  { font-size: 28px; font-weight: 700; color: var(--text); font-family: monospace; line-height: 1; }
 .comp-signal { font-size: 13px; font-weight: 600; }
-.comp-interp { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.comp-interp { font-size: 14px; color: var(--text2); line-height: 1.6; }
 .comp-scale  {
   display: flex; justify-content: space-between; align-items: center;
   font-size: 10px; color: var(--dim); padding-top: 8px;

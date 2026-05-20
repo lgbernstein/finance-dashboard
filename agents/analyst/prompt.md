@@ -69,11 +69,11 @@ Do NOT write paragraphs in any of these fields.
       "id": "macro_overview",
       "title": "Macro Overview",
       "bullets": [
-        "**What's happening:** One short sentence. Plain English. Name the number.",
-        "**Why it matters:** One short sentence. What does this mean for prices, jobs, or the market?",
-        "**What to expect:** One short sentence. Where does this go if nothing changes?"
+        "**What's happening:** ONE sentence. Max 15 words. Name the number.",
+        "**Why it matters:** ONE sentence. Max 15 words. Real-world impact only.",
+        "**What to expect:** ONE sentence. Max 15 words. The likely next move."
       ],
-      "full_body": "2-3 short sentences of extra context. Plain English. No jargon. Only shown if user asks.",
+      "full_body": "2-3 sentences MAX. Plain English. No jargon. This is extra detail if user wants it.",
       "data_points": ["10-Yr Yield: 4.59%", "WTI: $82.40"],
       "confidence": 0.85,
       "last_changed": "What shifted since last cycle, or null"
