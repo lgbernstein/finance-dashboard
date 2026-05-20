@@ -102,7 +102,7 @@ async function runAnalyst(fredData, marketData, newsItems, voicesData) {
     top_news: (newsItems || []).slice(0, 8),
     voices_data: (voicesData || []).map(v => ({
       ...v,
-      snippet: (v.snippet || '').replace(/[""]/g, '"').replace(/['']/g, "'").replace(/[\x00-\x1F]/g, ' ').trim()
+      snippet: (v.snippet || '').replace(/["""]/g, "'").replace(/['']/g, "'").replace(/[\x00-\x1F]/g, ' ').trim()
     })),
     previous_baseline: baseline.key_levels || {},
     dominant_narrative: baseline.dominant_narrative || null
