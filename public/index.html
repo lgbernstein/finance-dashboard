@@ -189,7 +189,7 @@
       <div class="section-heading mt-24">Forward-Looking Composite Indicators</div>
       <p class="section-note">Four models that aggregate dozens of inputs into a single signal — how stressed is the financial system and are we heading into recession?</p>
       <div class="composite-grid">
-        <div class="comp-card">
+        <div class="comp-card clickable" onclick="openCompDrawer('nfci')">
           <div class="comp-header">
             <div><div class="comp-name">Chicago Fed NFCI</div><div class="comp-sub">National Financial Conditions Index</div></div>
             <div class="comp-badge" id="nfci-badge">Loading…</div>
@@ -202,7 +202,7 @@
           <div class="comp-interp" id="nfci-interp">Loading…</div>
           <div class="comp-scale"><span>Loose ← 0 → Tight</span><a href="https://www.chicagofed.org/research/data/nfci/current-data" target="_blank" rel="noopener">Chicago Fed ↗</a></div>
         </div>
-        <div class="comp-card">
+        <div class="comp-card clickable" onclick="openCompDrawer('recprob')">
           <div class="comp-header">
             <div><div class="comp-name">NY Fed Recession Probability</div><div class="comp-sub">12-month forward, from yield curve</div></div>
             <div class="comp-badge" id="recprob-badge">Loading…</div>
@@ -215,7 +215,7 @@
           <div class="comp-interp" id="recprob-interp">Loading…</div>
           <div class="comp-scale"><span><span style="color:var(--green)">below 20%</span> safe · <span style="color:var(--red)">above 30%</span> warning</span><a href="https://www.newyorkfed.org/research/capital_markets/ycfaq" target="_blank" rel="noopener">NY Fed ↗</a></div>
         </div>
-        <div class="comp-card">
+        <div class="comp-card clickable" onclick="openCompDrawer('gdpnow')">
           <div class="comp-header">
             <div><div class="comp-name">Atlanta Fed GDPNow</div><div class="comp-sub">Real-time Q2 2026 GDP estimate</div></div>
             <div class="comp-badge badge-watch">Live model</div>
@@ -228,7 +228,7 @@
           <div class="comp-interp">Q2 2026 tracking estimate. Slowing from Q1's ~2.5% as energy shock hits consumer spending. Updates with each major data release (retail sales, jobs, trade).</div>
           <div class="comp-scale"><span>Updates with each major release</span><a href="https://www.atlantafed.org/cdo/research/gdpnow" target="_blank" rel="noopener">Atlanta Fed ↗</a></div>
         </div>
-        <div class="comp-card">
+        <div class="comp-card clickable" onclick="openCompDrawer('bb')">
           <div class="comp-header">
             <div><div class="comp-name">BofA Bull &amp; Bear</div><div class="comp-sub">18-input sentiment model (0–10)</div></div>
             <div class="comp-badge badge-watch">Neutral</div>

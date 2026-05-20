@@ -279,10 +279,11 @@ function renderMarketSnapshot(market) {
     const isIdx = ['^GSPC','^DJI','^IXIC'].includes(sym);
     const isYld = sym === '^TNX';
     const val = isIdx ? fmt(m.value, 0) : isYld ? m.value.toFixed(2) + '%' : '$' + m.value.toFixed(2);
-    return `<div class="snapshot-card ${cls}">
+    return `<div class="snapshot-card ${cls} clickable" onclick="openSnapshotDrawer('${sym}')">
       <div class="snapshot-label">${SNAPSHOT_NAMES[sym]}</div>
       <div class="snapshot-value ${cls}">${val}</div>
       ${chg != null ? `<div class="snapshot-change ${cls}">${arrow} ${Math.abs(chg).toFixed(2)}%</div>` : ''}
+      <div class="snapshot-hint">↗ learn more</div>
     </div>`;
   }).join('');
 }
@@ -325,6 +326,120 @@ function renderKeyLevels(market) {
       <div class="level-flag-val">${f.value}</div>
       <div class="level-flag-note">${f.note}</div>
     </div>`).join('')}</div>`;
+}
+
+// ── Snapshot educational context ─────────────────────────────
+const SNAP_CONTEXT = {
+  '^GSPC': {
+    name: 'S&P 500 Index',
+    what: 'The S&P 500 tracks the 500 largest US publicly traded companies by market capitalization — roughly 80% of the total US stock market. It is the benchmark against which virtually every investment manager is measured. When the news says "the market was up today," they almost always mean the S&P 500.',
+    rising: 'Corporate earnings growing, economic confidence high, or money flowing into risk assets. A rising S&P is a general signal of economic health — but can also reflect loose monetary conditions or speculative excess.',
+    falling: 'Recession fears, earnings disappointments, rising rates compressing valuations, or geopolitical shocks. A 20%+ decline from peak is formally a "bear market." The S&P has recovered from every bear market in history — but timing matters enormously if you need to draw down assets.',
+    watchLevel: '4,000–4,500: Bear market territory. 4,500–5,500: Moderate valuation. Above 5,500: Historically elevated — more vulnerable to bad news. When the VIX exceeds 25 alongside an S&P decline, it usually means institutional selling, not just noise.',
+    forLarry: 'If you hold a broad index fund (like SPY or VTSAX), this IS your portfolio. A 20% decline in the S&P means a ~20% hit to that portion of your holdings. The key question is always: do you need this money in the next 3–5 years?'
+  },
+  '^DJI': {
+    name: 'Dow Jones Industrial Average',
+    what: 'The Dow tracks just 30 large US "blue chip" companies and dates back to 1896. It is price-weighted (higher-priced stocks move it more), which is an analytical quirk. It gets outsized news coverage but the S&P 500 is a better gauge of broad market health — the Dow\'s 30-stock sample can be misleading.',
+    rising: 'Same drivers as the S&P: growth optimism, strong earnings, or stimulus. Because only 30 stocks make up the Dow, a move in a few large components (Boeing, Goldman, or UnitedHealth) can make the headline mislead about the broader market.',
+    falling: 'Same concerns as the S&P. Worth watching alongside the S&P — if they diverge significantly, something unusual is happening in specific sectors.',
+    watchLevel: '35,000–38,000: Historical fair value range. Above 40,000: Elevated valuations. Below 32,000: Meaningful drawdown territory. Financial media favors the Dow for historical familiarity; professional investors watch the S&P 500.',
+    forLarry: 'The Dow and S&P usually move together. If they diverge, it is worth investigating why. For retirement portfolio health, the S&P 500 is the more representative number to track.'
+  },
+  '^IXIC': {
+    name: 'NASDAQ Composite',
+    what: 'The NASDAQ Composite tracks over 3,000 companies on the NASDAQ exchange, heavily weighted toward technology — Apple, Microsoft, Amazon, NVIDIA, Meta, Alphabet. It moves more dramatically than the S&P in both directions. It leads in bull markets and falls further in bear markets.',
+    rising: 'Technology optimism, falling interest rates (which boost growth stock valuations by making distant future earnings worth more today), or AI and innovation narratives.',
+    falling: 'Rising interest rates are especially punishing for tech/growth stocks — their valuations depend on discounting future earnings at today\'s rate. A 1% rate rise can compress tech P/E ratios significantly.',
+    watchLevel: 'NASDAQ above 18,000: Elevated; vulnerable to rate or earnings surprises. Watch the NASDAQ-to-S&P ratio — when it gets very stretched, a rotation out of tech is historically likely.',
+    forLarry: 'If you own a tech-heavy fund (like QQQ), this is closer to what you are tracking. Tech is more volatile than the broad market — great when rates fall, painful when they rise.'
+  },
+  'CL=F': {
+    name: 'WTI Crude Oil (Futures)',
+    what: 'WTI (West Texas Intermediate) crude oil futures represent the price of a barrel of US benchmark oil for near-term delivery. Oil is an input into nearly everything: gasoline, diesel, aviation fuel, plastics, fertilizer, shipping costs. A $10/barrel move in crude adds roughly 15–25 basis points to CPI within 6 months.',
+    rising: 'Demand outpacing supply, OPEC+ production cuts, geopolitical disruptions (Strait of Hormuz, Russia), or economic boom. Gas prices at the pump rise within days. Inflation picks up. Energy company stocks rally.',
+    falling: 'Demand weakness (recession fears or slowing China), OPEC+ overproduction, US shale surge, or geopolitical resolution. Disinflationary pressure. Consumer relief at the pump.',
+    watchLevel: 'Below $60: deflationary for energy, hurts US drillers. $70–$90: comfortable range. $90–$100: running warm — watch CPI 3–6 months out. Above $100: oil shock territory, historically associated with recessions. Above $130: as seen in 2008 and briefly in 2022.',
+    forLarry: 'Oil is the most geopolitically sensitive price in the world. It connects Middle East tensions, Russian pipelines, OPEC+ decisions, and US shale output into one daily number. A sustained move above $100 should put you on alert for higher CPI readings ahead.'
+  },
+  '^VIX': {
+    name: 'VIX — CBOE Volatility Index',
+    what: 'The VIX measures what the market expects S&P 500 volatility to be over the next 30 days, derived from options contract prices. It does NOT measure stock prices directly — it measures how much investors are paying to insure against big moves. A high VIX means expensive insurance — someone is very worried.',
+    rising: 'Investors are nervous and buying portfolio protection. Often precedes or accompanies sell-offs. A VIX spike above 30 during a decline is often a sign of near-term exhaustion — but not always.',
+    falling: 'Markets calm and complacent. Low hedging costs. Paradoxically, a very low VIX (below 12) can be a warning — historically, prolonged low-volatility periods end in sharp reversals. Stability breeds instability.',
+    watchLevel: 'Below 15: Very calm, possibly complacent. 15–20: Normal. 20–25: Elevated nervousness. 25–30: Fear mode. 30–40: Crisis conditions. Above 40: Extreme crisis (COVID-19 peak: 82, 2008 crisis: 80). Above 30 typically means institutional managers are actively reducing risk.',
+    forLarry: 'The VIX is a thermometer, not a trade. When it spikes, portfolio values move fast. Products that try to "own" the VIX (like VXX) decay rapidly and are not appropriate investments for most people.'
+  },
+  '^TNX': {
+    name: '10-Year Treasury Yield',
+    what: 'The 10-year US Treasury yield is the interest rate the government pays to borrow money for 10 years. It is arguably the most important number in global finance — the "risk-free rate" against which all other assets are priced. It directly drives 30-year mortgage rates (typically yield + 2.5%) and is the discount rate that sets the valuation of every stock in the S&P 500.',
+    rising: 'Mortgage rates rise almost immediately. Stocks face valuation compression (future earnings worth less in today\'s dollars). Bond prices fall. Dollar typically strengthens. Signals growth optimism or persistent inflation concerns.',
+    falling: 'Mortgage rates drop, triggering refinancing booms. Growth stocks rally. Bond prices rise. Often signals economic slowdown fears or inflation coming under control. Rapid falls usually mean money fleeing to safety.',
+    watchLevel: 'Below 3%: Very low, usually means recession or extraordinary Fed easing. 3–4%: Historically normal. 4–4.5%: Restrictive but manageable. Above 4.5%: Pressure on stocks and housing. Above 5%: Last seen in 2007; forces serious rethinking of equity valuations.',
+    forLarry: 'If you hold bond funds (like BND or TLT), the 10-year yield is your most important number. A 1% rise in the 10-year drops a long-duration bond fund roughly 8–10%. This is why 2022 was so painful — yields rose from 1.5% to 4.2% in one year.'
+  }
+};
+
+// ── Generic info drawer (reuses #ind-drawer for any content) ─
+function openInfoDrawer(title, subtitle, ctx, relatedTo) {
+  document.getElementById('drawer-title').textContent = title;
+  const seriesEl = document.getElementById('drawer-series');
+  if (seriesEl) seriesEl.textContent = subtitle || '';
+
+  const related = (relatedTo || []).map(id => {
+    const m = IND_META[id];
+    if (!m) return '';
+    return `<span class="chip clickable" onclick="openDrawer('${id}')">${m.name}</span>`;
+  }).filter(Boolean).join('');
+
+  document.getElementById('drawer-body').innerHTML = `
+    <div>
+      <div class="drawer-section-title">What it is</div>
+      <div class="drawer-section-body">${ctx.what}</div>
+    </div>
+    <div>
+      <div class="drawer-section-title">Market impact</div>
+      <div class="drawer-impact-row">
+        <div class="impact-box up-box">
+          <div class="impact-label up">Rising</div>
+          <div class="impact-text">${ctx.rising}</div>
+        </div>
+        <div class="impact-box down-box">
+          <div class="impact-label down">Falling</div>
+          <div class="impact-text">${ctx.falling}</div>
+        </div>
+      </div>
+    </div>
+    ${ctx.release ? `<div>
+      <div class="drawer-section-title">Release schedule</div>
+      <div class="release-row">
+        <span class="release-icon">📅</span>
+        <span class="drawer-section-body">${ctx.release}</span>
+      </div>
+    </div>` : ''}
+    <div>
+      <div class="drawer-section-title">Key levels to watch</div>
+      <div class="drawer-section-body">${ctx.watchLevel}</div>
+    </div>
+    ${ctx.forLarry ? `<div>
+      <div class="drawer-section-title">What this means for your portfolio</div>
+      <div class="drawer-section-body" style="border-left:3px solid var(--amber);padding-left:10px;margin-left:2px">${ctx.forLarry}</div>
+    </div>` : ''}
+    ${related ? `<div>
+      <div class="drawer-section-title">Related indicators</div>
+      <div class="data-chips" style="margin-top:8px">${related}</div>
+    </div>` : ''}
+  `;
+
+  document.getElementById('ind-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.querySelectorAll('.ind-card').forEach(c => c.classList.remove('selected'));
+}
+
+function openSnapshotDrawer(sym) {
+  const ctx = SNAP_CONTEXT[sym];
+  if (!ctx) return;
+  openInfoDrawer(ctx.name, sym, ctx, []);
 }
 
 // ── Date formatting helper ─────────────────────────────────────
@@ -983,6 +1098,56 @@ function loadCompositeIndicators() {
 
 document.addEventListener('DOMContentLoaded', loadCompositeIndicators);
 
+// ── Composite indicator educational context ───────────────────
+const COMP_CONTEXT = {
+  nfci: {
+    name: 'Chicago Fed National Financial Conditions Index',
+    subtitle: 'NFCI — weekly composite of 105 financial variables',
+    what: 'The NFCI aggregates 105 measures of financial conditions across money markets, debt markets, and equity markets into a single number. Zero is the historical average (neutral). Negative means looser-than-average — credit is cheap and easy to get. Positive means tighter-than-average — credit is expensive or hard to get. Published weekly by the Chicago Fed.',
+    rising: 'Financial conditions tightening. Credit spreads widening, lending standards firming, volatility rising. Historically associated with economic slowdown risk. Sustained readings above +0.5 have preceded recessions.',
+    falling: 'Financial conditions loosening. Easy credit, low spreads, calm markets. Good for growth but can enable excessive leverage and risk-taking. Below -0.5 is historically very easy.',
+    watchLevel: 'Below -0.7: Very loose — historically precedes stable markets but also bubbles. -0.7 to 0: Accommodative — the norm in most expansion periods. 0 to +0.5: Tightening — yellow flag. Above +0.5: Tight — historically associated with credit events and equity drawdowns. Above +1: Crisis conditions.',
+    release: 'Weekly — published every Friday by the Federal Reserve Bank of Chicago.',
+    relatedTo: ['DGS10', 'VIXCLS', 'FEDFUNDS']
+  },
+  recprob: {
+    name: 'NY Fed Recession Probability Model',
+    subtitle: '12-month forward probability from yield curve spread',
+    what: 'The NY Fed uses a probit statistical model based on the spread between the 10-year and 3-month Treasury yields to estimate the probability of a US recession in the next 12 months. When short rates exceed long rates (an "inverted yield curve"), lending becomes less profitable for banks, credit contracts, and recession risk rises. This model has signaled every US recession since 1960.',
+    rising: 'Yield curve flattening or inverting. Banks less willing to lend. Credit growth slowing. Historically, readings above 30% have preceded recessions within 12 months in nearly every case.',
+    falling: 'Yield curve steepening — long rates rising above short rates, or the Fed cutting short rates. Historically, once this probability peaks and falls from above 30%, the economy either is already in recession or narrowly avoided one.',
+    watchLevel: 'Below 15%: Low risk from yield curve alone. 15–25%: Moderate concern. 25–30%: Warning zone — monitor closely. Above 30%: High-confidence recession signal. Historical record: 7 of 8 yield curve inversions since 1968 led to recessions within 12–18 months.',
+    release: 'Monthly — updated with each new Treasury yield data release.',
+    relatedTo: ['DGS10', 'DGS2', 'FEDFUNDS', 'GDP']
+  },
+  gdpnow: {
+    name: 'Atlanta Fed GDPNow',
+    subtitle: 'Real-time running estimate of current-quarter GDP growth',
+    what: 'GDPNow is a "nowcast" — a real-time estimate of current-quarter GDP growth updated continuously as new economic data arrives. It uses the same methodology as the Bureau of Economic Analysis (BEA), incorporating retail sales, factory orders, jobs, trade, and housing data. It is not a forecast — it is a model estimate of what GDP would show if the quarter ended today.',
+    rising: 'Incoming economic data is coming in above expectations. Consumer spending, business investment, or exports strengthening. A rising GDPNow is broadly positive for equities.',
+    falling: 'Economic data surprising to the downside. Slowdown in spending, production, or trade. A rapidly declining GDPNow is the earliest warning system for a growth scare — it moves months before the official BEA GDP release.',
+    watchLevel: 'Above 3%: Strong growth, economy above trend. 2–3%: Healthy expansion. 1–2%: Slowing but not alarming. 0–1%: Stall speed — vulnerable to any external shock. Negative: Contraction. Two consecutive quarters of negative GDP = formal recession.',
+    release: 'Updated 2–3 times per week as new data arrives. Official BEA GDP estimate comes quarterly with a 30-day lag.',
+    relatedTo: ['UNRATE', 'FEDFUNDS', 'GDP', 'CPIAUCSL']
+  },
+  bb: {
+    name: 'BofA Bull & Bear Indicator',
+    subtitle: '18-input sentiment model — 0 (extreme fear) to 10 (extreme greed)',
+    what: 'Bank of America\'s Bull & Bear indicator synthesizes 18 inputs including fund flows, investor positioning, breadth measures, and sentiment surveys into a 0–10 score. It is a contrarian indicator: extreme readings predict reversals. Zero = maximum bearishness (everyone positioned defensively). Ten = maximum bullishness (everyone positioned aggressively).',
+    rising: 'Increasing bullishness — investors moving into risk assets, positioning getting crowded long. A rise toward 8+ is a contrarian sell signal: when everyone is bullish, there are few buyers left. High readings are historically dangerous.',
+    falling: 'Increasing bearishness — investors selling, positioning getting defensive. A fall toward 2 or below is a contrarian buy signal: when everyone is scared and sold out, the only direction is up. The best buying opportunities in history have occurred at maximum fear.',
+    watchLevel: 'Below 2.0: BofA\'s formal "buy signal" — capitulation, maximum fear. 2–4: Bearish. 4–6: Neutral. 6–8: Moderately bullish — caution warranted. Above 8.0: BofA\'s formal "sell signal" — extreme greed, crowded positioning, risk of sharp correction.',
+    release: 'Weekly — published in BofA\'s Global Fund Manager Survey and weekly research note.',
+    relatedTo: ['VIXCLS', 'DGS10']
+  }
+};
+
+function openCompDrawer(id) {
+  const ctx = COMP_CONTEXT[id];
+  if (!ctx) return;
+  openInfoDrawer(ctx.name, ctx.subtitle, ctx, ctx.relatedTo || []);
+}
+
 // ═══════════════════════════════════════════════════════════════
 // ENERGY CHARTS — initialized lazily when Energy tab opens
 // ═══════════════════════════════════════════════════════════════
@@ -1416,6 +1581,34 @@ function webbAddMsg(role, text, imgDataUrl) {
   el.scrollTop = el.scrollHeight;
 }
 
+function buildDashboardSnapshot() {
+  const lines = [`Live dashboard snapshot (${new Date().toLocaleTimeString()}):`];
+
+  const snapCards = document.querySelectorAll('#market-snapshot .snapshot-card');
+  if (snapCards.length) {
+    lines.push('Market levels:');
+    snapCards.forEach(card => {
+      const label = card.querySelector('.snapshot-label')?.textContent?.trim();
+      const value = card.querySelector('.snapshot-value')?.textContent?.trim();
+      const chg   = card.querySelector('.snapshot-change')?.textContent?.trim();
+      if (label && value) lines.push(`  ${label}: ${value}${chg ? ' ' + chg : ''}`);
+    });
+  }
+
+  const indCards = document.querySelectorAll('#indicators-grid .ind-card');
+  if (indCards.length) {
+    lines.push('Economic indicators:');
+    indCards.forEach(card => {
+      const name  = card.querySelector('.ind-name')?.textContent?.trim();
+      const value = card.querySelector('.ind-value')?.textContent?.trim();
+      const unit  = card.querySelector('.ind-unit')?.textContent?.trim();
+      if (name && value) lines.push(`  ${name}: ${value}${unit || ''}`);
+    });
+  }
+
+  return lines.join('\n');
+}
+
 async function webbSend() {
   if (webbPending) return;
   const input = document.getElementById('webb-input');
@@ -1454,7 +1647,7 @@ async function webbSend() {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: webbMessages, context: webbContext })
+      body: JSON.stringify({ messages: webbMessages, context: [buildDashboardSnapshot(), webbContext].filter(Boolean).join('\n\n') || null })
     });
     const data = await res.json();
     thinking.remove();
