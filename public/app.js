@@ -73,26 +73,11 @@ function bulletPanel(panel, expandId) {
 
   const hasBody = panel.body && panel.body.trim().length > 20;
   const expandBtn = hasBody
-    ? `<button class="expand-toggle" onclick="toggleExpand('${expandId}', this)">Read full analysis ↓</button>
+    ? `<button class="expand-toggle" onclick="toggleExpand('${expandId}', this)">Full analysis ↓</button>
        <div class="expand-body" id="${expandId}">${md(panel.body)}</div>`
     : '';
 
-  let chips = [];
-  try { chips = JSON.parse(panel.data_points || '[]'); } catch {}
-  const chipsHtml = chips.length
-    ? `<div class="data-chips">${chips.map(c => {
-        const isInd = IND_META[c] != null;
-        return isInd
-          ? `<span class="chip clickable" onclick="openDrawer('${c}')">${c}</span>`
-          : `<span class="chip">${c}</span>`;
-      }).join('')}</div>`
-    : '';
-
-  const conf = panel.confidence != null
-    ? `<div class="panel-conf">${Math.round(panel.confidence * 100)}% confidence</div>`
-    : '';
-
-  return bulletsHtml + expandBtn + chipsHtml + conf;
+  return bulletsHtml + expandBtn;
 }
 
 function toggleExpand(id, btn) {
@@ -135,40 +120,22 @@ function renderPanels(panels) {
   renderGeoStepper();
 }
 
-// ── Geopolitics stepper ───────────────────────────────────────
+// ── Geopolitics grid ──────────────────────────────────────────
 function renderGeoStepper() {
-  const card = document.getElementById('geo-stepper');
-  const controls = document.getElementById('geo-controls');
-  if (!card) return;
+  const container = document.getElementById('geo-grid');
+  if (!container) return;
 
   if (!geoPanels.length) {
-    card.innerHTML = '<div class="skeleton">No geopolitical analysis yet — run a cycle.</div>';
-    if (controls) controls.innerHTML = '';
+    container.innerHTML = '<div class="skeleton">No geopolitical analysis yet — run a cycle.</div>';
     return;
   }
 
-  const panel = geoPanels[geoIndex];
-  card.innerHTML = `
-    <div class="card-label amber" style="margin-bottom:16px">Geopolitical Threads — ${geoIndex + 1} of ${geoPanels.length}</div>
-    ${bulletPanel(panel, `expand-geo-${geoIndex}`)}
-  `;
-
-  if (controls) {
-    const dots = geoPanels.map((_, i) =>
-      `<span class="s-dot ${i === geoIndex ? 'active' : ''}" onclick="goGeo(${i})"></span>`
-    ).join('');
-    controls.innerHTML = `
-      <button class="stepper-btn" onclick="goGeo(${geoIndex - 1})" ${geoIndex === 0 ? 'disabled' : ''}>← Prev</button>
-      <div class="stepper-dots">${dots}</div>
-      <button class="stepper-btn" onclick="goGeo(${geoIndex + 1})" ${geoIndex >= geoPanels.length - 1 ? 'disabled' : ''}>Next →</button>
-    `;
-  }
-}
-
-function goGeo(i) {
-  if (i < 0 || i >= geoPanels.length) return;
-  geoIndex = i;
-  renderGeoStepper();
+  container.innerHTML = geoPanels.map((panel, i) => `
+    <div class="card geo-card">
+      <div class="card-label amber" style="margin-bottom:14px">Geopolitical Thread ${geoPanels.length > 1 ? i + 1 : ''}</div>
+      ${bulletPanel(panel, `expand-geo-${i}`)}
+    </div>
+  `).join('');
 }
 
 // ── Causation chain ───────────────────────────────────────────

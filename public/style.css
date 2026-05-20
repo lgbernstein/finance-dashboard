@@ -179,24 +179,31 @@ body {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 .bullet-list li {
-  font-size: 13px;
-  color: var(--text2);
-  line-height: 1.65;
-  padding-left: 18px;
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.6;
+  padding-left: 22px;
   position: relative;
 }
 .bullet-list li::before {
   content: '→';
   position: absolute;
   left: 0;
-  color: var(--dim);
+  color: var(--blue);
   font-weight: 700;
 }
-.bullet-list li strong { color: var(--text); }
+.bullet-list li strong { color: var(--text); font-weight: 700; }
+
+.geo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+  gap: 14px;
+}
+.geo-card { height: fit-content; }
 
 .expand-toggle {
   background: none; border: none;
