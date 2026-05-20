@@ -15,23 +15,31 @@ const SERIES = {
   VIXCLS:   { name: 'VIX Volatility Index',        unit: 'index' },
 };
 
-function fetchSeries(seriesId, apiKey) {
+function fetchSeries(seriesId, apiKey, limit = 24) {
   return new Promise((resolve, reject) => {
-    const url = `${BASE}?series_id=${seriesId}&api_key=${apiKey}&limit=1&sort_order=desc&file_type=json`;
+    const url = `${BASE}?series_id=${seriesId}&api_key=${apiKey}&limit=${limit}&sort_order=desc&file_type=json`;
     https.get(url, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try {
           const parsed = JSON.parse(data);
-          const obs = parsed.observations?.[0];
-          if (!obs || obs.value === '.') return resolve(null);
+          const observations = (parsed.observations || []).filter(o => o.value !== '.');
+          if (!observations.length) return resolve(null);
+          const latest = observations[0];
+          const history = observations.reverse().map(o => ({
+            series_id: seriesId,
+            value: parseFloat(o.value),
+            observation_date: o.date,
+            unit: SERIES[seriesId]?.unit || null
+          }));
           resolve({
             series_id: seriesId,
             name: SERIES[seriesId]?.name || seriesId,
-            value: parseFloat(obs.value),
-            observation_date: obs.date,
-            unit: SERIES[seriesId]?.unit || null
+            value: parseFloat(latest.value),
+            observation_date: latest.date,
+            unit: SERIES[seriesId]?.unit || null,
+            history
           });
         } catch (e) {
           reject(e);

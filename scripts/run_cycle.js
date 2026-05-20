@@ -100,9 +100,12 @@ async function main() {
     const { fredData, marketData, newsItems, gaps } = await gatherData();
 
     // Write raw data to DB
+    const historyItems = [];
     for (const [id, item] of Object.entries(fredData || {})) {
       db.upsertIndicator(id, item.value, item.observation_date, item.unit);
+      if (item.history) historyItems.push(...item.history);
     }
+    if (historyItems.length) db.insertIndicatorHistory(historyItems);
     for (const [sym, item] of Object.entries(marketData || {})) {
       db.upsertMarket(sym, item.name, item.value, item.change_pct);
     }
@@ -116,6 +119,19 @@ async function main() {
       db.upsertPanel(
         panel.id, panel.title, panel.body,
         panel.data_points, panel.confidence, panel.last_changed
+      );
+    }
+
+    // Store causation chain as a synthetic panel so the frontend can retrieve it
+    if (analysis.causation_chain_structured) {
+      const chain = analysis.causation_chain_structured;
+      db.upsertPanel(
+        'causation_chain',
+        'Causation Chain',
+        chain.trigger + '\n\n' + (chain.steps || []).join('\n') + '\n\n' + chain.outcome,
+        JSON.stringify(chain),
+        null,
+        null
       );
     }
 

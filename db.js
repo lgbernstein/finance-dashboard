@@ -7,6 +7,14 @@ const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS indicator_history (
+    series_id TEXT NOT NULL,
+    value REAL NOT NULL,
+    observation_date TEXT NOT NULL,
+    unit TEXT,
+    PRIMARY KEY (series_id, observation_date)
+  );
+
   CREATE TABLE IF NOT EXISTS indicators (
     series_id TEXT NOT NULL,
     value REAL NOT NULL,
@@ -78,6 +86,27 @@ db.exec(`
 `);
 
 module.exports = {
+  insertIndicatorHistory(items) {
+    const ins = db.prepare(`
+      INSERT OR IGNORE INTO indicator_history (series_id, value, observation_date, unit)
+      VALUES (?, ?, ?, ?)
+    `);
+    const tx = db.transaction(() => {
+      for (const item of items) {
+        ins.run(item.series_id, item.value, item.observation_date, item.unit || null);
+      }
+    });
+    tx();
+  },
+
+  getIndicatorHistory(seriesId, limit = 24) {
+    return db.prepare(`
+      SELECT value, observation_date FROM indicator_history
+      WHERE series_id = ?
+      ORDER BY observation_date DESC LIMIT ?
+    `).all(seriesId, limit).reverse();
+  },
+
   upsertIndicator(seriesId, value, observationDate, unit) {
     db.prepare(`
       INSERT INTO indicators (series_id, value, observation_date, unit, fetched_at)
@@ -172,9 +201,19 @@ module.exports = {
   },
 
   getDashboard() {
+    const indicators = db.prepare('SELECT * FROM indicators ORDER BY series_id').all();
+    const history = {};
+    for (const ind of indicators) {
+      history[ind.series_id] = db.prepare(`
+        SELECT value, observation_date FROM indicator_history
+        WHERE series_id = ? ORDER BY observation_date DESC LIMIT 24
+      `).all(ind.series_id).reverse();
+    }
     return {
-      indicators: db.prepare('SELECT * FROM indicators ORDER BY series_id').all(),
+      indicators,
+      history,
       market: db.prepare('SELECT * FROM market_data ORDER BY symbol').all(),
+
       news: db.prepare('SELECT * FROM news_items ORDER BY published_at DESC LIMIT 20').all(),
       panels: db.prepare('SELECT * FROM commentary_panels ORDER BY panel_id').all(),
       alerts: db.prepare('SELECT * FROM alerts WHERE resolved_at IS NULL ORDER BY created_at DESC').all(),

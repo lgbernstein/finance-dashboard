@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Larry's Economic Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <div>
-      <h1>Economic Dashboard</h1>
+      <h1>Larry's Economic Dashboard</h1>
       <p id="last-updated">Loading...</p>
     </div>
     <div id="clock"></div>
@@ -19,21 +20,42 @@
 
   <div class="container">
 
-    <!-- AI Commentary Panels -->
-    <div class="section-label">AI Analysis</div>
-    <div id="panels-grid" class="panels-grid">
-      <div class="panel-skeleton">Loading analysis...</div>
+    <!-- AI Narrative Panels -->
+    <div class="section-label">AI Analysis — What's Happening &amp; Why</div>
+    <div class="main-grid">
+
+      <!-- Left: narrative stack -->
+      <div class="narrative-col">
+        <div id="panel-macro_overview"     class="narr-card"></div>
+        <div id="panel-geopolitical_threads" class="narr-card geo"></div>
+        <div id="panel-larrys_lens"        class="narr-card lens hidden"></div>
+      </div>
+
+      <!-- Right: causation chain + risk + sector -->
+      <div class="right-col">
+        <div id="causation-chain" class="chain-card"></div>
+        <div class="two-col">
+          <div id="panel-risk_watch"        class="narr-card risk"></div>
+          <div id="panel-sector_spotlight"  class="narr-card sector"></div>
+        </div>
+        <div id="panel-what_to_watch"      class="narr-card watch"></div>
+      </div>
     </div>
 
-    <!-- Key Indicators -->
-    <div class="section-label">Key Indicators</div>
+    <!-- Market Pulse -->
+    <div id="panel-market_pulse-wrap">
+      <div class="section-label">Market Pulse</div>
+      <div class="pulse-row">
+        <div id="panel-market_pulse" class="narr-card pulse-text"></div>
+        <div id="markets-grid" class="markets-grid"></div>
+      </div>
+    </div>
+
+    <!-- FRED Indicators with Charts -->
+    <div class="section-label">Key Economic Indicators — 24-Month Trend</div>
     <div id="indicators-grid" class="indicators-grid"></div>
 
-    <!-- Markets -->
-    <div class="section-label">Markets</div>
-    <div id="markets-grid" class="markets-grid"></div>
-
-    <!-- News Feed -->
+    <!-- News -->
     <div class="section-label">Latest News</div>
     <div id="news-list" class="news-list"></div>
 
