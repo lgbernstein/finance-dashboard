@@ -6,42 +6,42 @@ const VOICES = [
     name: 'Ray Dalio',
     title: 'Founder, Bridgewater Associates',
     why: 'Built the world\'s largest hedge fund studying debt cycles and empire transitions',
-    queries: ['Ray Dalio economy warning interview', 'Ray Dalio debt cycle US economy']
+    queries: ['Ray Dalio 2025', 'Ray Dalio debt 2025']
   },
   {
     id: 'howard_marks',
     name: 'Howard Marks',
     title: 'Co-founder, Oaktree Capital',
     why: 'Known for clear thinking on market cycles and risk — his memos are read by every serious investor',
-    queries: ['Howard Marks memo market risk', 'Howard Marks Oaktree investing outlook']
+    queries: ['Howard Marks market 2025', 'Howard Marks memo 2025']
   },
   {
     id: 'warren_buffett',
     name: 'Warren Buffett',
     title: 'Chairman, Berkshire Hathaway',
     why: 'Has seen every market cycle since the 1950s — when he speaks about the economy, people listen',
-    queries: ['Warren Buffett economy stocks interview', 'Buffett Berkshire economy market outlook']
+    queries: ['Warren Buffett economy stocks interview', 'Warren Buffett Berkshire 2025']
   },
   {
     id: 'stanley_druckenmiller',
     name: 'Stanley Druckenmiller',
     title: 'Former Quantum Fund, Duquesne Capital',
     why: 'Best macro trader alive — has predicted every major market turn in 40 years with unusual directness',
-    queries: ['Stanley Druckenmiller economy interview warning', 'Druckenmiller market recession outlook']
+    queries: ['Stanley Druckenmiller 2025 economy', 'Stanley Druckenmiller market 2025']
   },
   {
     id: 'jeremy_grantham',
     name: 'Jeremy Grantham',
     title: 'Co-founder, GMO',
     why: 'Called the dot-com bubble, the 2008 crash, and the 2021 bubble — consistently early and right on overvaluation',
-    queries: ['Jeremy Grantham market bubble warning', 'Grantham GMO economy overvalued']
+    queries: ['Jeremy Grantham 2025 market', 'Jeremy Grantham stocks 2025']
   },
   {
     id: 'mohamed_el_erian',
     name: 'Mohamed El-Erian',
     title: 'Former CEO, PIMCO; Bloomberg Opinion',
     why: 'One of the clearest communicators on Fed policy and global economics — writes for a general audience',
-    queries: ['Mohamed El-Erian Fed interest rates economy', 'El-Erian inflation bonds outlook']
+    queries: ['Mohamed El-Erian economy 2025', 'Mohamed El-Erian inflation 2025']
   }
 ];
 
