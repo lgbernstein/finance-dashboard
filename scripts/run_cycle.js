@@ -7,6 +7,7 @@ const db = require('../db');
 const fred = require('../tools/fred');
 const rss = require('../tools/rss');
 const market = require('../tools/market');
+const voices = require('../tools/voices');
 const { run: runAgent } = require('../tools/agent_runner');
 
 const MEMORY_DIR = path.join(__dirname, '../shared_memory');
@@ -68,12 +69,24 @@ async function gatherData() {
     console.log('[Researcher] Using cached RSS data');
   }
 
+  // Voices — refresh every 12 hours
+  let voicesData = cache.voices?.data;
+  if (isCacheStale(cache, 'voices', 12)) {
+    console.log('[Researcher] Fetching voices data...');
+    const result = await voices.fetchAll();
+    voicesData = result.voices;
+    gaps.push(...result.gaps);
+    cache.voices = { last_fetch: new Date().toISOString(), data: voicesData };
+  } else {
+    console.log('[Researcher] Using cached voices data');
+  }
+
   writeJson(CACHE_PATH, cache);
 
-  return { fredData, marketData, newsItems, gaps };
+  return { fredData, marketData, newsItems, voicesData, gaps };
 }
 
-async function runAnalyst(fredData, marketData, newsItems) {
+async function runAnalyst(fredData, marketData, newsItems, voicesData) {
   const baseline = readJson(BASELINE_PATH) || {};
 
   // Strip history arrays — analyst needs current values only, not 24mo of data
@@ -87,6 +100,7 @@ async function runAnalyst(fredData, marketData, newsItems) {
     fred_data: fredSummary,
     market_data: marketData,
     top_news: (newsItems || []).slice(0, 8),
+    voices_data: (voicesData || []),
     previous_baseline: baseline.key_levels || {},
     dominant_narrative: baseline.dominant_narrative || null
   };
@@ -103,7 +117,7 @@ async function main() {
 
   try {
     // Researcher phase
-    const { fredData, marketData, newsItems, gaps } = await gatherData();
+    const { fredData, marketData, newsItems, voicesData, gaps } = await gatherData();
 
     // Write raw data to DB
     const historyItems = [];
@@ -118,7 +132,7 @@ async function main() {
     if (newsItems?.length) db.replaceNewsItems(newsItems);
 
     // Analyst phase
-    const analysis = await runAnalyst(fredData, marketData, newsItems);
+    const analysis = await runAnalyst(fredData, marketData, newsItems, voicesData);
 
     // Write commentary panels to DB
     for (const panel of analysis.panels || []) {
@@ -143,6 +157,17 @@ async function main() {
     // Store AI-curated news
     if (analysis.curated_news?.length) {
       db.replaceCuratedNews(analysis.curated_news);
+    }
+
+    // Store voice interpretations
+    if (analysis.voices?.length) {
+      for (const v of analysis.voices) {
+        db.upsertVoice(
+          v.id, v.name, v.title, v.why,
+          v.snippet, v.source_title, v.url, v.published,
+          v.plain_english, v.current_view
+        );
+      }
     }
 
     // Update analyst baseline

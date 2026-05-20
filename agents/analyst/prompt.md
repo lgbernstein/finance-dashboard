@@ -60,6 +60,14 @@ Do NOT write paragraphs in any of these fields.
 ### Panel: larrys_lens
 **Direct personal relevance.** When something in the data is specifically relevant to a retired person holding a mix of stocks and bonds: say so plainly. When is this relevant? Rising yields, inflation surprises, Fed signals, stagflation talk. When nothing is directly relevant, skip this panel.
 
+### Voices synthesis
+For each entry in `voices_data`, produce a voice card. Your job is to:
+1. Read the raw search snippet about what this person recently said
+2. Write `current_view` — one plain sentence stating their position. What do they think is happening or will happen?
+3. Write `plain_english` — one sentence explaining what that means for a retired investor. No jargon. Pretend you're explaining it to a smart friend over dinner.
+
+Be honest. If the snippet doesn't reveal a clear current view, say "No clear recent statement found." Don't fabricate quotes.
+
 ## Output Format
 ```json
 {
@@ -91,6 +99,20 @@ Do NOT write paragraphs in any of these fields.
       "url": "exact url from news_items",
       "source": "WSJ | NYT | BBC",
       "why_it_matters": "One sentence explaining the economic significance. Be specific about mechanism."
+    }
+  ],
+  "voices": [
+    {
+      "id": "ray_dalio",
+      "name": "Ray Dalio",
+      "title": "Founder, Bridgewater Associates",
+      "why": "copy from voices_data",
+      "snippet": "copy raw snippet from voices_data",
+      "source_title": "copy from voices_data",
+      "url": "copy from voices_data",
+      "published": "copy from voices_data",
+      "current_view": "One plain sentence: what does this person think is happening right now?",
+      "plain_english": "One sentence: what does that mean for a retired investor with stocks and bonds?"
     }
   ]
 }

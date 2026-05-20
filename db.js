@@ -64,6 +64,20 @@ db.exec(`
     generated_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS voices (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    title TEXT NOT NULL,
+    why TEXT,
+    snippet TEXT,
+    source_title TEXT,
+    url TEXT,
+    published TEXT,
+    plain_english TEXT,
+    current_view TEXT,
+    generated_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS alerts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     severity TEXT NOT NULL,
@@ -245,6 +259,7 @@ module.exports = {
       news: db.prepare('SELECT * FROM news_items ORDER BY published_at DESC LIMIT 20').all(),
       panels: db.prepare('SELECT * FROM commentary_panels ORDER BY panel_id').all(),
       curated_news: db.prepare('SELECT * FROM curated_news ORDER BY id').all(),
+      voices: db.prepare('SELECT * FROM voices ORDER BY name').all(),
       alerts: db.prepare('SELECT * FROM alerts WHERE resolved_at IS NULL ORDER BY created_at DESC').all(),
       lastCycle: db.prepare('SELECT * FROM cycle_log ORDER BY id DESC LIMIT 1').get()
     };
@@ -252,5 +267,25 @@ module.exports = {
 
   getPendingApprovals() {
     return db.prepare('SELECT * FROM pending_approvals WHERE resolved_at IS NULL ORDER BY created_at DESC').all();
+  },
+
+  upsertVoice(id, name, title, why, snippet, sourceTitle, url, published, plainEnglish, currentView) {
+    db.prepare(`
+      INSERT INTO voices (id, name, title, why, snippet, source_title, url, published, plain_english, current_view, generated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        snippet = excluded.snippet,
+        source_title = excluded.source_title,
+        url = excluded.url,
+        published = excluded.published,
+        plain_english = excluded.plain_english,
+        current_view = excluded.current_view,
+        generated_at = excluded.generated_at
+    `).run(id, name, title, why, snippet, sourceTitle, url || null, published || null,
+           plainEnglish || null, currentView || null, new Date().toISOString());
+  },
+
+  getVoices() {
+    return db.prepare('SELECT * FROM voices ORDER BY name').all();
   }
 };

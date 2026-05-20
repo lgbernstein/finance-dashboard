@@ -199,6 +199,30 @@ function renderCuratedNews(items) {
   `).join('');
 }
 
+// ── Voices ────────────────────────────────────────────────────
+function renderVoices(voices) {
+  const el = document.getElementById('voices-list');
+  if (!el) return;
+  if (!voices?.length) {
+    el.innerHTML = '<div class="skeleton">Run a cycle to load voices.</div>';
+    return;
+  }
+  el.innerHTML = voices.map(v => `
+    <div class="voice-card">
+      <div class="voice-header">
+        <div>
+          <div class="voice-name">${v.name}</div>
+          <div class="voice-title">${v.title}</div>
+        </div>
+        ${v.url ? `<a class="voice-src-link" href="${v.url}" target="_blank" rel="noopener">Source ↗</a>` : ''}
+      </div>
+      ${v.current_view ? `<div class="voice-view">${v.current_view}</div>` : ''}
+      ${v.plain_english ? `<div class="voice-plain"><span class="voice-plain-label">What this means for you:</span> ${v.plain_english}</div>` : ''}
+      <div class="voice-why">${v.why}</div>
+    </div>
+  `).join('');
+}
+
 // ── Alert bar ─────────────────────────────────────────────────
 function renderAlerts(alerts) {
   const bar = document.getElementById('sidebar-alert');
@@ -530,6 +554,7 @@ async function load() {
     renderAlerts(d.alerts || []);
     renderPanels(d.panels || []);
     renderChain(d.panels || []);
+    renderVoices(d.voices || []);
     renderCuratedNews(d.curated_news || []);
     renderMarkets(d.market || []);
     renderIndicators(d.indicators || [], d.history || {});

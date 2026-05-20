@@ -292,6 +292,32 @@ body {
 .two-col-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
 /* ── Curated news ──────────────────────────────── */
+/* ── Voices ────────────────────────────────────────── */
+.voices-sub { font-size: 13px; color: var(--muted); margin: 4px 0 16px; }
+.voice-card {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.voice-card:first-child { padding-top: 0; }
+.voice-card:last-child  { border-bottom: none; padding-bottom: 0; }
+.voice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.voice-name  { font-size: 16px; font-weight: 700; color: var(--text); }
+.voice-title { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.voice-src-link { font-size: 13px; color: var(--blue); text-decoration: none; white-space: nowrap; margin-top: 2px; }
+.voice-src-link:hover { text-decoration: underline; }
+.voice-view  {
+  font-size: 16px; color: var(--text); line-height: 1.5;
+  border-left: 3px solid var(--purple); padding-left: 12px; margin-bottom: 10px;
+}
+.voice-plain {
+  font-size: 15px; color: var(--text2); line-height: 1.5;
+  background: var(--surface2); border-radius: 6px; padding: 10px 14px;
+  margin-bottom: 8px;
+}
+.voice-plain-label { font-weight: 700; color: var(--purple); }
+.voice-why   { font-size: 13px; color: var(--dim); font-style: italic; }
+
+/* ── Curated news ──────────────────────────────────── */
 .curated-item {
   padding: 13px 0;
   border-bottom: 1px solid var(--border);
