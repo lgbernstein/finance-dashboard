@@ -763,6 +763,34 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 13px;
 @keyframes simFlash { 0% { border-color: rgba(74,222,128,0.7); } 100% { border-color: var(--border); } }
 .sim-card.flash { animation: simFlash 0.75s ease-out forwards; }
 
+/* ── Inner tabs (sub-navigation within a section) */
+.inner-tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 22px;
+}
+.inner-tab-btn {
+  padding: 8px 22px 10px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.inner-tab-btn:hover { color: var(--text2); }
+.inner-tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 600; }
+.inner-tab-pane { display: none; }
+.inner-tab-pane.active { display: block; }
+
+/* ── Three-col layout (Briefing pane) ────────────── */
+.three-col-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
 /* ── Skeleton ──────────────────────────────────── */
 .skeleton { color: var(--dim); font-size: 13px; font-style: italic; padding: 4px 0; }
 
@@ -813,4 +841,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 13px;
   .composite-grid { grid-template-columns: 1fr; }
   .geo-grid { grid-template-columns: 1fr; }
   .tv-grid { grid-template-columns: 1fr; }
+  .three-col-cards { grid-template-columns: 1fr; }
+  .inner-tab-btn { padding: 7px 14px 9px; font-size: 12px; }
 }

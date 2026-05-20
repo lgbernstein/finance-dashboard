@@ -24,6 +24,23 @@ document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
+// ── Inner tab switching ────────────────────────────────────────
+document.querySelectorAll('.inner-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const bar  = btn.closest('.inner-tab-bar');
+    const sect = btn.closest('.tab-content, section');
+    bar.querySelectorAll('.inner-tab-btn').forEach(b => b.classList.remove('active'));
+    sect.querySelectorAll('.inner-tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const pane = document.getElementById(btn.dataset.pane);
+    if (pane) pane.classList.add('active');
+    // Re-init energy charts if switching into a pane that has canvases
+    if (btn.dataset.pane && btn.dataset.pane.startsWith('inner-energy')) {
+      requestAnimationFrame(initEnergyCharts);
+    }
+  });
+});
+
 // ── Clock ─────────────────────────────────────────────────────
 function tickClock() {
   const el = document.getElementById('clock');

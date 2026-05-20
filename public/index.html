@@ -90,43 +90,47 @@
         <p class="page-sub">What matters today — synthesized by AI</p>
       </div>
 
-      <div class="overview-grid">
-        <!-- Market snapshot row -->
-        <div id="market-snapshot" class="snapshot-row">
-          <div class="snapshot-card flat"><div class="skeleton">Loading markets...</div></div>
-        </div>
+      <div class="inner-tab-bar">
+        <button class="inner-tab-btn active" data-pane="inner-overview-briefing">Briefing</button>
+        <button class="inner-tab-btn" data-pane="inner-overview-voices">Voices</button>
+        <button class="inner-tab-btn" data-pane="inner-overview-news">News</button>
+      </div>
 
-        <!-- Today's situation + Key levels -->
-        <div class="two-col-cards">
-          <div class="card" id="panel-daily_summary" data-accent="green">
-            <div class="card-header"><div class="card-label green">Today's Situation</div></div>
-            <div class="skeleton">Loading...</div>
+      <!-- BRIEFING -->
+      <div class="inner-tab-pane active" id="inner-overview-briefing">
+        <div class="overview-grid">
+          <div id="market-snapshot" class="snapshot-row">
+            <div class="snapshot-card flat"><div class="skeleton">Loading markets...</div></div>
           </div>
-          <div class="card" id="key-levels-card" data-accent="amber">
-            <div class="card-header"><div class="card-label amber">Key Levels</div></div>
-            <div id="key-levels-content"><div class="skeleton">Loading...</div></div>
+          <div class="three-col-cards">
+            <div class="card" id="panel-daily_summary" data-accent="green">
+              <div class="card-header"><div class="card-label green">Today's Situation</div></div>
+              <div class="skeleton">Loading...</div>
+            </div>
+            <div class="card" id="panel-macro_overview" data-accent="green">
+              <div class="card-header"><div class="card-label green">Macro Overview</div></div>
+              <div class="skeleton">Loading...</div>
+            </div>
+            <div class="card" id="panel-risk_watch" data-accent="red">
+              <div class="card-header"><div class="card-label red">Risk Watch</div></div>
+              <div class="skeleton">Loading...</div>
+            </div>
+          </div>
+          <div class="two-col-cards">
+            <div class="card" id="panel-what_to_watch" data-accent="blue">
+              <div class="card-header"><div class="card-label blue">What to Watch — Next 7 Days</div></div>
+              <div class="skeleton">Loading...</div>
+            </div>
+            <div class="card" id="key-levels-card" data-accent="amber">
+              <div class="card-header"><div class="card-label amber">Key Levels</div></div>
+              <div id="key-levels-content"><div class="skeleton">Loading...</div></div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- Macro + Risk side by side -->
-        <div class="two-col-cards">
-          <div class="card" id="panel-macro_overview" data-accent="green">
-            <div class="card-header"><div class="card-label green">Macro Overview</div></div>
-            <div class="skeleton">Loading...</div>
-          </div>
-          <div class="card" id="panel-risk_watch" data-accent="red">
-            <div class="card-header"><div class="card-label red">Risk Watch</div></div>
-            <div class="skeleton">Loading...</div>
-          </div>
-        </div>
-
-        <!-- What to watch -->
-        <div class="card" id="panel-what_to_watch" data-accent="blue">
-          <div class="card-header"><div class="card-label blue">What to Watch — Next 7 Days</div></div>
-          <div class="skeleton">Loading...</div>
-        </div>
-
-        <!-- Voices -->
+      <!-- VOICES -->
+      <div class="inner-tab-pane" id="inner-overview-voices">
         <div class="card" id="voices-card" data-accent="purple">
           <div class="card-header">
             <div>
@@ -136,8 +140,10 @@
           </div>
           <div id="voices-list"><div class="skeleton">Loading...</div></div>
         </div>
+      </div>
 
-        <!-- Curated news -->
+      <!-- NEWS -->
+      <div class="inner-tab-pane" id="inner-overview-news">
         <div class="card" id="curated-news-card" data-accent="gray">
           <div class="card-header"><div class="card-label gray">Significant News</div></div>
           <div id="curated-news-list"><div class="skeleton">Loading...</div></div>
@@ -270,56 +276,67 @@
         <p class="page-sub">Oil, natural gas, fertilizer, and supply chain indicators — the inputs that drive inflation</p>
       </div>
 
-      <!-- Natural Gas -->
-      <div class="section-heading">Natural Gas</div>
-      <div class="energy-row-2">
-        <div class="energy-chart-card">
-          <div class="energy-chart-name">Henry Hub Natural Gas — Annual avg ($/MMBtu)</div>
-          <div class="energy-chart-value">~$2.50</div>
-          <div class="energy-chart-sub">Spring lull. Watch for summer spike as LNG exports rise and cooling demand peaks in June–August.</div>
-          <div class="energy-chart-canvas"><canvas id="chart-gas"></canvas></div>
-          <a class="energy-chart-link" href="https://www.eia.gov/naturalgas/weekly/" target="_blank" rel="noopener">EIA Gas Weekly ↗</a>
-        </div>
-        <div class="energy-info-card">
-          <div class="energy-info-title">Why Natural Gas Matters Now</div>
-          <p><strong>Fertilizer link:</strong> About 80% of the cost of nitrogen fertilizer (urea, anhydrous ammonia) is natural gas. When gas spikes, fertilizer costs spike — and food prices follow 6–12 months later.</p>
-          <p><strong>Electricity:</strong> About 40% of US electricity comes from natural gas. Higher gas prices mean higher utility bills for homes and businesses.</p>
-          <p><strong>LNG exports:</strong> 100% of US production gains are exported. More LNG terminals = tighter domestic supply = higher bills. Trump reversed Biden's LNG export slowdown.</p>
-          <p><strong>Europe:</strong> Far more gas-dependent than the US. Prolonged Middle East disruption puts European energy security at risk, which moves global gas markets.</p>
+      <div class="inner-tab-bar">
+        <button class="inner-tab-btn active" data-pane="inner-energy-oilgas">Oil &amp; Gas</button>
+        <button class="inner-tab-btn" data-pane="inner-energy-fertilizer">Fertilizer</button>
+        <button class="inner-tab-btn" data-pane="inner-energy-mrglobal">Mr. Global</button>
+      </div>
+
+      <!-- OIL & GAS PANE -->
+      <div class="inner-tab-pane active" id="inner-energy-oilgas">
+        <div class="section-heading">Natural Gas</div>
+        <div class="energy-row-2">
+          <div class="energy-chart-card">
+            <div class="energy-chart-name">Henry Hub Natural Gas — Annual avg ($/MMBtu)</div>
+            <div class="energy-chart-value">~$2.50</div>
+            <div class="energy-chart-sub">Spring lull. Watch for summer spike as LNG exports rise and cooling demand peaks in June–August.</div>
+            <div class="energy-chart-canvas"><canvas id="chart-gas"></canvas></div>
+            <a class="energy-chart-link" href="https://www.eia.gov/naturalgas/weekly/" target="_blank" rel="noopener">EIA Gas Weekly ↗</a>
+          </div>
+          <div class="energy-info-card">
+            <div class="energy-info-title">Why Natural Gas Matters Now</div>
+            <p><strong>Fertilizer link:</strong> About 80% of the cost of nitrogen fertilizer (urea, anhydrous ammonia) is natural gas. When gas spikes, fertilizer costs spike — and food prices follow 6–12 months later.</p>
+            <p><strong>Electricity:</strong> About 40% of US electricity comes from natural gas. Higher gas prices mean higher utility bills for homes and businesses.</p>
+            <p><strong>LNG exports:</strong> 100% of US production gains are exported. More LNG terminals = tighter domestic supply = higher bills. Trump reversed Biden's LNG export slowdown.</p>
+            <p><strong>Europe:</strong> Far more gas-dependent than the US. Prolonged Middle East disruption puts European energy security at risk, which moves global gas markets.</p>
+          </div>
         </div>
       </div>
 
-      <!-- Agricultural Inputs -->
-      <div class="section-heading mt-24">Agricultural Inputs &amp; Fertilizer</div>
-      <p class="section-note">Fertilizer prices lead CPI food components by 6–12 months. Mosaic (MOS) is a live proxy for fertilizer sector health.</p>
-      <div class="energy-row-3">
-        <div class="energy-chart-card">
-          <div class="energy-chart-name">Urea (Nitrogen) — approx $/MT</div>
-          <div class="energy-chart-value">~$340</div>
-          <div class="energy-chart-sub">Main nitrogen fertilizer. ~80% of cost is natural gas. Spiked to $850 in 2022 energy crisis.</div>
-          <div class="energy-chart-canvas"><canvas id="chart-urea"></canvas></div>
-          <a class="energy-chart-link" href="https://www.indexmundi.com/commodities/?commodity=urea" target="_blank" rel="noopener">IndexMundi ↗</a>
-        </div>
-        <div class="energy-chart-card">
-          <div class="energy-chart-name">DAP (Phosphate) — approx $/MT</div>
-          <div class="energy-chart-value">~$445</div>
-          <div class="energy-chart-sub">Key phosphate fertilizer. Linked to mining costs and China export policy.</div>
-          <div class="energy-chart-canvas"><canvas id="chart-dap"></canvas></div>
-          <a class="energy-chart-link" href="https://www.indexmundi.com/commodities/?commodity=dap-fertilizer" target="_blank" rel="noopener">IndexMundi ↗</a>
-        </div>
-        <div class="energy-chart-card">
-          <div class="energy-chart-name">Mosaic Co. (MOS) — Fertilizer Proxy</div>
-          <div class="energy-chart-value">~$21</div>
-          <div class="energy-chart-sub">Largest N. American fertilizer producer. Peaked at $72 in 2022 energy crisis.</div>
-          <div class="energy-chart-canvas"><canvas id="chart-mos"></canvas></div>
-          <a class="energy-chart-link" href="https://finance.yahoo.com/quote/MOS" target="_blank" rel="noopener">Yahoo Finance ↗</a>
+      <!-- FERTILIZER PANE -->
+      <div class="inner-tab-pane" id="inner-energy-fertilizer">
+        <div class="section-heading">Agricultural Inputs &amp; Fertilizer</div>
+        <p class="section-note">Fertilizer prices lead CPI food components by 6–12 months. Mosaic (MOS) is a live proxy for fertilizer sector health.</p>
+        <div class="energy-row-3">
+          <div class="energy-chart-card">
+            <div class="energy-chart-name">Urea (Nitrogen) — approx $/MT</div>
+            <div class="energy-chart-value">~$340</div>
+            <div class="energy-chart-sub">Main nitrogen fertilizer. ~80% of cost is natural gas. Spiked to $850 in 2022 energy crisis.</div>
+            <div class="energy-chart-canvas"><canvas id="chart-urea"></canvas></div>
+            <a class="energy-chart-link" href="https://www.indexmundi.com/commodities/?commodity=urea" target="_blank" rel="noopener">IndexMundi ↗</a>
+          </div>
+          <div class="energy-chart-card">
+            <div class="energy-chart-name">DAP (Phosphate) — approx $/MT</div>
+            <div class="energy-chart-value">~$445</div>
+            <div class="energy-chart-sub">Key phosphate fertilizer. Linked to mining costs and China export policy.</div>
+            <div class="energy-chart-canvas"><canvas id="chart-dap"></canvas></div>
+            <a class="energy-chart-link" href="https://www.indexmundi.com/commodities/?commodity=dap-fertilizer" target="_blank" rel="noopener">IndexMundi ↗</a>
+          </div>
+          <div class="energy-chart-card">
+            <div class="energy-chart-name">Mosaic Co. (MOS) — Fertilizer Proxy</div>
+            <div class="energy-chart-value">~$21</div>
+            <div class="energy-chart-sub">Largest N. American fertilizer producer. Peaked at $72 in 2022 energy crisis.</div>
+            <div class="energy-chart-canvas"><canvas id="chart-mos"></canvas></div>
+            <a class="energy-chart-link" href="https://finance.yahoo.com/quote/MOS" target="_blank" rel="noopener">Yahoo Finance ↗</a>
+          </div>
         </div>
       </div>
 
-      <!-- Mr. Global Energy Monitor -->
-      <div class="section-heading mt-24" style="color:var(--amber)">⚡ Energy Supply Monitor — Mr. Global</div>
-      <p class="section-note">Key indicators tracked by Matt Randolph — 33 years in oil &amp; gas, owns an operating oil company. <a href="https://www.youtube.com/@MrGlobalYouTube" target="_blank" rel="noopener" style="color:var(--blue)">@MrGlobalYouTube</a></p>
-      <div class="mg-grid">
+      <!-- MR. GLOBAL PANE -->
+      <div class="inner-tab-pane" id="inner-energy-mrglobal">
+        <div class="section-heading" style="color:var(--amber)">⚡ Energy Supply Monitor — Mr. Global</div>
+        <p class="section-note">Key indicators tracked by Matt Randolph — 33 years in oil &amp; gas, owns an operating oil company. <a href="https://www.youtube.com/@MrGlobalYouTube" target="_blank" rel="noopener" style="color:var(--blue)">@MrGlobalYouTube</a></p>
+        <div class="mg-grid">
         <div class="mg-card">
           <div class="mg-card-title">WTI Crude Oil Price</div>
           <div class="mg-card-value">$62<span class="mg-unit">/bbl</span></div>
@@ -441,6 +458,7 @@
           </div>
         </div>
       </div>
+      </div><!-- end inner-energy-mrglobal -->
     </section>
 
     <!-- MACRO TOOLS -->
