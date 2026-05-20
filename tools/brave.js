@@ -9,7 +9,6 @@ async function search(query, count = 5) {
     const opts = {
       headers: {
         'Accept': 'application/json',
-        'Accept-Encoding': 'gzip',
         'X-Subscription-Token': apiKey
       }
     };
