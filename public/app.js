@@ -143,9 +143,10 @@ function renderPanels(panels) {
       }
     }
     const inner = bulletPanel(panel, `expand-${panel.panel_id}`);
-    const label = el.querySelector('.card-label');
+    // Preserve .card-header (which wraps .card-label) if present, else fall back to bare .card-label
+    const header = el.querySelector('.card-header') || el.querySelector('.card-label');
     el.innerHTML = '';
-    if (label) el.appendChild(label);
+    if (header) el.appendChild(header);
     el.insertAdjacentHTML('beforeend', inner);
   }
 
@@ -164,7 +165,7 @@ function renderGeoStepper() {
 
   container.innerHTML = geoPanels.map((panel, i) => `
     <div class="card geo-card" data-accent="purple">
-      <div class="card-label purple">Geopolitical Thread ${geoPanels.length > 1 ? i + 1 : ''}</div>
+      <div class="card-header"><div class="card-label purple">Geopolitical Thread ${geoPanels.length > 1 ? i + 1 : ''}</div></div>
       ${bulletPanel(panel, `expand-geo-${i}`)}
     </div>
   `).join('');

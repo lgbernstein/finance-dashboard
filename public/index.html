@@ -99,11 +99,11 @@
         <!-- Today's situation + Key levels -->
         <div class="two-col-cards">
           <div class="card" id="panel-daily_summary" data-accent="green">
-            <div class="card-label green">Today's Situation</div>
+            <div class="card-header"><div class="card-label green">Today's Situation</div></div>
             <div class="skeleton">Loading...</div>
           </div>
           <div class="card" id="key-levels-card" data-accent="amber">
-            <div class="card-label amber">Key Levels</div>
+            <div class="card-header"><div class="card-label amber">Key Levels</div></div>
             <div id="key-levels-content"><div class="skeleton">Loading...</div></div>
           </div>
         </div>
@@ -111,31 +111,35 @@
         <!-- Macro + Risk side by side -->
         <div class="two-col-cards">
           <div class="card" id="panel-macro_overview" data-accent="green">
-            <div class="card-label green">Macro Overview</div>
+            <div class="card-header"><div class="card-label green">Macro Overview</div></div>
             <div class="skeleton">Loading...</div>
           </div>
           <div class="card" id="panel-risk_watch" data-accent="red">
-            <div class="card-label red">Risk Watch</div>
+            <div class="card-header"><div class="card-label red">Risk Watch</div></div>
             <div class="skeleton">Loading...</div>
           </div>
         </div>
 
         <!-- What to watch -->
         <div class="card" id="panel-what_to_watch" data-accent="blue">
-          <div class="card-label blue">What to Watch — Next 7 Days</div>
+          <div class="card-header"><div class="card-label blue">What to Watch — Next 7 Days</div></div>
           <div class="skeleton">Loading...</div>
         </div>
 
         <!-- Voices -->
         <div class="card" id="voices-card" data-accent="purple">
-          <div class="card-label purple">What the Level Heads Are Saying</div>
-          <p class="voices-sub">Independent voices — translated into plain English</p>
+          <div class="card-header">
+            <div>
+              <div class="card-label purple">What the Level Heads Are Saying</div>
+              <p class="voices-sub" style="margin:4px 0 0">Independent voices — translated into plain English</p>
+            </div>
+          </div>
           <div id="voices-list"><div class="skeleton">Loading...</div></div>
         </div>
 
         <!-- Curated news -->
         <div class="card" id="curated-news-card" data-accent="gray">
-          <div class="card-label gray">Significant News</div>
+          <div class="card-header"><div class="card-label gray">Significant News</div></div>
           <div id="curated-news-list"><div class="skeleton">Loading...</div></div>
         </div>
       </div>
@@ -151,7 +155,7 @@
         <div class="skeleton">Loading geopolitical analysis...</div>
       </div>
       <div class="card mt-16" id="panel-sector_spotlight" data-accent="green">
-        <div class="card-label green">Sector Spotlight</div>
+        <div class="card-header"><div class="card-label green">Sector Spotlight</div></div>
         <div class="skeleton">Loading...</div>
       </div>
     </section>
@@ -164,7 +168,7 @@
       </div>
       <!-- AI Market Pulse -->
       <div class="card" id="panel-market_pulse" data-accent="blue">
-        <div class="card-label blue">Market Pulse — AI Analysis</div>
+        <div class="card-header"><div class="card-label blue">Market Pulse — AI Analysis</div></div>
         <div class="skeleton">Loading...</div>
       </div>
 
@@ -494,7 +498,7 @@
 
       <!-- Presets -->
       <div class="card mt-16">
-        <div class="card-label blue">Scenario Presets — jump to a macro environment</div>
+        <div class="card-header"><div class="card-label blue">Scenario Presets — jump to a macro environment</div></div>
         <div class="exp-presets-row">
           <button class="preset-btn active" id="exp-preset-baseline"    onclick="expApplyPreset('baseline')">Today (baseline)</button>
           <button class="preset-btn"        id="exp-preset-stagflation" onclick="expApplyPreset('stagflation')">Stagflation</button>
@@ -508,11 +512,11 @@
       <!-- 3-column layout: cascade | sliders | outputs -->
       <div class="exp-layout mt-16">
         <div class="card">
-          <div class="card-label green" id="exp-cascade-title">Click an indicator above</div>
+          <div class="card-header"><div class="card-label green" id="exp-cascade-title">Click an indicator above</div></div>
           <div id="exp-cascade-content"><div class="cascade-hint">Select any gauge card to see what drives it and what it pushes in the economy.</div></div>
         </div>
         <div class="card">
-          <div class="card-label blue">Adjust Variables — all gauges update live</div>
+          <div class="card-header"><div class="card-label blue">Adjust Variables — all gauges update live</div></div>
           <div class="slider-2col" style="margin-top:12px">
             <div class="slider-group">
               <div class="slider-label"><span>Fed Funds Rate</span><span class="slider-current" id="exp-v-fedrate">4.33%</span></div>
@@ -547,7 +551,7 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-label amber">Projected Impacts</div>
+          <div class="card-header"><div class="card-label amber">Projected Impacts</div></div>
           <div class="sim-output" id="exp-sim-output" style="margin-top:12px"></div>
           <p style="font-size:11px;color:var(--dim);margin-top:10px;line-height:1.5">5-yr rolling correlations. Bond duration ~7.5. Effects have 12–18mo lags in reality.</p>
         </div>
@@ -561,7 +565,7 @@
         <p class="page-sub">What current conditions mean for your retirement accounts</p>
       </div>
       <div class="card" id="panel-larrys_lens" data-accent="amber">
-        <div class="card-label amber">Larry's Lens</div>
+        <div class="card-header"><div class="card-label amber">Larry's Lens</div></div>
         <div class="skeleton">Loading...</div>
       </div>
     </section>

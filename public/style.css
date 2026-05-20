@@ -140,7 +140,7 @@ body {
 
 /* ── Page header ───────────────────────────────── */
 .page-header { margin-bottom: 22px; }
-.page-header h2 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.page-header h2 { font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
 .page-sub { font-size: 12px; color: var(--muted); }
 
 /* ── Cards ─────────────────────────────────────── */
@@ -163,12 +163,20 @@ body {
 .card[data-accent="purple"] { border-top: 3px solid var(--purple); }
 .card[data-accent="gray"]   { border-top: 3px solid var(--muted); }
 
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--surface3);
+}
 .card-label {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -407,7 +415,7 @@ body {
 .curated-headline {
   display: flex; align-items: flex-start; gap: 10px;
   text-decoration: none; color: var(--text);
-  font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 5px;
+  font-size: 14px; font-weight: 500; line-height: 1.4; margin-bottom: 5px;
 }
 .curated-headline:hover { color: var(--blue); }
 .curated-src {
@@ -416,7 +424,7 @@ body {
   border: 1px solid var(--blue-b); border-radius: 3px;
   padding: 1px 6px; white-space: nowrap; margin-top: 1px; flex-shrink: 0;
 }
-.curated-why { font-size: 12px; color: var(--muted); line-height: 1.5; padding-left: 52px; }
+.curated-why { font-size: 13px; color: var(--muted); line-height: 1.5; padding-left: 52px; }
 
 /* ── Stepper ───────────────────────────────────── */
 .stepper-wrap { position: relative; }
@@ -478,7 +486,7 @@ body {
 .ind-card:hover { border-color: var(--blue-b); background: var(--surface2); }
 .ind-card.selected { border-color: var(--blue); background: var(--surface2); }
 .ind-click-hint { font-size: 10px; color: var(--dim); margin-top: 6px; }
-.ind-name  { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+.ind-name  { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
 .ind-row   { display: flex; align-items: baseline; gap: 6px; margin-bottom: 2px; }
 .ind-value { font-size: 24px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 .ind-unit  { font-size: 12px; color: var(--muted); }
@@ -574,7 +582,7 @@ body {
   margin-bottom: 14px; padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
 }
-.section-note { font-size: 14px; color: var(--text2); margin-bottom: 14px; font-style: italic; line-height: 1.5; }
+.section-note { font-size: 15px; color: var(--text2); margin-bottom: 14px; font-style: italic; line-height: 1.5; }
 .mt-16 { margin-top: 16px; }
 .mt-24 { margin-top: 24px; }
 
@@ -603,17 +611,17 @@ body {
 .comp-value-row { display: flex; align-items: baseline; gap: 12px; }
 .comp-value  { font-size: 28px; font-weight: 700; color: var(--text); font-family: monospace; line-height: 1; }
 .comp-signal { font-size: 13px; font-weight: 600; }
-.comp-interp { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.comp-interp { font-size: 15px; color: var(--text2); line-height: 1.6; }
 .comp-scale  {
   display: flex; justify-content: space-between; align-items: center;
-  font-size: 10px; color: var(--dim); padding-top: 8px;
+  font-size: 11px; color: var(--dim); padding-top: 8px;
   border-top: 1px solid var(--border);
 }
 .comp-scale a { color: var(--blue); text-decoration: none; }
 .comp-scale a:hover { text-decoration: underline; }
 
 /* ── TradingView widget grid ──────────────────────── */
-.tv-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 8px; }
+.tv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
 .tv-widget { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 
 /* ── Energy tab ───────────────────────────────────── */
@@ -639,28 +647,28 @@ body {
 .energy-info-card strong { color: var(--text); }
 
 /* ── Mr. Global cards ─────────────────────────────── */
-.mg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.mg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .mg-card {
   background: var(--surface); border: 1px solid var(--border);
   border-top: 2px solid var(--amber);
   border-radius: var(--radius); padding: 14px;
   display: flex; flex-direction: column; gap: 6px;
 }
-.mg-card-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); font-weight: 700; }
+.mg-card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); font-weight: 700; }
 .mg-card-value { font-size: 22px; font-weight: 700; color: var(--text); font-family: monospace; line-height: 1.1; }
 .mg-unit       { font-size: 13px; font-weight: 400; color: var(--muted); }
 .mg-thresholds { display: flex; flex-direction: column; gap: 3px; }
-.mg-threshold  { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: 600; }
+.mg-threshold  { font-size: 11px; padding: 2px 7px; border-radius: 3px; font-weight: 600; }
 .mg-red    { color: var(--red);   background: var(--red-dim);   border-left: 2px solid var(--red); }
 .mg-yellow { color: var(--amber); background: var(--amber-dim); border-left: 2px solid var(--amber); }
 .mg-green  { color: var(--green); background: var(--green-dim); border-left: 2px solid var(--green); }
-.mg-signal { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.mg-signal { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 .mg-signal.mg-red    { color: var(--red); }
 .mg-signal.mg-yellow { color: var(--amber); }
 .mg-signal.mg-green  { color: var(--green); }
-.mg-implication { font-size: 11px; color: var(--text2); line-height: 1.55; border-top: 1px solid var(--border); padding-top: 8px; }
+.mg-implication { font-size: 13px; color: var(--text2); line-height: 1.55; border-top: 1px solid var(--border); padding-top: 8px; }
 .mg-implication strong { color: var(--amber); }
-.mg-assess { font-size: 10px; color: var(--muted); line-height: 1.55; background: var(--surface2); border-radius: 5px; padding: 6px 8px; }
+.mg-assess { font-size: 12px; color: var(--muted); line-height: 1.55; background: var(--surface2); border-radius: 5px; padding: 6px 8px; }
 .mg-assess strong { color: var(--blue); }
 .mg-link { display: inline-block; margin-top: 4px; font-size: 10px; color: var(--blue); text-decoration: none; }
 .mg-link:hover { text-decoration: underline; }
@@ -679,7 +687,7 @@ body {
 
 /* ── Macro Explorer gauges ────────────────────────── */
 .exp-gauges {
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
   margin-bottom: 16px;
 }
 .exp-gauge-card {
@@ -690,7 +698,7 @@ body {
 }
 .exp-gauge-card:hover  { border-color: var(--border2); filter: brightness(1.08); }
 .exp-gauge-card.active { border-color: var(--green) !important; box-shadow: 0 0 16px rgba(74,222,128,0.25) !important; }
-.exp-gauge-name  { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; line-height: 1.3; min-height: 22px; display: flex; align-items: center; justify-content: center; }
+.exp-gauge-name  { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; line-height: 1.3; min-height: 26px; display: flex; align-items: center; justify-content: center; }
 .exp-gauge-value { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; font-family: monospace; }
 .exp-gauge-bar-wrap { height: 5px; background: var(--surface3); border-radius: 3px; margin-bottom: 5px; overflow: hidden; }
 .exp-gauge-bar   { height: 100%; border-radius: 3px; width: 20%; background: var(--green); transition: width 0.55s ease, background-color 0.55s ease; }
