@@ -27,9 +27,15 @@ async function run(agentName, userContext) {
     try {
       return JSON.parse(jsonMatch[1]);
     } catch (e) {
-      console.error(`[${agentName}] Failed to parse JSON response:`, e.message);
-      console.error('Raw response:', text.slice(0, 500));
-      throw e;
+      // Fallback: strip unescaped control characters and retry
+      const cleaned = jsonMatch[1].replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+      try {
+        return JSON.parse(cleaned);
+      } catch (e2) {
+        console.error(`[${agentName}] Failed to parse JSON response:`, e2.message);
+        console.error('Raw response:', text.slice(0, 500));
+        throw e2;
+      }
     }
   }
 
