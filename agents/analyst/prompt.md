@@ -55,20 +55,42 @@ Include your confidence in the direction of travel (not a number — say "likely
     {
       "id": "macro_overview",
       "title": "Macro Overview",
-      "body": "string — narrative prose, 2-5 sentences per panel",
+      "bullets": [
+        "**Fact:** One sentence stating the key data point or event.",
+        "**Impact:** One sentence on what this means for the economy.",
+        "**Implication:** One sentence on where this leads if it continues."
+      ],
+      "full_body": "Full prose analysis, 4-6 sentences. This is shown only when user expands.",
       "data_points": ["10-Yr Yield: 4.59%", "WTI: $82.40"],
       "confidence": 0.85,
       "last_changed": "What shifted since last cycle, or null"
     }
   ],
   "causation_chain_structured": {
-    "trigger": "string — the root event",
-    "steps": ["step 1", "step 2", "step 3", "step 4"],
-    "outcome": "string — likely outcome",
+    "trigger": "string — the root event or condition driving everything right now",
+    "steps": ["step 1 — one short clause", "step 2", "step 3", "step 4"],
+    "outcome": "string — the likely end result",
     "confidence": "likely | possible | uncertain"
-  }
+  },
+  "curated_news": [
+    {
+      "headline": "exact headline from news_items",
+      "url": "exact url from news_items",
+      "source": "WSJ | NYT | BBC",
+      "why_it_matters": "One sentence explaining the economic significance. Be specific about mechanism."
+    }
+  ]
 }
 ```
+
+## Curated News Rules
+From the `top_news` array provided, select 3-5 items that have genuine economic significance. Discard anything that is:
+- Human interest, entertainment, or cultural (Tickle Me Elmo, celebrity news, obituaries of non-economic figures)
+- Local news with no macro impact
+- Opinion pieces with no new data
+- Duplicates of the same story
+
+For each selected item, write `why_it_matters` in one specific sentence that explains the economic mechanism. Not "this could affect markets" — but "higher bond yields mean the cost of corporate borrowing rises, which compresses profit margins and makes equities less attractive relative to bonds."
 
 ## Non-negotiable rules
 - Ground every claim in the research data provided. Do not invent numbers.

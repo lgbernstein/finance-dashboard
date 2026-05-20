@@ -47,11 +47,21 @@ db.exec(`
     panel_id TEXT NOT NULL,
     title TEXT NOT NULL,
     body TEXT NOT NULL,
+    bullets TEXT,
     data_points TEXT,
     confidence REAL,
     last_changed TEXT,
     generated_at TEXT NOT NULL,
     PRIMARY KEY (panel_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS curated_news (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    headline TEXT NOT NULL,
+    url TEXT,
+    source TEXT,
+    why_it_matters TEXT,
+    generated_at TEXT NOT NULL
   );
 
   CREATE TABLE IF NOT EXISTS alerts (
@@ -144,23 +154,41 @@ module.exports = {
     tx();
   },
 
-  upsertPanel(panelId, title, body, dataPoints, confidence, lastChanged) {
+  upsertPanel(panelId, title, body, dataPoints, confidence, lastChanged, bullets) {
     db.prepare(`
-      INSERT INTO commentary_panels (panel_id, title, body, data_points, confidence, last_changed, generated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO commentary_panels (panel_id, title, body, bullets, data_points, confidence, last_changed, generated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(panel_id) DO UPDATE SET
         title = excluded.title,
         body = excluded.body,
+        bullets = excluded.bullets,
         data_points = excluded.data_points,
         confidence = excluded.confidence,
         last_changed = excluded.last_changed,
         generated_at = excluded.generated_at
     `).run(
       panelId, title, body,
+      bullets ? JSON.stringify(bullets) : null,
       dataPoints ? JSON.stringify(dataPoints) : null,
       confidence ?? null, lastChanged || null,
       new Date().toISOString()
     );
+  },
+
+  replaceCuratedNews(items) {
+    const del = db.prepare('DELETE FROM curated_news');
+    const ins = db.prepare(`
+      INSERT INTO curated_news (headline, url, source, why_it_matters, generated_at)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    const now = new Date().toISOString();
+    const tx = db.transaction(() => {
+      del.run();
+      for (const item of items) {
+        ins.run(item.headline, item.url || null, item.source || null, item.why_it_matters || null, now);
+      }
+    });
+    tx();
   },
 
   insertAlert(severity, headline, url, whySignificant) {
@@ -216,6 +244,7 @@ module.exports = {
 
       news: db.prepare('SELECT * FROM news_items ORDER BY published_at DESC LIMIT 20').all(),
       panels: db.prepare('SELECT * FROM commentary_panels ORDER BY panel_id').all(),
+      curated_news: db.prepare('SELECT * FROM curated_news ORDER BY id').all(),
       alerts: db.prepare('SELECT * FROM alerts WHERE resolved_at IS NULL ORDER BY created_at DESC').all(),
       lastCycle: db.prepare('SELECT * FROM cycle_log ORDER BY id DESC LIMIT 1').get()
     };

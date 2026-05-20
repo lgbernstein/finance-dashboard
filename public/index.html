@@ -5,61 +5,137 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Larry's Economic Dashboard</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <div>
-      <h1>Larry's Economic Dashboard</h1>
-      <p id="last-updated">Loading...</p>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-name">Economic<br>Dashboard</div>
+      <div id="last-updated" class="brand-updated">Loading...</div>
     </div>
-    <div id="clock"></div>
-  </header>
 
-  <div id="alert-bar" class="alert-bar hidden"></div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="overview">
+        <span class="nav-icon">◎</span> Overview
+      </button>
+      <button class="nav-item" data-tab="geopolitics">
+        <span class="nav-icon">◈</span> Geopolitics
+      </button>
+      <button class="nav-item" data-tab="markets">
+        <span class="nav-icon">◇</span> Markets
+      </button>
+      <button class="nav-item" data-tab="indicators">
+        <span class="nav-icon">◈</span> Indicators
+      </button>
+      <button class="nav-item" data-tab="my-position">
+        <span class="nav-icon">◎</span> My Position
+      </button>
+    </nav>
 
-  <div class="container">
+    <div id="sidebar-alert" class="sidebar-alert hidden"></div>
 
-    <!-- AI Narrative Panels -->
-    <div class="section-label">AI Analysis — What's Happening &amp; Why</div>
-    <div class="main-grid">
+    <div class="sidebar-footer" id="clock"></div>
+  </aside>
 
-      <!-- Left: narrative stack -->
-      <div class="narrative-col">
-        <div id="panel-macro_overview"     class="narr-card"></div>
-        <div id="panel-geopolitical_threads" class="narr-card geo"></div>
-        <div id="panel-larrys_lens"        class="narr-card lens hidden"></div>
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <section class="tab-content active" id="tab-overview">
+      <div class="page-header">
+        <h2>Overview</h2>
+        <p class="page-sub">What matters today — synthesized by AI</p>
       </div>
 
-      <!-- Right: causation chain + risk + sector -->
-      <div class="right-col">
-        <div id="causation-chain" class="chain-card"></div>
-        <div class="two-col">
-          <div id="panel-risk_watch"        class="narr-card risk"></div>
-          <div id="panel-sector_spotlight"  class="narr-card sector"></div>
+      <div class="overview-grid">
+        <!-- Causation chain -->
+        <div class="card card-chain" id="chain-card">
+          <div class="card-label amber">Causation Chain</div>
+          <div id="chain-content"><div class="skeleton">Run a cycle to generate analysis.</div></div>
         </div>
-        <div id="panel-what_to_watch"      class="narr-card watch"></div>
+
+        <!-- Macro + Risk side by side -->
+        <div class="two-col-cards">
+          <div class="card" id="panel-macro_overview">
+            <div class="card-label green">Macro Overview</div>
+            <div class="skeleton">Loading...</div>
+          </div>
+          <div class="card" id="panel-risk_watch">
+            <div class="card-label red">Risk Watch</div>
+            <div class="skeleton">Loading...</div>
+          </div>
+        </div>
+
+        <!-- What to watch -->
+        <div class="card" id="panel-what_to_watch">
+          <div class="card-label blue">What to Watch — Next 7 Days</div>
+          <div class="skeleton">Loading...</div>
+        </div>
+
+        <!-- Curated news -->
+        <div class="card" id="curated-news-card">
+          <div class="card-label gray">Significant News</div>
+          <div id="curated-news-list"><div class="skeleton">Loading...</div></div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Market Pulse -->
-    <div id="panel-market_pulse-wrap">
-      <div class="section-label">Market Pulse</div>
-      <div class="pulse-row">
-        <div id="panel-market_pulse" class="narr-card pulse-text"></div>
-        <div id="markets-grid" class="markets-grid"></div>
+    <!-- GEOPOLITICS -->
+    <section class="tab-content" id="tab-geopolitics">
+      <div class="page-header">
+        <h2>Geopolitical Threads</h2>
+        <p class="page-sub">How world events cascade into economic outcomes</p>
       </div>
-    </div>
+      <div class="stepper-wrap">
+        <div id="geo-stepper" class="stepper-card">
+          <div class="skeleton">Loading geopolitical analysis...</div>
+        </div>
+        <div class="stepper-controls" id="geo-controls"></div>
+      </div>
+      <div class="card mt-16" id="panel-sector_spotlight">
+        <div class="card-label purple">Sector Spotlight</div>
+        <div class="skeleton">Loading...</div>
+      </div>
+    </section>
 
-    <!-- FRED Indicators with Charts -->
-    <div class="section-label">Key Economic Indicators — 24-Month Trend</div>
-    <div id="indicators-grid" class="indicators-grid"></div>
+    <!-- MARKETS -->
+    <section class="tab-content" id="tab-markets">
+      <div class="page-header">
+        <h2>Markets</h2>
+        <p class="page-sub">Live quotes + AI market pulse</p>
+      </div>
+      <div id="markets-grid" class="markets-grid"></div>
+      <div class="card mt-16" id="panel-market_pulse">
+        <div class="card-label blue">Market Pulse — AI Analysis</div>
+        <div class="skeleton">Loading...</div>
+      </div>
+    </section>
 
-    <!-- News -->
-    <div class="section-label">Latest News</div>
-    <div id="news-list" class="news-list"></div>
+    <!-- INDICATORS -->
+    <section class="tab-content" id="tab-indicators">
+      <div class="page-header">
+        <h2>Key Economic Indicators</h2>
+        <p class="page-sub">24-month trend — hover chart for crosshair detail</p>
+      </div>
+      <div id="indicators-grid" class="indicators-grid"></div>
+    </section>
 
-  </div>
+    <!-- MY POSITION -->
+    <section class="tab-content" id="tab-my-position">
+      <div class="page-header">
+        <h2>My Position</h2>
+        <p class="page-sub">What current conditions mean for your retirement accounts</p>
+      </div>
+      <div class="card" id="panel-larrys_lens">
+        <div class="card-label blue">Larry's Lens</div>
+        <div class="skeleton">Loading...</div>
+      </div>
+    </section>
+
+  </main>
 
   <script src="app.js"></script>
 </body>

@@ -117,22 +117,24 @@ async function main() {
     // Write commentary panels to DB
     for (const panel of analysis.panels || []) {
       db.upsertPanel(
-        panel.id, panel.title, panel.body,
-        panel.data_points, panel.confidence, panel.last_changed
+        panel.id, panel.title, panel.full_body || panel.body,
+        panel.data_points, panel.confidence, panel.last_changed, panel.bullets
       );
     }
 
-    // Store causation chain as a synthetic panel so the frontend can retrieve it
+    // Store causation chain
     if (analysis.causation_chain_structured) {
       const chain = analysis.causation_chain_structured;
       db.upsertPanel(
-        'causation_chain',
-        'Causation Chain',
+        'causation_chain', 'Causation Chain',
         chain.trigger + '\n\n' + (chain.steps || []).join('\n') + '\n\n' + chain.outcome,
-        JSON.stringify(chain),
-        null,
-        null
+        JSON.stringify(chain), null, null, null
       );
+    }
+
+    // Store AI-curated news
+    if (analysis.curated_news?.length) {
+      db.replaceCuratedNews(analysis.curated_news);
     }
 
     // Update analyst baseline
