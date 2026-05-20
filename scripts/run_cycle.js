@@ -76,11 +76,17 @@ async function gatherData() {
 async function runAnalyst(fredData, marketData, newsItems) {
   const baseline = readJson(BASELINE_PATH) || {};
 
+  // Strip history arrays — analyst needs current values only, not 24mo of data
+  const fredSummary = {};
+  for (const [id, item] of Object.entries(fredData || {})) {
+    fredSummary[id] = { value: item.value, observation_date: item.observation_date, unit: item.unit };
+  }
+
   const context = {
     instruction: 'Generate commentary panels for the Finance Dashboard based on the data below.',
-    fred_data: fredData,
+    fred_data: fredSummary,
     market_data: marketData,
-    top_news: (newsItems || []).slice(0, 10),
+    top_news: (newsItems || []).slice(0, 8),
     previous_baseline: baseline.key_levels || {},
     dominant_narrative: baseline.dominant_narrative || null
   };
