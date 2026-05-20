@@ -1649,6 +1649,10 @@ async function webbSend() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: webbMessages, context: [buildDashboardSnapshot(), webbContext].filter(Boolean).join('\n\n') || null })
     });
+    if (!res.ok) {
+      const err = await res.text().catch(() => res.status);
+      throw new Error(`HTTP ${res.status}: ${err}`);
+    }
     const data = await res.json();
     thinking.remove();
     const reply = data.reply || 'No response.';
@@ -1656,8 +1660,9 @@ async function webbSend() {
     webbAddMsg('assistant', reply);
     webbSaveMemory();
   } catch (e) {
+    console.error('Webb chat error:', e.message);
     thinking.remove();
-    webbAddMsg('assistant', 'Connection error — try again.');
+    webbAddMsg('assistant', `Connection error (${e.message}) — try again.`);
   }
 
   webbPending = false;
