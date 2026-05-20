@@ -44,11 +44,18 @@ const VOICES = [
     baseQueries: ['Mohamed El-Erian economy', 'Mohamed El-Erian inflation']
   },
   {
-    id: 'jan_hatzius',
-    name: 'Jan Hatzius',
-    title: 'Chief Economist, Goldman Sachs',
-    why: 'The most closely watched Wall Street economist — his GDP and recession forecasts move markets',
-    baseQueries: ['Jan Hatzius economy', 'Jan Hatzius Goldman Sachs forecast']
+    id: 'george_friedman',
+    name: 'George Friedman',
+    title: 'Founder, Stratfor & Geopolitical Futures',
+    why: 'Decades of geopolitical forecasting — reads how power, trade, and conflict shape economic outcomes',
+    baseQueries: ['George Friedman geopolitics', 'George Friedman economy forecast']
+  },
+  {
+    id: 'reva_goujon',
+    name: 'Reva Goujon',
+    title: 'Director, Rhodium Group',
+    why: 'Specializes in supply chain risk, US-China decoupling, and how geopolitical fractures hit markets',
+    baseQueries: ['Reva Goujon geopolitics', 'Reva Goujon China trade economy']
   },
   {
     id: 'mark_zandi',
