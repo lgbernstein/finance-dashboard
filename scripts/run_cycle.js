@@ -116,8 +116,10 @@ async function main() {
 
     // Write commentary panels to DB
     for (const panel of analysis.panels || []) {
+      const body = panel.full_body || panel.body || '';
+      if (!panel.id || !panel.title) continue;
       db.upsertPanel(
-        panel.id, panel.title, panel.full_body || panel.body,
+        panel.id, panel.title, body,
         panel.data_points, panel.confidence, panel.last_changed, panel.bullets
       );
     }
