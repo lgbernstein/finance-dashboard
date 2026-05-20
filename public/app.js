@@ -2,27 +2,26 @@
 let energyChartsReady = false;
 let explorerReady = false;
 
-document.querySelectorAll('.nav-item').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    const tabId = btn.dataset.tab;
-    document.getElementById('tab-' + tabId).classList.add('active');
-
-    if (tabId === 'energy' && !energyChartsReady) {
-      energyChartsReady = true;
-      requestAnimationFrame(initEnergyCharts);
-    }
-    if (tabId === 'macro-tools' && !explorerReady) {
-      explorerReady = true;
-      expUpdateSim();
-      expSelectGauge('rate');
-    }
-    if (tabId === 'macro-tools' && explorerReady) {
-      expUpdateSim();
-    }
+function switchTab(tabId) {
+  document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabId);
   });
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tabId)?.classList.add('active');
+
+  if (tabId === 'energy' && !energyChartsReady) {
+    energyChartsReady = true;
+    requestAnimationFrame(initEnergyCharts);
+  }
+  if (tabId === 'macro-tools') {
+    if (!explorerReady) { explorerReady = true; expSelectGauge('rate'); }
+    expUpdateSim();
+  }
+  window.scrollTo(0, 0);
+}
+
+document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
 // ── Clock ─────────────────────────────────────────────────────
@@ -544,12 +543,13 @@ async function load() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const d = await res.json();
 
+    const updText = d.lastCycle?.completed_at
+      ? `Updated ${relativeTime(d.lastCycle.completed_at)}`
+      : 'No cycle run yet';
     const upd = document.getElementById('last-updated');
-    if (upd) {
-      upd.textContent = d.lastCycle?.completed_at
-        ? `Updated ${relativeTime(d.lastCycle.completed_at)}`
-        : 'No cycle run yet';
-    }
+    if (upd) upd.textContent = updText;
+    const mUpd = document.getElementById('mobile-updated');
+    if (mUpd) mUpd.textContent = updText;
 
     renderAlerts(d.alerts || []);
     renderPanels(d.panels || []);

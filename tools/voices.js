@@ -51,15 +51,24 @@ async function fetchAll() {
 
   for (const voice of VOICES) {
     try {
-      // Try primary query first, fall back to secondary
-      // pm = past month — these people don't speak daily
-      let hits = await brave.search(voice.queries[0], 3, { freshness: 'pm' });
-      if (!hits.length || !hits[0].description) {
-        hits = await brave.search(voice.queries[1], 3, { freshness: 'pm' });
+      // Try progressively wider searches until we get a usable snippet
+      const attempts = [
+        [voice.queries[0], 'pm'],
+        [voice.queries[1], 'pm'],
+        [voice.queries[0], 'py'],
+        [voice.queries[1], 'py'],
+        [voice.queries[0], null],
+        [voice.queries[1], null],
+      ];
+
+      let best = null;
+      for (const [q, freshness] of attempts) {
+        const opts = freshness ? { freshness } : {};
+        const hits = await brave.search(q, 3, opts);
+        best = hits.find(h => h.description && h.description.length > 60);
+        if (best) break;
       }
 
-      // Find the most relevant, recent snippet
-      const best = hits.find(h => h.description && h.description.length > 60) || hits[0];
       if (best) {
         results.push({
           id: voice.id,

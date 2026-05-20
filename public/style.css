@@ -684,9 +684,43 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 13px;
 ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
 
 /* ── Responsive ────────────────────────────────── */
+/* ── Mobile nav (hidden on desktop) ──────────────── */
+.mobile-topbar {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 10px 16px; align-items: center; justify-content: space-between;
+  height: 50px;
+}
+.mobile-brand  { font-size: 16px; font-weight: 700; color: var(--text); }
+.mobile-updated { font-size: 12px; color: var(--muted); }
+
+.mobile-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+  background: var(--surface); border-top: 1px solid var(--border);
+  height: 58px;
+}
+.mobile-nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px; border: none; background: none; cursor: pointer;
+  color: var(--muted); padding: 6px 0;
+}
+.mobile-nav-item.active { color: var(--blue); }
+.mobile-nav-icon  { font-size: 16px; line-height: 1; }
+.mobile-nav-label { font-size: 10px; font-weight: 600; letter-spacing: .02em; }
+
 @media (max-width: 768px) {
   .sidebar { display: none; }
-  .main { margin-left: 0; padding: 20px 16px; }
+  .mobile-topbar { display: flex; }
+  .mobile-nav { display: flex; }
+  .main { margin-left: 0; padding: 66px 14px 72px; }
   .two-col-cards { grid-template-columns: 1fr; }
   .ind-drawer { width: 100%; }
+  .markets-grid { grid-template-columns: repeat(2, 1fr); }
+  .indicators-grid { grid-template-columns: repeat(2, 1fr); }
+  .composite-grid { grid-template-columns: 1fr; }
+  .geo-grid { grid-template-columns: 1fr; }
+  .tv-grid { grid-template-columns: 1fr; }
 }
