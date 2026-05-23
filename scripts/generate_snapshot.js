@@ -89,20 +89,57 @@ function buildHtml(data) {
       ${mktCard('10-YR Yield', yld)}
     </div>`;
 
+  // Convert markdown to HTML
+  function md(text) {
+    if (!text) return '';
+    // Bold and italic
+    let out = text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+    return out;
+  }
+
+  // Render a block of text that may contain markdown bullet lists
+  function renderBody(text) {
+    if (!text) return '';
+    const lines = text.split('\n');
+    const html  = [];
+    let inList   = false;
+
+    for (const raw of lines) {
+      const line = raw.trim();
+      if (!line) {
+        if (inList) { html.push('</ul>'); inList = false; }
+        continue;
+      }
+      const bulletMatch = line.match(/^\*\s+(.+)$/);
+      if (bulletMatch) {
+        if (!inList) { html.push('<ul class="db-bullets">'); inList = true; }
+        html.push(`<li>${md(bulletMatch[1])}</li>`);
+      } else {
+        if (inList) { html.push('</ul>'); inList = false; }
+        html.push(`<p>${md(line)}</p>`);
+      }
+    }
+    if (inList) html.push('</ul>');
+    return html.join('');
+  }
+
   // Panel section helper
   function panelSection(panel) {
     if (!panel) return '';
+    // Try JSON bullets first, fall back to rendering the body as markdown
     let bulletsHtml = '';
     try {
       const bullets = panel.bullets ? JSON.parse(panel.bullets) : [];
       if (bullets.length) {
-        bulletsHtml = '<ul class="db-bullets">' + bullets.map(b => `<li>${b}</li>`).join('') + '</ul>';
+        bulletsHtml = '<ul class="db-bullets">' + bullets.map(b => `<li>${md(b)}</li>`).join('') + '</ul>';
       }
     } catch {}
     return `
       <div class="db-section">
         <h2>${panel.title}</h2>
-        <p>${(panel.body || '').replace(/\n\n/g, '</p><p>').replace(/\n/g, ' ')}</p>
+        ${renderBody(panel.body || '')}
         ${bulletsHtml}
       </div>`;
   }
