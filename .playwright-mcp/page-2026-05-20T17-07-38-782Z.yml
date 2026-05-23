@@ -1,0 +1,49 @@
+- generic [ref=e1]:
+  - complementary [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - text: Economic
+        - text: Dashboard
+      - generic [ref=e5]: Updated 1h ago
+    - navigation [ref=e6]:
+      - button "◎ Overview" [ref=e7] [cursor=pointer]:
+        - generic [ref=e8]: ◎
+        - text: Overview
+      - button "◈ Geopolitics" [active] [ref=e9] [cursor=pointer]:
+        - generic [ref=e10]: ◈
+        - text: Geopolitics
+      - button "◇ Markets" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: ◇
+        - text: Markets
+      - button "◈ Indicators" [ref=e13] [cursor=pointer]:
+        - generic [ref=e14]: ◈
+        - text: Indicators
+      - button "⚡ Energy" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: ⚡
+        - text: Energy
+      - button "◇ Macro Tools" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: ◇
+        - text: Macro Tools
+      - button "◎ My Position" [ref=e19] [cursor=pointer]:
+        - generic [ref=e20]: ◎
+        - text: My Position
+    - generic [ref=e21]: 10:07:38 AM
+  - main [ref=e22]:
+    - generic [ref=e239]:
+      - generic [ref=e240]:
+        - heading "Geopolitical Threads" [level=2] [ref=e241]
+        - paragraph [ref=e242]: How world events cascade into economic outcomes
+      - generic [ref=e244]:
+        - generic [ref=e245]: Geopolitical Thread
+        - paragraph [ref=e246]: The Strait of Hormuz blockade is the single biggest force in global markets right now. The Strait handles roughly 20% of the world's oil supply. With it effectively closed, oil has stayed above $100 a barrel. That is not just a number at the gas pump — it is a cost that runs through every product that gets manufactured, shipped, or refrigerated. Higher energy costs feed into food prices, airline tickets, and factory output. Inflation that was supposed to be coming down is now sticky again.
+        - paragraph [ref=e247]: The UK government just watered down new sanctions on Russian oil specifically because of fuel supply concerns caused by the Hormuz blockade. That tells you how serious the supply crunch is. When governments start relaxing sanctions to keep fuel flowing, the disruption is no longer a short-term blip — it is reshaping policy. UK petrol prices are rising and motoring groups warn they will keep rising without a resolution to the Iran conflict.
+        - paragraph [ref=e248]: "Here is the chain that matters for your portfolio: Oil above $100 keeps inflation above 2.5%. Inflation above 2.5% means the Fed cannot cut rates. The Fed funds rate stays at 3.64%. Long-term bond yields stay elevated — the 30-year is at 5.14%. Stocks face competition from bonds that now pay real money. Meanwhile, gold at $4,521 is telling you that a lot of investors have lost confidence in paper assets entirely."
+      - generic [ref=e249]:
+        - generic [ref=e250]: Sector Spotlight
+        - paragraph [ref=e251]: Energy is the sector driving everything else right now. WTI crude at $100.94 a barrel is not a number that sits quietly — it flows into the cost of every other industry. Shipping gets more expensive. Food processing gets more expensive. Airlines get more expensive. The energy sector itself is generating strong cash flows right now, which makes energy company stocks look attractive on paper. But the risk is a sudden diplomatic resolution to the Hormuz blockade. If that happens, oil could drop fast and energy stocks would fall with it.
+        - paragraph [ref=e252]: The UK story is worth watching as a preview. Britain is now backing away from Russian oil sanctions specifically because Hormuz is squeezing fuel supply. That is a government choosing energy security over geopolitical principle. If other countries follow, it signals the blockade is causing real economic pain — not just inconvenience — at the government level.
+  - generic [ref=e233]:
+    - generic [ref=e234]:
+      - generic [ref=e235]: —
+      - generic [ref=e236]: —
+    - button "✕" [ref=e237] [cursor=pointer]

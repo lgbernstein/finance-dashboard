@@ -1,0 +1,47 @@
+- generic [active] [ref=e1]:
+  - complementary [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - text: Economic
+        - text: Dashboard
+      - generic [ref=e5]: Updated 1h ago
+    - navigation [ref=e6]:
+      - button "◎ Overview" [ref=e7] [cursor=pointer]:
+        - generic [ref=e8]: ◎
+        - text: Overview
+      - button "◈ Geopolitics" [ref=e9] [cursor=pointer]:
+        - generic [ref=e10]: ◈
+        - text: Geopolitics
+      - button "◇ Markets" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: ◇
+        - text: Markets
+      - button "◈ Indicators" [ref=e13] [cursor=pointer]:
+        - generic [ref=e14]: ◈
+        - text: Indicators
+      - button "⚡ Energy" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: ⚡
+        - text: Energy
+      - button "◇ Macro Tools" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: ◇
+        - text: Macro Tools
+      - button "◎ My Position" [ref=e19] [cursor=pointer]:
+        - generic [ref=e20]: ◎
+        - text: My Position
+    - generic [ref=e21]: 10:05:39 AM
+  - main [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - heading "Overview" [level=2] [ref=e25]
+        - paragraph [ref=e26]: What matters today — synthesized by AI
+      - generic [ref=e27]:
+        - generic [ref=e28]
+        - generic [ref=e49]
+        - generic [ref=e73]
+        - generic [ref=e89]
+        - generic [ref=e97]
+        - generic [ref=e209]
+  - generic [ref=e233]:
+    - generic [ref=e234]:
+      - generic [ref=e235]: —
+      - generic [ref=e236]: —
+    - button "✕" [ref=e237] [cursor=pointer]

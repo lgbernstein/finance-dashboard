@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const https = require('https');
 const path = require('path');
+const fs = require('fs');
 const db = require('./db');
 
 // ── Live market quote helper (Yahoo Finance) ──────────────────
@@ -188,6 +189,26 @@ app.get('/api/yields', async (req, res) => {
     yieldsCache = results.filter(Boolean);
     yieldsCacheAt = Date.now();
     res.json(yieldsCache);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/daily-snapshot', (req, res) => {
+  try {
+    const dir   = __dirname;
+    const today = new Date().toISOString().slice(0, 10);
+    // Try today first, then fall back to most recent available
+    const files = fs.readdirSync(dir)
+      .filter(f => f.match(/^Daily_Snapshot_\d{4}-\d{2}-\d{2}\.html$/))
+      .sort()
+      .reverse();
+    if (!files.length) return res.status(404).json({ error: 'No snapshot available yet' });
+    const file = files.find(f => f.includes(today)) || files[0];
+    const html  = fs.readFileSync(path.join(dir, file), 'utf8');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('X-Snapshot-File', file);
+    res.send(html);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

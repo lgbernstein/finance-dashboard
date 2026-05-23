@@ -1,0 +1,265 @@
+- generic [active] [ref=e1]:
+  - complementary [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - text: Economic
+        - text: Dashboard
+      - generic [ref=e5]: Updated 1h ago
+    - navigation [ref=e6]:
+      - button "◎ Overview" [ref=e7] [cursor=pointer]:
+        - generic [ref=e8]: ◎
+        - text: Overview
+      - button "◈ Geopolitics" [ref=e9] [cursor=pointer]:
+        - generic [ref=e10]: ◈
+        - text: Geopolitics
+      - button "◇ Markets" [ref=e11] [cursor=pointer]:
+        - generic [ref=e12]: ◇
+        - text: Markets
+      - button "◈ Indicators" [ref=e13] [cursor=pointer]:
+        - generic [ref=e14]: ◈
+        - text: Indicators
+      - button "⚡ Energy" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: ⚡
+        - text: Energy
+      - button "◇ Macro Tools" [ref=e17] [cursor=pointer]:
+        - generic [ref=e18]: ◇
+        - text: Macro Tools
+      - button "◎ My Position" [ref=e19] [cursor=pointer]:
+        - generic [ref=e20]: ◎
+        - text: My Position
+    - generic [ref=e21]: 10:03:59 AM
+  - main [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - heading "Overview" [level=2] [ref=e25]
+        - paragraph [ref=e26]: What matters today — synthesized by AI
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: S&P 500
+            - generic [ref=e31]: 7,403
+            - generic [ref=e32]: 0.00%
+          - generic [ref=e33]:
+            - generic [ref=e34]: NASDAQ
+            - generic [ref=e35]: 26,131
+            - generic [ref=e36]: ▲ 0.15%
+          - generic [ref=e37]:
+            - generic [ref=e38]: 10-Yr Yield
+            - generic [ref=e39]: 4.62%
+            - generic [ref=e40]: ▼ 1.03%
+          - generic [ref=e41]:
+            - generic [ref=e42]: WTI Crude
+            - generic [ref=e43]: $100.94
+            - generic [ref=e44]: ▼ 6.34%
+          - generic [ref=e45]:
+            - generic [ref=e46]: VIX
+            - generic [ref=e47]: $17.68
+            - generic [ref=e48]: ▼ 2.10%
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - generic [ref=e51]: Today's Situation
+            - paragraph [ref=e52]: Oil is at $100.94 a barrel — down 6% today, but still above $100 because the Strait of Hormuz blockade is ongoing. The 30-year Treasury yield sits at 5.14%, a level last seen before the 2008 financial crisis. Gold is at $4,521 — investors are paying a very high price for safety, which tells you how nervous the market really is.
+          - generic [ref=e53]:
+            - generic [ref=e54]: Key Levels
+            - generic [ref=e56]:
+              - generic [ref=e57]:
+                - generic [ref=e58]: S&P 500
+                - generic [ref=e59]: 7,403
+                - generic [ref=e60]: Down 0.00% today
+              - generic [ref=e61]:
+                - generic [ref=e62]: VIX Fear Index
+                - generic [ref=e63]: "17.7"
+                - generic [ref=e64]: Volatility elevated
+              - generic [ref=e65]:
+                - generic [ref=e66]: WTI Crude
+                - generic [ref=e67]: $100.94
+                - generic [ref=e68]: Above $100 — inflation risk
+              - generic [ref=e69]:
+                - generic [ref=e70]: 10-Yr Treasury
+                - generic [ref=e71]: 4.62%
+                - generic [ref=e72]: Rates elevated
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - generic [ref=e75]: Macro Overview
+            - paragraph [ref=e76]:
+              - strong [ref=e77]: "What's happening:"
+              - text: The 30-year Treasury yield is at 5.14% — the highest since before the 2008 crisis.
+            - paragraph [ref=e78]:
+              - strong [ref=e79]: "Why it matters:"
+              - text: When the government has to pay 5.14% to borrow for 30 years, every other borrower pays more too.
+            - paragraph [ref=e80]:
+              - strong [ref=e81]: "What to expect:"
+              - text: As long as oil stays above $100, inflation stays sticky — and the Fed stays on hold.
+            - button "Read more ↓" [ref=e82] [cursor=pointer]
+          - generic [ref=e83]:
+            - generic [ref=e84]: Risk Watch
+            - paragraph [ref=e85]:
+              - strong [ref=e86]: Risk 1 — The Hormuz blockade escalates or drags on.
+              - text: If Iran tightens the blockade or the conflict widens, oil pushes well past $100 and stays there. That would make inflation worse and push bond yields even higher — which would pull money out of stocks and into bonds.
+            - paragraph [ref=e87]:
+              - strong [ref=e88]: Risk 2 — The bond market loses confidence in US debt.
+              - text: The 30-year yield at 5.14% is already a loud signal. If investors start demanding even higher yields to hold long-term US debt — because of deficit concerns or persistent inflation — the price of your existing bonds falls further and borrowing costs rise across the economy.
+        - generic [ref=e89]:
+          - generic [ref=e90]: What to Watch — Next 7 Days
+          - paragraph [ref=e91]:
+            - strong [ref=e92]: 1. Any movement on the Strait of Hormuz (ongoing).
+            - text: This is the hinge everything else swings on. A diplomatic opening or ceasefire would send oil below $90 quickly. That would ease inflation, allow the Fed to consider rate cuts, and give bonds and stocks room to rally. No resolution means oil stays above $100 and every other problem deepens.
+          - paragraph [ref=e93]:
+            - strong [ref=e94]: 2. The next inflation data release.
+            - text: With oil above $100, the next CPI reading will tell us whether energy costs are bleeding into broader prices. If core inflation — which strips out food and energy — stays elevated, the Fed has no room to move. A surprise drop would be the single most positive event for bond prices right now.
+          - paragraph [ref=e95]:
+            - strong [ref=e96]: 3. The 30-year Treasury yield staying above or breaking below 5%.
+            - text: Watch the 5% level specifically. If the 30-year yield starts climbing toward 5.25% or higher, that is the bond market pricing in a longer period of high inflation and government borrowing. That would put real pressure on stock valuations. A drop back below 5% would signal some relief.
+        - generic [ref=e97]:
+          - generic [ref=e98]: What the Level Heads Are Saying
+          - paragraph [ref=e99]: Independent voices — translated into plain English
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - generic [ref=e102]:
+                - generic [ref=e103]:
+                  - generic [ref=e104]: Bernard Baumohl
+                  - generic [ref=e105]: Chief Global Economist, Economic Outlook Group
+                - link "Source ↗" [ref=e107] [cursor=pointer]:
+                  - /url: https://economicoutlookgroup.com/chief-economist.php
+              - generic [ref=e108]: No clear recent public statement found — his work focuses on reading leading indicators before they show up in official data.
+              - generic [ref=e109]: "What this means for you: His value is in early warning signals — worth watching for any statement he makes on whether leading indicators are pointing toward slowdown or stabilization in the coming months."
+            - generic [ref=e110]:
+              - generic [ref=e111]:
+                - generic [ref=e112]:
+                  - generic [ref=e113]: George Friedman
+                  - generic [ref=e114]: Founder, Stratfor & Geopolitical Futures
+                - generic [ref=e115]:
+                  - generic [ref=e116]: Apr 4
+                  - link "Source ↗" [ref=e117] [cursor=pointer]:
+                    - /url: https://geopoliticalfutures.com/author/gfriedman/
+              - generic [ref=e118]: Friedman is focused on a crisis of confidence in NATO as the alliance faces real tests of its commitments amid active conflicts.
+              - generic [ref=e119]: "What this means for you: If NATO fractures or loses credibility, the US bears more of the defense burden alone — which means more government spending, more borrowing, and more upward pressure on bond yields."
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - generic [ref=e122]:
+                  - generic [ref=e123]: Howard Marks
+                  - generic [ref=e124]: Co-founder, Oaktree Capital
+                - generic [ref=e125]:
+                  - generic [ref=e126]: Mar 24
+                  - link "Source ↗" [ref=e127] [cursor=pointer]:
+                    - /url: https://www.oaktreecapital.com/insights/insight-podcast/market-commentary/reflections-on-oaktree-conference-2026-with-howard-marks
+              - generic [ref=e128]: Marks is focused on how credit markets have evolved and where mispricings — assets priced too high or too low — are appearing in the current environment.
+              - generic [ref=e129]: "What this means for you: He is essentially saying that in a market this complicated, the biggest opportunities and dangers are in places where prices do not match reality — and right now, a lot of assets may be priced as if the world is calmer than it is."
+            - generic [ref=e130]:
+              - generic [ref=e131]:
+                - generic [ref=e132]:
+                  - generic [ref=e133]: Jeremy Grantham
+                  - generic [ref=e134]: Co-founder, GMO
+                - generic [ref=e135]:
+                  - generic [ref=e136]: Apr 20
+                  - link "Source ↗" [ref=e137] [cursor=pointer]:
+                    - /url: https://acquirersmultiple.com/2026/04/jeremy-granthams-latest-market-outlook-valuations-risk-and-opportunity/
+              - generic [ref=e138]: Grantham believes markets are overvalued and that assets feeling safe near their highs is exactly when they are most dangerous.
+              - generic [ref=e139]: "What this means for you: He is warning that stocks that look comfortable right now — because they have risen — may be the most vulnerable, because high prices already assume a lot of good news that may not arrive."
+            - generic [ref=e140]:
+              - generic [ref=e141]:
+                - generic [ref=e142]:
+                  - generic [ref=e143]: Joseph Stiglitz
+                  - generic [ref=e144]: Nobel Laureate; Columbia University
+                - generic [ref=e145]:
+                  - generic [ref=e146]: Feb 20
+                  - link "Source ↗" [ref=e147] [cursor=pointer]:
+                    - /url: https://www.businessinsider.com/us-economy-outlook-joseph-stiglitz-recession-inflation-job-market-tariffs-2026-2
+              - generic [ref=e148]: Stiglitz believes the US economy will keep weakening, pointing to inequality, a stressed job market, and tariff-driven inflation as compounding problems.
+              - generic [ref=e149]: "What this means for you: He is arguing that the economic foundation is shakier than headline stock prices suggest — and that problems in wages and jobs will eventually drag on the broader economy in ways the market has not yet priced in."
+            - generic [ref=e150]:
+              - generic [ref=e151]:
+                - generic [ref=e152]:
+                  - generic [ref=e153]: Mark Zandi
+                  - generic [ref=e154]: Chief Economist, Moody's Analytics
+                - generic [ref=e155]:
+                  - generic [ref=e156]: May 6
+                  - link "Source ↗" [ref=e157] [cursor=pointer]:
+                    - /url: https://www.businessinsider.com/stock-market-record-economic-recession-mark-zandi-iran-war-oil-2026-4
+              - generic [ref=e158]: Zandi puts the odds of a recession starting in the next 12 months at 40% — elevated — driven by weakening labor markets, housing stress, and now the oil shock from Iran.
+              - generic [ref=e159]: "What this means for you: Four-in-ten odds of a recession is not a crisis prediction, but it is not background noise either — it means there is a real chance the economy slows enough to hurt corporate earnings and push stocks lower."
+            - generic [ref=e160]:
+              - generic [ref=e161]:
+                - generic [ref=e162]:
+                  - generic [ref=e163]: Mohamed El-Erian
+                  - generic [ref=e164]: Former CEO, PIMCO; Bloomberg Opinion
+                - link "Source ↗" [ref=e166] [cursor=pointer]:
+                  - /url: https://www.project-syndicate.org/commentary/2026-forecast-for-the-us-economy-includes-three-probable-scenarios-by-mohamed-a-el-erian-2025-12
+              - generic [ref=e167]: El-Erian sees three plausible paths for 2026 — the middle one is AI-driven growth, but the downside involves the bond market leading a broader economic deterioration.
+              - generic [ref=e168]: "What this means for you: He is saying do not assume the middle scenario happens automatically — the bond market seizing up (as it is beginning to show signs of doing with a 5.14% 30-year yield) is a real risk path, not a tail scenario."
+            - generic [ref=e169]:
+              - generic [ref=e170]:
+                - generic [ref=e171]:
+                  - generic [ref=e172]: Ray Dalio
+                  - generic [ref=e173]: Founder, Bridgewater Associates
+                - generic [ref=e174]:
+                  - generic [ref=e175]: Feb 3
+                  - link "Source ↗" [ref=e176] [cursor=pointer]:
+                    - /url: https://www.cnbc.com/2026/02/03/ray-dalio-warns-capital-war-gold-hedge.html
+              - generic [ref=e177]: Dalio believes the world is on the brink of a capital war — a conflict over who controls money flows, debt, and financial systems between major powers.
+              - generic [ref=e178]: "What this means for you: He thinks the era of stable global finance is ending — and that holding some gold or hard assets is a reasonable hedge against governments and markets behaving in ways they have not in decades."
+            - generic [ref=e179]:
+              - generic [ref=e180]:
+                - generic [ref=e181]:
+                  - generic [ref=e182]: Reva Goujon
+                  - generic [ref=e183]: Director, Rhodium Group
+                - generic [ref=e184]:
+                  - generic [ref=e185]: 4 days ago
+                  - link "Source ↗" [ref=e186] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/in/reva-goujon/
+              - generic [ref=e187]: No clear recent public statement found — her work focuses on supply chain fragmentation and the economic costs of US-China decoupling.
+              - generic [ref=e188]: "What this means for you: Her area of expertise matters right now because any escalation in US-China tensions on top of the Hormuz crisis would compound supply disruptions and keep inflation elevated longer."
+            - generic [ref=e189]:
+              - generic [ref=e190]:
+                - generic [ref=e191]:
+                  - generic [ref=e192]: Stanley Druckenmiller
+                  - generic [ref=e193]: Former Quantum Fund, Duquesne Capital
+                - generic [ref=e194]:
+                  - generic [ref=e195]: Mar 2
+                  - link "Source ↗" [ref=e196] [cursor=pointer]:
+                    - /url: https://www.realclearpolitics.com/video/2026/03/01/druckenmiller_portfolio_no_longer_ai-driven_bearish_on_dollar_at_historic_purchasing_power_peak.html
+              - generic [ref=e197]: Druckenmiller has stepped back from AI-driven bets and is now bearish on the US dollar, believing it is near a historic peak in purchasing power.
+              - generic [ref=e198]: "What this means for you: He thinks the dollar is going to weaken from here — which would make imports more expensive and could push inflation higher, while benefiting gold and foreign assets."
+            - generic [ref=e199]:
+              - generic [ref=e200]:
+                - generic [ref=e201]:
+                  - generic [ref=e202]: Warren Buffett
+                  - generic [ref=e203]: Chairman, Berkshire Hathaway
+                - generic [ref=e204]:
+                  - generic [ref=e205]: May 3
+                  - link "Source ↗" [ref=e206] [cursor=pointer]:
+                    - /url: https://www.thestreet.com/investing/stocks/warren-buffett-has-blunt-message-on-stock-market-for-2026
+              - generic [ref=e207]: Buffett sees the 2026 market pullback as minor compared to what he has lived through — and is not alarmed by current conditions.
+              - generic [ref=e208]: "What this means for you: He is telling long-term investors not to panic — he has seen much worse and stayed put, and that patience has always worked out for him over decades."
+        - generic [ref=e209]:
+          - generic [ref=e210]: Significant News
+          - generic [ref=e211]:
+            - generic [ref=e212]:
+              - link "BBC UK waters down new Russian oil sanctions as fuel prices rise" [ref=e213] [cursor=pointer]:
+                - /url: https://www.bbc.com/news/articles/cy42x3g7r89o?at_medium=RSS&at_campaign=rss
+                - generic [ref=e214]: BBC
+                - generic [ref=e215]: UK waters down new Russian oil sanctions as fuel prices rise
+              - generic [ref=e216]: When a G7 government softens sanctions to secure fuel supply, it confirms the Hormuz blockade is causing real economic pain — not just market anxiety — and signals oil supply will stay constrained longer than traders may be pricing in.
+            - generic [ref=e217]:
+              - link "BBC What's happening to UK petrol and diesel prices?" [ref=e218] [cursor=pointer]:
+                - /url: https://www.bbc.com/news/articles/c20zgjzz0e4o?at_medium=RSS&at_campaign=rss
+                - generic [ref=e219]: BBC
+                - generic [ref=e220]: What's happening to UK petrol and diesel prices?
+              - generic [ref=e221]: Rising UK pump prices driven by the Iran conflict are a preview of what persistently high oil does to consumer budgets — when households spend more on fuel, they spend less everywhere else, slowing growth while inflation stays high.
+            - generic [ref=e222]:
+              - link "BBC Supermarkets hit back over pressure to cap price of milk, bread and eggs" [ref=e223] [cursor=pointer]:
+                - /url: https://www.bbc.com/news/articles/c5y7qz806q3o?at_medium=RSS&at_campaign=rss
+                - generic [ref=e224]: BBC
+                - generic [ref=e225]: Supermarkets hit back over pressure to cap price of milk, bread and eggs
+              - generic [ref=e226]: Government pressure to cap food staple prices reflects how high energy and supply costs are squeezing consumer budgets — when governments debate price controls, it usually means inflation has moved from a market problem to a political crisis.
+            - generic [ref=e227]:
+              - link "NYT They Graduated Into the 'Bleakest Job Market.' Now It's Their Children's Turn." [ref=e228] [cursor=pointer]:
+                - /url: https://www.nytimes.com/2026/05/20/business/economy/1991-graduates-job-hunting-advice-children.html
+                - generic [ref=e229]: NYT
+                - generic [ref=e230]: They Graduated Into the 'Bleakest Job Market.' Now It's Their Children's Turn.
+              - generic [ref=e231]: With unemployment at 4.3% and rising, a weakening job market reduces consumer spending power — which matters because consumer spending is roughly 70% of US GDP, and a pullback there would slow growth while inflation from oil stays elevated.
+  - generic [ref=e233]:
+    - generic [ref=e234]:
+      - generic [ref=e235]: —
+      - generic [ref=e236]: —
+    - button "✕" [ref=e237] [cursor=pointer]

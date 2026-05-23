@@ -1,6 +1,35 @@
 // ── Tab routing ───────────────────────────────────────────────
 let energyChartsReady = false;
 let explorerReady = false;
+let dailyBriefLoaded = false;
+
+function loadDailyBrief() {
+  if (dailyBriefLoaded) return;
+  const container = document.getElementById('daily-brief-content');
+  if (!container) return;
+  fetch('/api/daily-snapshot')
+    .then(r => {
+      if (!r.ok) throw new Error('Snapshot not available');
+      return r.text();
+    })
+    .then(html => {
+      // Strip outer html/head/body tags so it embeds cleanly
+      const stripped = html
+        .replace(/<!DOCTYPE[^>]*>/i, '')
+        .replace(/<html[^>]*>/i, '')
+        .replace(/<\/html>/i, '')
+        .replace(/<head[\s\S]*?<\/head>/i, '')
+        .replace(/<body[^>]*>/i, '')
+        .replace(/<\/body>/i, '');
+      container.innerHTML = stripped;
+      dailyBriefLoaded = true;
+    })
+    .catch(err => {
+      container.innerHTML = `<div style="padding:40px;text-align:center;color:#a0aec0;">
+        Briefing not available yet — runs each morning at 6 AM.<br><small>${err.message}</small>
+      </div>`;
+    });
+}
 
 function switchTab(tabId) {
   document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(b => {
@@ -9,6 +38,7 @@ function switchTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + tabId)?.classList.add('active');
 
+  if (tabId === 'daily-brief') loadDailyBrief();
   if (tabId === 'energy' && !energyChartsReady) {
     energyChartsReady = true;
     requestAnimationFrame(initEnergyCharts);
@@ -19,6 +49,9 @@ function switchTab(tabId) {
   }
   window.scrollTo(0, 0);
 }
+
+// Load brief immediately on page open
+document.addEventListener('DOMContentLoaded', loadDailyBrief);
 
 document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));

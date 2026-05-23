@@ -19,7 +19,11 @@
 
   <!-- Mobile bottom nav -->
   <nav class="mobile-nav">
-    <button class="mobile-nav-item active" data-tab="overview">
+    <button class="mobile-nav-item active" data-tab="daily-brief">
+      <span class="mobile-nav-icon">📋</span>
+      <span class="mobile-nav-label">Brief</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="overview">
       <span class="mobile-nav-icon">🗞</span>
       <span class="mobile-nav-label">Overview</span>
     </button>
@@ -52,7 +56,10 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item active" data-tab="overview">
+      <button class="nav-item active" data-tab="daily-brief">
+        <span class="nav-icon">📋</span> Daily Brief
+      </button>
+      <button class="nav-item" data-tab="overview">
         <span class="nav-icon">🗞</span> Overview
       </button>
       <button class="nav-item" data-tab="geopolitics">
@@ -83,8 +90,19 @@
   <!-- Main content -->
   <main class="main">
 
+    <!-- DAILY BRIEF -->
+    <section class="tab-content active" id="tab-daily-brief">
+      <div class="page-header">
+        <h2>Daily Brief</h2>
+        <p class="page-sub">Today's market briefing — generated fresh each morning</p>
+      </div>
+      <div id="daily-brief-content" style="min-height:300px;">
+        <div class="skeleton" style="padding:40px;text-align:center;color:#a0aec0;">Loading briefing...</div>
+      </div>
+    </section>
+
     <!-- OVERVIEW -->
-    <section class="tab-content active" id="tab-overview">
+    <section class="tab-content" id="tab-overview">
       <div class="page-header">
         <h2>Overview</h2>
         <p class="page-sub">What matters today — synthesized by AI</p>
