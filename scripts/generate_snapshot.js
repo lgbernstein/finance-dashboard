@@ -54,33 +54,33 @@ function buildHtml(data) {
   const watchPanel = panelMap['what_to_watch']   || panelMap['watch']         || panels[2];
   const riskPanel  = panelMap['risk_watch']      || panelMap['risk'];
 
-  // Alert bar: first curated news or risk panel
+  // Alert bar: first curated news item
   const alertItem = curated[0];
   const alertHtml = alertItem ? `
-    <div class="alert-bar yellow">
+    <div class="db-alert">
       <strong>${alertItem.headline}</strong>
       ${alertItem.why_it_matters || ''}
     </div>` : '';
 
-  // Market row
+  // Market cards
   function mktCard(label, item, dollar = false) {
     if (!item) return '';
     const prefix = dollar ? '$' : '';
     const cls    = chgClass(item.change_pct);
     const arrow  = chgArrow(item.change_pct);
     const chgStr = item.change_pct != null
-      ? `<span class="chg ${cls}">${arrow} ${Math.abs(item.change_pct).toFixed(2)}%</span>`
+      ? `<div class="db-chg ${cls}">${arrow} ${Math.abs(item.change_pct).toFixed(2)}%</div>`
       : '';
     return `
-      <div class="mkt-card">
-        <div class="mkt-label">${label}</div>
-        <div class="mkt-value ${cls}">${prefix}${fmt(item.value, dollar ? 2 : 0)}</div>
+      <div class="db-mkt-card">
+        <div class="db-mkt-label">${label}</div>
+        <div class="db-mkt-value ${cls}">${prefix}${fmt(item.value, dollar ? 2 : 0)}</div>
         ${chgStr}
       </div>`;
   }
 
   const marketRow = `
-    <div class="mkt-row">
+    <div class="db-mkt-row">
       ${mktCard('S&amp;P 500', sp)}
       ${mktCard('Dow Jones', dow)}
       ${mktCard('NASDAQ', nq)}
@@ -96,11 +96,11 @@ function buildHtml(data) {
     try {
       const bullets = panel.bullets ? JSON.parse(panel.bullets) : [];
       if (bullets.length) {
-        bulletsHtml = '<ul class="bullets">' + bullets.map(b => `<li>${b}</li>`).join('') + '</ul>';
+        bulletsHtml = '<ul class="db-bullets">' + bullets.map(b => `<li>${b}</li>`).join('') + '</ul>';
       }
     } catch {}
     return `
-      <div class="section">
+      <div class="db-section">
         <h2>${panel.title}</h2>
         <p>${(panel.body || '').replace(/\n\n/g, '</p><p>').replace(/\n/g, ' ')}</p>
         ${bulletsHtml}
@@ -109,13 +109,13 @@ function buildHtml(data) {
 
   // Top news items (up to 4)
   const newsItems = curated.slice(0, 4).map(n => `
-    <div class="news-item">
-      <div class="news-headline">${n.url ? `<a href="${n.url}" target="_blank">${n.headline}</a>` : n.headline}</div>
-      ${n.why_it_matters ? `<div class="news-why">${n.why_it_matters}</div>` : ''}
+    <div class="db-news-item">
+      <div class="db-news-headline">${n.url ? `<a href="${n.url}" target="_blank">${n.headline}</a>` : n.headline}</div>
+      ${n.why_it_matters ? `<div class="db-news-why">${n.why_it_matters}</div>` : ''}
     </div>`).join('');
 
   const newsSection = newsItems ? `
-    <div class="section">
+    <div class="db-section">
       <h2>Top Stories</h2>
       ${newsItems}
     </div>` : (topStories ? panelSection(topStories) : '');
@@ -128,60 +128,86 @@ function buildHtml(data) {
   <title>Daily Brief — ${todayLabel()}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Georgia, sans-serif;
-           background: #f4f6f9; color: #1a1a2e; font-size: 16px; line-height: 1.75; }
-    header { background: #1a1a2e; color: white; padding: 20px 40px; }
-    header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-    header .meta { font-size: 13px; color: #a0aec0; }
-    .container { max-width: 700px; margin: 0 auto; padding: 28px 24px 60px; }
-    .alert-bar { background: #fffff0; border: 1px solid #faf089; border-left: 4px solid #d69e2e;
-                 border-radius: 8px; padding: 14px 18px; margin-bottom: 24px;
-                 font-size: 14px; color: #744210; }
-    .alert-bar strong { display: block; margin-bottom: 4px; font-size: 15px; }
-    .mkt-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-    .mkt-card { background: white; border-radius: 10px; padding: 14px 18px; flex: 1 1 120px;
-                box-shadow: 0 1px 4px rgba(0,0,0,0.07); min-width: 100px; }
-    .mkt-label { font-size: 11px; font-weight: 600; color: #718096; text-transform: uppercase;
-                 letter-spacing: .04em; margin-bottom: 4px; }
-    .mkt-value { font-size: 20px; font-weight: 700; color: #1a1a2e; }
-    .mkt-value.green { color: #276749; }
-    .mkt-value.red   { color: #c53030; }
-    .chg { font-size: 12px; font-weight: 600; display: block; margin-top: 2px; }
-    .chg.green { color: #276749; }
-    .chg.red   { color: #c53030; }
-    .section { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-               padding: 22px 28px; margin-bottom: 16px; }
-    .section h2 { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 14px;
-                  padding-bottom: 8px; border-bottom: 2px solid #edf2f7; }
-    .section p { margin-bottom: 12px; color: #2d3748; }
-    .section p:last-child { margin-bottom: 0; }
-    .bullets { margin: 10px 0 0 18px; color: #2d3748; }
-    .bullets li { margin-bottom: 6px; }
-    .news-item { padding: 12px 0; border-bottom: 1px solid #edf2f7; }
-    .news-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .news-headline { font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
-    .news-headline a { color: #2b6cb0; text-decoration: none; }
-    .news-headline a:hover { text-decoration: underline; }
-    .news-why { font-size: 14px; color: #4a5568; }
-    .footer-note { margin-top: 24px; font-size: 13px; color: #a0aec0; text-align: center;
-                   padding-top: 16px; border-top: 1px solid #edf2f7; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f1117; color: #e2e8f0; font-size: 15px; line-height: 1.7;
+    }
+    .db-header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-bottom: 1px solid #2d3748;
+      padding: 24px 32px 20px;
+    }
+    .db-header h1 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .db-header .meta { font-size: 12px; color: #718096; letter-spacing: .02em; }
+    .db-container { max-width: 860px; margin: 0 auto; padding: 24px 24px 60px; }
+
+    /* Alert bar */
+    .db-alert {
+      background: rgba(214,158,46,.1); border: 1px solid rgba(214,158,46,.3);
+      border-left: 4px solid #d69e2e; border-radius: 8px;
+      padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: #f6e05e;
+    }
+    .db-alert strong { display: block; font-size: 14px; margin-bottom: 4px; color: #faf089; }
+
+    /* Market cards */
+    .db-mkt-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 10px; margin-bottom: 20px; }
+    .db-mkt-card {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .db-mkt-label { font-size: 10px; font-weight: 700; color: #4a5568; text-transform: uppercase;
+                    letter-spacing: .06em; margin-bottom: 6px; }
+    .db-mkt-value { font-size: 22px; font-weight: 700; color: #e2e8f0; line-height: 1.1; }
+    .db-mkt-value.green { color: #68d391; }
+    .db-mkt-value.red   { color: #fc8181; }
+    .db-chg { font-size: 11px; font-weight: 600; margin-top: 4px; }
+    .db-chg.green { color: #68d391; }
+    .db-chg.red   { color: #fc8181; }
+
+    /* Sections */
+    .db-section {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 20px 24px; margin-bottom: 14px;
+    }
+    .db-section h2 {
+      font-size: 11px; font-weight: 700; color: #4299e1; text-transform: uppercase;
+      letter-spacing: .08em; margin-bottom: 14px; padding-bottom: 10px;
+      border-bottom: 1px solid #2d3748;
+    }
+    .db-section p { margin-bottom: 10px; color: #cbd5e0; font-size: 14px; line-height: 1.75; }
+    .db-section p:last-child { margin-bottom: 0; }
+    .db-bullets { margin: 10px 0 0 0; list-style: none; }
+    .db-bullets li { padding: 6px 0 6px 20px; position: relative; color: #cbd5e0;
+                     font-size: 14px; border-bottom: 1px solid #2d3748; }
+    .db-bullets li:last-child { border-bottom: none; }
+    .db-bullets li::before { content: "›"; position: absolute; left: 2px; color: #4299e1;
+                              font-weight: 700; font-size: 16px; line-height: 1.3; }
+
+    /* News items */
+    .db-news-item { padding: 12px 0; border-bottom: 1px solid #2d3748; }
+    .db-news-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .db-news-headline { font-weight: 600; font-size: 14px; color: #e2e8f0; margin-bottom: 4px; }
+    .db-news-headline a { color: #63b3ed; text-decoration: none; }
+    .db-news-headline a:hover { text-decoration: underline; }
+    .db-news-why { font-size: 13px; color: #718096; line-height: 1.6; }
+
+    .db-footer { margin-top: 20px; font-size: 12px; color: #4a5568; text-align: center;
+                 padding-top: 16px; border-top: 1px solid #2d3748; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Daily Brief — ${todayLabel()}</h1>
-    <div class="meta">For Larry and Maria &nbsp;|&nbsp; Generated ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
-  </header>
-  <div class="container">
+  <div class="db-header">
+    <h1>Daily Brief &mdash; ${todayLabel()}</h1>
+    <div class="meta">For Larry and Maria &nbsp;&middot;&nbsp; Generated ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
+  </div>
+  <div class="db-container">
     ${alertHtml}
     ${marketRow}
     ${overview    ? panelSection(overview)   : ''}
     ${newsSection}
     ${watchPanel  ? panelSection(watchPanel) : ''}
     ${riskPanel   ? panelSection(riskPanel)  : ''}
-    <div class="footer-note">
-      Generated from live market data. Not financial advice.
-    </div>
+    <div class="db-footer">Generated from live market data &nbsp;&middot;&nbsp; Not financial advice</div>
   </div>
 </body>
 </html>`;

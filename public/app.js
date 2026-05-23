@@ -13,15 +13,19 @@ function loadDailyBrief() {
       return r.text();
     })
     .then(html => {
-      // Strip outer html/head/body tags so it embeds cleanly
-      const stripped = html
-        .replace(/<!DOCTYPE[^>]*>/i, '')
-        .replace(/<html[^>]*>/i, '')
-        .replace(/<\/html>/i, '')
-        .replace(/<head[\s\S]*?<\/head>/i, '')
-        .replace(/<body[^>]*>/i, '')
-        .replace(/<\/body>/i, '');
-      container.innerHTML = stripped;
+      // Extract and scope the style block, then inject body content
+      const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+      const bodyMatch  = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+      const rawCSS     = styleMatch ? styleMatch[1] : '';
+      const bodyHTML   = bodyMatch  ? bodyMatch[1]  : html;
+      // Scope all CSS rules to .dbw so they don't leak into the dashboard
+      const scopedCSS  = rawCSS.replace(/([^\r\n,{}]+)(,(?=[^}]*\{)|\s*\{)/g, (m, sel, end) => {
+        const s = sel.trim();
+        if (!s || s.startsWith('@') || s.startsWith('//')) return m;
+        const scoped = s.split(',').map(p => `.dbw ${p.trim()}`).join(', ');
+        return scoped + end;
+      });
+      container.innerHTML = `<style>${scopedCSS}</style><div class="dbw">${bodyHTML}</div>`;
       dailyBriefLoaded = true;
     })
     .catch(err => {
