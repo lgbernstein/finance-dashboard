@@ -16,7 +16,9 @@ if [ ! -f "$ENV_FILE" ]; then
   exit 1
 fi
 
-export $(grep -E '^(GITHUB_TOKEN|HETZNER_SSH_KEY)=' "$ENV_FILE" | xargs)
+# Parse each variable individually to handle long base64 values safely
+GITHUB_TOKEN=$(grep '^GITHUB_TOKEN=' "$ENV_FILE" | cut -d'=' -f2-)
+HETZNER_SSH_KEY=$(grep '^HETZNER_SSH_KEY=' "$ENV_FILE" | cut -d'=' -f2-)
 
 if [ -z "$GITHUB_TOKEN" ]; then
   echo "ERROR: GITHUB_TOKEN not set in .env"
@@ -51,6 +53,6 @@ ssh -i "$KEY_FILE" \
     -o StrictHostKeyChecking=no \
     -o BatchMode=yes \
     root@5.78.219.36 \
-    "cd /var/www/finance-dashboard && git pull origin main && pm2 restart finance-dashboard && echo 'Server restarted.'"
+    "cd /var/www/finance-dashboard && git pull origin main && systemctl restart finance-dashboard && echo 'Server restarted.'"
 
 echo "Deploy complete."

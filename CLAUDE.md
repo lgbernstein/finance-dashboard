@@ -9,6 +9,7 @@ AI-powered economic dashboard with a multi-agent analysis harness. Displays live
 - OS: Ubuntu 24.04
 - App path: /var/www/finance-dashboard
 - Deploy: `ssh root@5.78.219.36`
+- Process manager: systemd (`systemctl restart finance-dashboard`)
 
 ## Tech Stack
 - Runtime: Node.js + Express
@@ -47,6 +48,14 @@ Seven agents with strict role boundaries. Manager orchestrates; subagents return
 - Thinker flags major architectural decisions for Larry's approval before Builder acts
 - Alert Monitor never auto-publishes — always escalates to Manager
 - .env is never committed — contains API keys
+
+## Security — Non-Negotiable
+NEVER run any command that prints .env file contents or key values to output.
+This includes: `cat .env`, `cat -A .env`, `echo $VAR` for any secret variable, printing error output that may contain interpolated secrets, or any debug command that could expose key values.
+
+When inspecting .env: use `grep -o '^[A-Z_]*='` to show key names only — never values.
+When debugging SSH or token issues: check connection status and exit codes only — never print the credential being used.
+If a command might echo a secret into output, find a different approach or ask Larry to run it locally without pasting the result.
 
 ## Directory Structure
 ```
