@@ -8,6 +8,7 @@ const fred = require('../tools/fred');
 const rss = require('../tools/rss');
 const market = require('../tools/market');
 const voices = require('../tools/voices');
+const { fetchInfluencerContent } = require('../tools/influencerFeed');
 const { run: runAgent } = require('../tools/agent_runner');
 
 const MEMORY_DIR = path.join(__dirname, '../shared_memory');
@@ -81,12 +82,25 @@ async function gatherData() {
     console.log('[Researcher] Using cached voices data');
   }
 
+  // Influencer feeds — refresh every 12 hours
+  let influencerData = cache.influencers?.data;
+  if (isCacheStale(cache, 'influencers', 12)) {
+    console.log('[Researcher] Fetching influencer feeds...');
+    const result = await fetchInfluencerContent();
+    influencerData = result.items;
+    if (result.errors?.length) gaps.push(...result.errors.map(e => `Influencer feed error: ${e.creatorId} (${e.feedType})`));
+    cache.influencers = { last_fetch: new Date().toISOString(), data: influencerData };
+    writeJson(path.join(MEMORY_DIR, 'influencer_content.json'), result);
+  } else {
+    console.log('[Researcher] Using cached influencer data');
+  }
+
   writeJson(CACHE_PATH, cache);
 
-  return { fredData, marketData, newsItems, voicesData, gaps };
+  return { fredData, marketData, newsItems, voicesData, influencerData, gaps };
 }
 
-async function runAnalyst(fredData, marketData, newsItems, voicesData) {
+async function runAnalyst(fredData, marketData, newsItems, voicesData, influencerData) {
   const baseline = readJson(BASELINE_PATH) || {};
 
   // Strip history arrays — analyst needs current values only, not 24mo of data
@@ -105,7 +119,8 @@ async function runAnalyst(fredData, marketData, newsItems, voicesData) {
       snippet: (v.snippet || '').replace(/["""]/g, "'").replace(/['']/g, "'").replace(/[\x00-\x1F]/g, ' ').trim()
     })),
     previous_baseline: baseline.key_levels || {},
-    dominant_narrative: baseline.dominant_narrative || null
+    dominant_narrative: baseline.dominant_narrative || null,
+    influencer_content: (influencerData || []).slice(0, 30)
   };
 
   console.log('[Analyst] Calling Claude API...');
@@ -120,7 +135,7 @@ async function main() {
 
   try {
     // Researcher phase
-    const { fredData, marketData, newsItems, voicesData, gaps } = await gatherData();
+    const { fredData, marketData, newsItems, voicesData, influencerData, gaps } = await gatherData();
 
     // Write raw data to DB
     const historyItems = [];
@@ -135,7 +150,7 @@ async function main() {
     if (newsItems?.length) db.replaceNewsItems(newsItems);
 
     // Analyst phase
-    const analysis = await runAnalyst(fredData, marketData, newsItems, voicesData);
+    const analysis = await runAnalyst(fredData, marketData, newsItems, voicesData, influencerData);
 
     // Write commentary panels to DB
     for (const panel of analysis.panels || []) {
@@ -171,6 +186,14 @@ async function main() {
           v.plain_english, v.current_view
         );
       }
+    }
+
+    // Store influencer pulse sentiment
+    if (analysis.influencer_pulse) {
+      writeJson(
+        path.join(MEMORY_DIR, 'influencer_sentiment.json'),
+        { ...analysis.influencer_pulse, generated_at: new Date().toISOString() }
+      );
     }
 
     // Update analyst baseline
