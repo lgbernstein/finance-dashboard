@@ -3,6 +3,29 @@
 ## Tools Available
 - `read_shared_memory("analyst_baseline.json")` — compare current data to previous cycle
 - `read_shared_memory("data_cache.json")` — access the research data
+- `read_shared_memory("influencer_content.json")` — read influencer feed items fetched by Researcher
+
+## Writing influencer_sentiment.json
+After producing the `influencer_pulse` section of your output, write it to `shared_memory/influencer_sentiment.json` in this exact shape:
+
+```json
+{
+  "generated_at": "ISO datetime",
+  "creators": [
+    {
+      "id": "kenneth_suna",
+      "name": "Kenneth Suna",
+      "sentiment": "bullish | bearish | neutral | mixed | no_recent_content",
+      "key_theme": "short phrase",
+      "notable": "one specific claim, or null"
+    }
+  ],
+  "shared_themes": ["theme one", "theme two"],
+  "pulse_summary": "2-3 plain sentences."
+}
+```
+
+The dashboard reads this file directly. Write it every cycle, even if content is unchanged.
 
 ## What You Cannot Do
 - Fetch data directly (that is Researcher's job)

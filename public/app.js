@@ -521,6 +521,72 @@ function renderVoices(voices) {
   }).join('');
 }
 
+// ── Influencer Pulse ──────────────────────────────────────────
+const SENTIMENT_STYLE = {
+  bullish:          { label: 'Bullish',  color: '#22c55e', bg: 'rgba(34,197,94,0.12)'  },
+  bearish:          { label: 'Bearish',  color: '#ef4444', bg: 'rgba(239,68,68,0.12)'  },
+  neutral:          { label: 'Neutral',  color: '#94a3b8', bg: 'rgba(148,163,184,0.12)' },
+  mixed:            { label: 'Mixed',    color: '#f59e0b', bg: 'rgba(245,158,11,0.12)'  },
+  no_recent_content:{ label: 'No recent content', color: '#64748b', bg: 'rgba(100,116,139,0.10)' },
+};
+
+function renderInfluencerPulse(pulse) {
+  const summaryEl  = document.getElementById('influencer-pulse-summary');
+  const themesEl   = document.getElementById('influencer-shared-themes');
+  const creatorsEl = document.getElementById('influencer-creator-list');
+  if (!summaryEl || !themesEl || !creatorsEl) return;
+
+  if (!pulse) {
+    summaryEl.innerHTML  = '<div class="skeleton">Run a cycle to load influencer data.</div>';
+    themesEl.innerHTML   = '';
+    creatorsEl.innerHTML = '';
+    return;
+  }
+
+  // Summary paragraph
+  summaryEl.innerHTML = pulse.pulse_summary
+    ? `<p style="margin:0">${pulse.pulse_summary}</p>`
+    : '<p style="margin:0;color:var(--text-muted)">No summary available.</p>';
+
+  // Shared themes chips
+  if (pulse.shared_themes?.length) {
+    themesEl.innerHTML = `
+      <div style="padding:0 20px 4px">
+        <span style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Shared themes</span>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+          ${pulse.shared_themes.map(t =>
+            `<span style="background:rgba(20,184,166,0.12);color:#14b8a6;border-radius:9999px;padding:3px 10px;font-size:0.8rem;">${t}</span>`
+          ).join('')}
+        </div>
+      </div>`;
+  } else {
+    themesEl.innerHTML = '';
+  }
+
+  // Per-creator cards
+  if (!pulse.creators?.length) {
+    creatorsEl.innerHTML = '<div style="padding:16px 20px;color:var(--text-muted)">No creator data yet.</div>';
+    return;
+  }
+
+  creatorsEl.innerHTML = pulse.creators.map(c => {
+    const style = SENTIMENT_STYLE[c.sentiment] || SENTIMENT_STYLE.neutral;
+    return `
+    <div class="voice-card" style="border-left:3px solid ${style.color}">
+      <div class="voice-header">
+        <div>
+          <div class="voice-name">${c.name}</div>
+          ${c.key_theme ? `<div class="voice-title">${c.key_theme}</div>` : ''}
+        </div>
+        <span style="background:${style.bg};color:${style.color};border-radius:9999px;padding:3px 12px;font-size:0.78rem;font-weight:600;white-space:nowrap">
+          ${style.label}
+        </span>
+      </div>
+      ${c.notable ? `<div class="voice-view" style="margin-top:6px">${c.notable}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
 // ── Alert bar ─────────────────────────────────────────────────
 function renderAlerts(alerts) {
   const bar = document.getElementById('sidebar-alert');
@@ -925,6 +991,7 @@ async function load() {
     renderAlerts(d.alerts || []);
     renderPanels(d.panels || []);
     renderVoices(d.voices || []);
+    renderInfluencerPulse(d.influencer_pulse || null);
     renderCuratedNews(d.curated_news || []);
     renderMarkets(d.market || []);
     renderMarketSnapshot(d.market || []);

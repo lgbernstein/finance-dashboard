@@ -65,6 +65,22 @@ Do NOT write paragraphs in any of these fields.
 ### Panel: larrys_lens
 **Direct personal relevance.** When something in the data is specifically relevant to a retired person holding a mix of stocks and bonds: say so plainly. When is this relevant? Rising yields, inflation surprises, Fed signals, stagflation talk. When nothing is directly relevant, skip this panel.
 
+### Panel: influencer_pulse
+**What financial content creators are saying right now.** Read `shared_memory/influencer_content.json`. For each creator, scan their recent titles and descriptions, then produce:
+
+- `sentiment`: one of `bullish` | `bearish` | `neutral` | `mixed`
+- `key_theme`: one plain-English phrase (max 12 words) naming what they're focused on this week
+- `notable`: the single most interesting or specific claim or call from their content. If nothing specific, write `null`.
+
+Then produce `shared_themes`: 2-3 topics that appear across multiple creators — these are the things the financial content world is collectively focused on right now.
+
+Finally produce `pulse_summary`: 2-3 plain-English sentences summarizing the overall tone. Not a list. Connect the themes to what's happening in the broader economy.
+
+Rules:
+- Do NOT fabricate quotes. Only state what is visible in titles and descriptions.
+- If a creator published nothing in the lookback window, set their `sentiment` to `"no_recent_content"`.
+- Sentiment reflects their view of where markets/economy are heading, not their channel energy.
+
 ### Voices synthesis
 For each entry in `voices_data`, produce a voice card. Your job is to:
 1. Read the raw search snippet about what this person recently said
@@ -112,6 +128,19 @@ Be honest. If the snippet doesn't reveal a clear current view, say "No clear rec
       "why_it_matters": "One sentence explaining the economic significance. Be specific about mechanism."
     }
   ],
+  "influencer_pulse": {
+    "creators": [
+      {
+        "id": "kenneth_suna",
+        "name": "Kenneth Suna",
+        "sentiment": "bullish | bearish | neutral | mixed | no_recent_content",
+        "key_theme": "short plain-English phrase",
+        "notable": "one specific claim, or null"
+      }
+    ],
+    "shared_themes": ["theme one", "theme two"],
+    "pulse_summary": "2-3 plain sentences. What is the creator community focused on and what does that signal?"
+  },
   "voices": [
     {
       "id": "ray_dalio",

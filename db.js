@@ -1,5 +1,6 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'finance.sqlite');
 const db = new Database(DB_PATH);
@@ -261,7 +262,14 @@ module.exports = {
       curated_news: db.prepare('SELECT * FROM curated_news ORDER BY id').all(),
       voices: db.prepare('SELECT * FROM voices ORDER BY name').all(),
       alerts: db.prepare('SELECT * FROM alerts WHERE resolved_at IS NULL ORDER BY created_at DESC').all(),
-      lastCycle: db.prepare('SELECT * FROM cycle_log ORDER BY id DESC LIMIT 1').get()
+      lastCycle: db.prepare('SELECT * FROM cycle_log ORDER BY id DESC LIMIT 1').get(),
+      influencer_pulse: (() => {
+        try {
+          const p = path.join(__dirname, 'shared_memory', 'influencer_sentiment.json');
+          if (!fs.existsSync(p)) return null;
+          return JSON.parse(fs.readFileSync(p, 'utf8'));
+        } catch { return null; }
+      })()
     };
   },
 

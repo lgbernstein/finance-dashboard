@@ -112,6 +112,7 @@
         <button class="inner-tab-btn active" data-pane="inner-overview-briefing">Briefing</button>
         <button class="inner-tab-btn" data-pane="inner-overview-voices">Voices</button>
         <button class="inner-tab-btn" data-pane="inner-overview-news">News</button>
+        <button class="inner-tab-btn" data-pane="inner-overview-influencers">Influencer Pulse</button>
       </div>
 
       <!-- BRIEFING -->
@@ -157,6 +158,23 @@
             </div>
           </div>
           <div id="voices-list"><div class="skeleton">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- INFLUENCER PULSE -->
+      <div class="inner-tab-pane" id="inner-overview-influencers">
+        <div class="card" data-accent="teal">
+          <div class="card-header">
+            <div>
+              <div class="card-label teal">Influencer Pulse</div>
+              <p class="voices-sub" style="margin:4px 0 0">What financial creators are focused on this week</p>
+            </div>
+          </div>
+          <div id="influencer-pulse-summary" style="padding:0 20px 12px;color:var(--text-secondary);font-size:0.92rem;line-height:1.6;">
+            <div class="skeleton">Loading...</div>
+          </div>
+          <div id="influencer-shared-themes" style="padding:0 20px 12px;"></div>
+          <div id="influencer-creator-list" style="padding:0 0 8px;"></div>
         </div>
       </div>
 

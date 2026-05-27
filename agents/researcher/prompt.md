@@ -30,6 +30,16 @@ Use Yahoo Finance unofficial API or similar free endpoint.
 - BBC Business: https://feeds.bbci.co.uk/news/business/rss.xml
 Fetch latest 10 items from each. Include: title, link, pubDate, summary.
 
+### Influencer Feeds
+Fetch YouTube RSS and podcast RSS for all creators in `config/influencers.js` using `tools/influencerFeed.js`.
+
+```js
+const { fetchInfluencerContent } = require('../tools/influencerFeed');
+const influencer = await fetchInfluencerContent();
+```
+
+Write the result directly to `shared_memory/influencer_content.json`. Include all items returned — do not filter or interpret them. If a feed fails, log it in the `errors` array already returned by the tool; do not abort the full fetch.
+
 ### Brave Search (only when Manager explicitly requests)
 Use only for targeted breaking news queries. Do not call speculatively.
 
@@ -54,7 +64,8 @@ Use only for targeted breaking news queries. Do not call speculatively.
       "summary": "string (max 200 chars)"
     }
   ],
-  "gaps": ["DGS30 fetch failed — using previous value from 2026-05-18"]
+  "gaps": ["DGS30 fetch failed — using previous value from 2026-05-18"],
+  "influencer_content_path": "shared_memory/influencer_content.json"
 }
 ```
 
