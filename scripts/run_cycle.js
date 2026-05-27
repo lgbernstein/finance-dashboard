@@ -207,7 +207,7 @@ async function main() {
     }
     baseline.last_updated = new Date().toISOString();
     baseline.key_levels = newLevels;
-    baseline.dominant_narrative = analysis.panels?.[0]?.body?.slice(0, 200) || baseline.dominant_narrative;
+    baseline.dominant_narrative = analysis.panels?.[0]?.body || baseline.dominant_narrative;
     writeJson(BASELINE_PATH, baseline);
 
     // Log task history
