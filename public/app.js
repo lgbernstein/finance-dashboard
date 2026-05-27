@@ -145,6 +145,14 @@ function relativeTime(iso) {
   if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
   return `${Math.floor(s / 86400)}d ago`;
 }
+
+function ageDot(isoStr) {
+  if (!isoStr) return '<span class="age-dot fresh" title="Live data"></span>';
+  const hrs = (Date.now() - new Date(isoStr)) / 3600000;
+  const cls = hrs < 1 ? 'fresh' : hrs < 4 ? 'stale' : 'old';
+  const lbl = hrs < 1 ? 'Data < 1h old' : hrs < 4 ? `Data ${Math.floor(hrs)}h old` : `Data ${Math.floor(hrs)}h old — may be stale`;
+  return `<span class="age-dot ${cls}" title="${lbl}"></span>`;
+}
 function fmt(v, d = 2) {
   if (v == null || isNaN(v)) return '—';
   return Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -173,6 +181,11 @@ function bulletPanel(panel, expandId) {
   let bullets = [];
   try { bullets = JSON.parse(panel.bullets || '[]'); } catch {}
   if (!Array.isArray(bullets)) bullets = [];
+
+  // Empty state — no bullets and no meaningful body text
+  if (!bullets.length && (!panel.body || panel.body.trim().length < 20)) {
+    return '<div class="panel-empty">No analysis yet — run a cycle to populate.</div>';
+  }
 
   let ledeSrc = '';
   let expandSrc = '';
@@ -367,6 +380,7 @@ function renderMarketSnapshot(market) {
     const isYld = sym === '^TNX';
     const val = isIdx ? fmt(m.value, 0) : isYld ? m.value.toFixed(2) + '%' : '$' + m.value.toFixed(2);
     return `<div class="snapshot-card ${cls} clickable" onclick="openSnapshotDrawer('${sym}')">
+      ${ageDot(m.fetched_at)}
       <div class="snapshot-label">${SNAPSHOT_NAMES[sym]}</div>
       <div class="snapshot-value ${cls}">${val}</div>
       ${chg != null ? `<div class="snapshot-change ${cls}">${arrow} ${Math.abs(chg).toFixed(2)}%</div>` : ''}
@@ -635,6 +649,26 @@ function renderInfluencerPulse(pulse) {
       ${c.notable ? `<div class="voice-view" style="margin-top:6px">${c.notable}</div>` : ''}
     </div>`;
   }).join('');
+}
+
+// ── Influencer Pulse mini-card (Overview Briefing tab) ────────
+function renderInfluencerPulseMini(pulse) {
+  const el = document.getElementById('influencer-pulse-mini');
+  if (!el) return;
+
+  if (!pulse || !pulse.creators?.length) {
+    el.innerHTML = '<div class="panel-empty">No influencer data yet — run a cycle.</div>';
+    return;
+  }
+
+  const creators = pulse.creators.map(c => {
+    const style = SENTIMENT_STYLE[c.sentiment] || SENTIMENT_STYLE.neutral;
+    return `<span class="inf-mini-pill" style="background:${style.bg};color:${style.color};">${c.name} · ${style.label}</span>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="inf-mini-summary">${pulse.pulse_summary || ''}</div>
+    <div class="inf-mini-pills">${creators}</div>`;
 }
 
 // ── Alert bar ─────────────────────────────────────────────────
@@ -1038,10 +1072,30 @@ async function load() {
     const mUpd = document.getElementById('mobile-updated');
     if (mUpd) mUpd.textContent = updText;
 
+    // Cycle health — last run status + next scheduled
+    const healthEl = document.getElementById('cycle-health');
+    if (healthEl) {
+      if (d.lastCycle) {
+        const ok = d.lastCycle.status === 'success';
+        const dotCls = ok ? 'ok' : 'fail';
+        const lastLine = `<span class="ch-dot ${dotCls}"></span>${ok ? 'OK' : 'Failed'} · ${relativeTime(d.lastCycle.completed_at || d.lastCycle.started_at)}`;
+        // Compute next 6:02 AM
+        const now = new Date();
+        const next = new Date(now);
+        next.setHours(6, 2, 0, 0);
+        if (next <= now) next.setDate(next.getDate() + 1);
+        const nextLabel = next.getDate() === now.getDate() ? 'today' : 'tomorrow';
+        healthEl.innerHTML = `${lastLine}<br>Next: 6:02 AM ${nextLabel}`;
+      } else {
+        healthEl.textContent = 'No cycle run yet';
+      }
+    }
+
     renderAlerts(d.alerts || []);
     renderPanels(d.panels || []);
     renderVoices(d.voices || []);
     renderInfluencerPulse(d.influencer_pulse || null);
+    renderInfluencerPulseMini(d.influencer_pulse || null);
     renderCuratedNews(d.curated_news || []);
     renderMarkets(d.market || []);
     renderMarketSnapshot(d.market || []);

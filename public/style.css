@@ -189,6 +189,24 @@ body {
 .card-label.blue   { color: var(--blue);   background: var(--blue-dim);   border: 1px solid var(--blue-b); }
 .card-label.purple { color: var(--purple); background: var(--purple-dim); border: 1px solid var(--purple-b); }
 .card-label.gray   { color: var(--muted);  background: var(--surface2);   border: 1px solid var(--border); }
+.card-label.teal   { color: #14b8a6;      background: rgba(20,184,166,.12); border: 1px solid rgba(20,184,166,.3); }
+
+/* ── Influencer pulse mini-card ─────────────────── */
+.inf-mini-summary { padding: 10px 18px 6px; font-size: 0.88rem; color: var(--text2); line-height: 1.55; }
+.inf-mini-pills   { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 18px 14px; }
+.inf-mini-pill    { font-size: 0.78rem; font-weight: 600; border-radius: 9999px; padding: 3px 10px; }
+
+/* ── Panel empty state ───────────────────────────── */
+.panel-empty { padding: 14px 0; font-size: 0.85rem; color: var(--muted); font-style: italic; }
+
+/* ── Sidebar cycle health ────────────────────────── */
+.cycle-health { font-size: 0.68rem; color: var(--muted); margin-top: 5px; text-align: center; line-height: 1.55; }
+.cycle-health .ch-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 3px; vertical-align: middle; }
+.cycle-health .ch-dot.ok   { background: var(--green); }
+.cycle-health .ch-dot.fail { background: var(--red); }
+
+/* ── Card header inner link button ──────────────── */
+.inner-link-btn { background: none; border: none; color: var(--blue); font-size: 0.78rem; font-weight: 600; cursor: pointer; padding: 0; }
 
 /* ── Prose typography (newspaper-style) ─────────── */
 .card-lede {
@@ -373,7 +391,19 @@ body {
   border-radius: 8px;
   padding: 14px 16px;
   border-left-width: 3px;
+  position: relative;
 }
+/* data-age freshness dot */
+.age-dot {
+  position: absolute;
+  top: 7px; right: 7px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  opacity: 0.75;
+}
+.age-dot.fresh  { background: var(--green); }
+.age-dot.stale  { background: var(--amber); }
+.age-dot.old    { background: var(--red);   }
 .snapshot-card.up   { border-left-color: var(--green); }
 .snapshot-card.down { border-left-color: var(--red);   }
 .snapshot-card.flat { border-left-color: var(--border);}

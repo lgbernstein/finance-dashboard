@@ -61,6 +61,7 @@
         transition:background 0.15s,color 0.15s;
       ">Run Cycle</button>
       <div id="cycle-status" style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;min-height:14px;text-align:center;"></div>
+      <div id="cycle-health" class="cycle-health"></div>
     </div>
 
     <nav class="sidebar-nav">
@@ -152,6 +153,13 @@
               <div class="card-header"><div class="card-label amber">Key Levels</div></div>
               <div id="key-levels-content"><div class="skeleton">Loading...</div></div>
             </div>
+          </div>
+          <div class="card" id="influencer-pulse-mini-card" data-accent="teal" style="margin-top:10px;">
+            <div class="card-header">
+              <div class="card-label teal">Influencer Pulse</div>
+              <button class="inner-link-btn" onclick="document.querySelectorAll('.inner-tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.pane==='inner-overview-influencers')); document.querySelectorAll('.inner-tab-pane').forEach(p=>p.classList.toggle('active',p.id==='inner-overview-influencers'));">Full view →</button>
+            </div>
+            <div id="influencer-pulse-mini"><div class="skeleton">Loading...</div></div>
           </div>
         </div>
       </div>
