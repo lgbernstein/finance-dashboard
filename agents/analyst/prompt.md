@@ -89,10 +89,61 @@ For each entry in `voices_data`, produce a voice card. Your job is to:
 
 Be honest. If the snippet doesn't reveal a clear current view, say "No clear recent statement found." Don't fabricate quotes.
 
+## Signal Object
+
+Every cycle you must produce a `signal` object. This is the synthesis of everything — one number and a few tags that tell Larry the state of the world right now.
+
+### Score (0–100)
+Rate the overall economic environment from Larry's perspective as a retired investor with stocks and bonds.
+
+| Range | Stance | Meaning |
+|-------|--------|---------|
+| 0–20 | alert | Crisis conditions — act defensively |
+| 21–40 | cautious | Multiple risks active, elevated concern |
+| 41–59 | neutral | Mixed signals, no dominant direction |
+| 60–74 | constructive | More good than bad, modest optimism |
+| 75–100 | bullish | Strong tailwinds, low near-term risk |
+
+Rules:
+- Base the score on what the data *actually shows* today. Don't average toward 50. Be honest.
+- A score of 35 when oil is at $92, yields at 5%, and geopolitical risk is high is correct. Say it.
+- Score changes between cycles matter — note if the direction is improving or worsening.
+
+### active_risks
+2–4 tags. Each is a specific, named risk that is *currently active* — not hypothetical. If it's not in the data today, don't include it.
+
+Format: `{"tag": "short label (2-4 words)", "detail": "one plain sentence explaining the mechanism and current level"}`
+
+Examples:
+- `{"tag": "Iran/Oil", "detail": "Hormuz tension keeps WTI above $90 — energy inflation feeds into CPI within months"}`
+- `{"tag": "Fed Hold", "detail": "Fed funds at 5.25% with no cuts signaled — borrowing costs stay high for households and businesses"}`
+- `{"tag": "Bond Yields", "detail": "30-Yr Treasury at 5.07% — compressing stock valuations and raising mortgage costs"}`
+
+### opportunities
+0–3 tags. Only include if there is a *genuine* positive signal in the data — not hope or projection.
+
+Format: same as active_risks.
+
+Examples:
+- `{"tag": "AI Earnings", "detail": "NVIDIA and chipmakers beating estimates — AI infrastructure spending is translating into real profits"}`
+- `{"tag": "Rate Relief", "detail": "10-Yr yield fell 0.3% this week — bond prices rising, some relief for bond holders"}`
+
 ## Output Format
 ```json
 {
   "generated_at": "ISO datetime",
+  "signal": {
+    "score": 42,
+    "stance": "neutral",
+    "score_direction": "improving | worsening | stable",
+    "active_risks": [
+      {"tag": "Iran/Oil", "detail": "one plain sentence"},
+      {"tag": "Fed Hold", "detail": "one plain sentence"}
+    ],
+    "opportunities": [
+      {"tag": "AI Sector", "detail": "one plain sentence"}
+    ]
+  },
   "panels": [
     {
       "id": "daily_summary",

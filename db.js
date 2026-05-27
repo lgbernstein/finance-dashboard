@@ -269,6 +269,13 @@ module.exports = {
           if (!fs.existsSync(p)) return null;
           return JSON.parse(fs.readFileSync(p, 'utf8'));
         } catch { return null; }
+      })(),
+      latestSignal: (() => {
+        try {
+          const p = path.join(__dirname, 'shared_memory', 'signal.json');
+          if (!fs.existsSync(p)) return null;
+          return JSON.parse(fs.readFileSync(p, 'utf8'));
+        } catch { return null; }
       })()
     };
   },

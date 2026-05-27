@@ -653,6 +653,59 @@ function renderInfluencerPulse(pulse) {
   }).join('');
 }
 
+// ── Signal Banner ─────────────────────────────────────────────
+const STANCE_LABEL = {
+  alert: 'Alert', cautious: 'Cautious', neutral: 'Neutral',
+  constructive: 'Constructive', bullish: 'Bullish'
+};
+
+function renderSignalBanner(signal) {
+  const banner   = document.getElementById('signal-banner');
+  const scoreEl  = document.getElementById('signal-score-num');
+  const stanceEl = document.getElementById('signal-stance');
+  const chipsEl  = document.getElementById('signal-chips');
+  const ageEl    = document.getElementById('signal-age');
+  if (!banner) return;
+
+  if (!signal) {
+    if (scoreEl)  scoreEl.textContent  = '—';
+    if (stanceEl) stanceEl.textContent = 'No signal yet';
+    if (chipsEl)  chipsEl.innerHTML    = '';
+    return;
+  }
+
+  // Score + stance
+  if (scoreEl)  scoreEl.textContent  = signal.score ?? '—';
+  if (stanceEl) {
+    const dirArrow = signal.score_direction === 'improving' ? '↑'
+                   : signal.score_direction === 'worsening' ? '↓' : '';
+    const dirCls   = signal.score_direction === 'improving' ? 'up'
+                   : signal.score_direction === 'worsening' ? 'down' : 'flat';
+    stanceEl.innerHTML = `${STANCE_LABEL[signal.stance] || signal.stance}` +
+      (dirArrow ? ` <span class="signal-direction ${dirCls}">${dirArrow}</span>` : '');
+  }
+
+  // Stance class on banner
+  const stances = ['alert','cautious','neutral','constructive','bullish'];
+  stances.forEach(s => banner.classList.remove('signal-' + s));
+  if (signal.stance) banner.classList.add('signal-' + signal.stance);
+
+  // Risk + opportunity chips
+  if (chipsEl) {
+    const risks = (signal.active_risks || []).map(r =>
+      `<span class="signal-chip risk">${r.tag}<span class="signal-chip-tip">${r.detail}</span></span>`
+    ).join('');
+    const opps = (signal.opportunities || []).map(o =>
+      `<span class="signal-chip opp">${o.tag}<span class="signal-chip-tip">${o.detail}</span></span>`
+    ).join('');
+    chipsEl.innerHTML = risks + opps;
+  }
+
+  if (ageEl && signal.generated_at) {
+    ageEl.textContent = relativeTime(signal.generated_at);
+  }
+}
+
 // ── Influencer Pulse mini-card (Overview Briefing tab) ────────
 function renderInfluencerPulseMini(pulse) {
   const el = document.getElementById('influencer-pulse-mini');
@@ -1095,6 +1148,7 @@ async function load() {
       }
     }
 
+    renderSignalBanner(d.latestSignal || null);
     renderAlerts(d.alerts || []);
     renderPanels(d.panels || []);
     renderVoices(d.voices || []);

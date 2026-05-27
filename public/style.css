@@ -125,6 +125,66 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Signal Banner ─────────────────────────────── */
+.signal-banner {
+  margin-left: var(--sidebar-w);
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 9px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.signal-score-wrap { display: flex; align-items: baseline; gap: 7px; flex-shrink: 0; }
+.signal-score-num  { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.signal-stance     { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.signal-chips      { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+.signal-chip {
+  font-size: 11px; font-weight: 600;
+  padding: 3px 9px; border-radius: 9999px; cursor: default;
+  position: relative;
+}
+.signal-chip:hover .signal-chip-tip {
+  display: block;
+}
+.signal-chip-tip {
+  display: none;
+  position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  background: #0f1419; border: 1px solid var(--border);
+  color: var(--text2); font-size: 11px; font-weight: 400;
+  padding: 6px 10px; border-radius: 6px;
+  white-space: nowrap; max-width: 260px; white-space: normal;
+  width: 220px; z-index: 100; pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,.6);
+}
+.signal-chip.risk { background: rgba(248,113,113,.12); color: var(--red); border: 1px solid rgba(248,113,113,.25); }
+.signal-chip.opp  { background: rgba(74,222,128,.10);  color: var(--green); border: 1px solid rgba(74,222,128,.25); }
+.signal-age { font-size: 10px; color: var(--muted); flex-shrink: 0; margin-left: auto; }
+
+/* Banner tint by stance */
+.signal-banner.signal-alert       { border-bottom-color: rgba(248,113,113,.4); background: rgba(248,113,113,.04); }
+.signal-banner.signal-cautious    { border-bottom-color: rgba(251,191,36,.35); background: rgba(251,191,36,.03); }
+.signal-banner.signal-neutral     { border-bottom-color: var(--border); }
+.signal-banner.signal-constructive{ border-bottom-color: rgba(74,222,128,.3); background: rgba(74,222,128,.03); }
+.signal-banner.signal-bullish     { border-bottom-color: rgba(74,222,128,.5); background: rgba(74,222,128,.05); }
+
+.signal-banner.signal-alert       .signal-score-num { color: var(--red); }
+.signal-banner.signal-cautious    .signal-score-num { color: var(--amber); }
+.signal-banner.signal-neutral     .signal-score-num { color: var(--text); }
+.signal-banner.signal-constructive .signal-score-num { color: var(--green); }
+.signal-banner.signal-bullish     .signal-score-num { color: var(--green); }
+
+.signal-banner.signal-alert       .signal-stance { color: var(--red); }
+.signal-banner.signal-cautious    .signal-stance { color: var(--amber); }
+.signal-banner.signal-neutral     .signal-stance { color: var(--muted); }
+.signal-banner.signal-constructive .signal-stance { color: var(--green); }
+.signal-banner.signal-bullish     .signal-stance { color: var(--green); }
+
+/* direction arrow */
+.signal-direction { font-size: 11px; margin-left: 2px; }
+.signal-direction.up   { color: var(--green); }
+.signal-direction.down { color: var(--red); }
+.signal-direction.flat { color: var(--muted); }
+
 /* ── Main ──────────────────────────────────────── */
 .main {
   margin-left: var(--sidebar-w);
@@ -1060,6 +1120,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 13px;
   .mobile-topbar { display: flex; }
   .mobile-nav { display: flex; }
   .main { margin-left: 0; padding: 66px 14px 72px; }
+  .signal-banner { margin-left: 0; padding: 7px 14px; top: 52px; }
   .two-col-cards { grid-template-columns: 1fr; }
   .snapshot-row { grid-template-columns: repeat(3, 1fr); }
   .key-levels-grid { grid-template-columns: repeat(2, 1fr); }

@@ -102,6 +102,7 @@ async function gatherData() {
 
 async function runAnalyst(fredData, marketData, newsItems, voicesData, influencerData) {
   const baseline = readJson(BASELINE_PATH) || {};
+  const previousSignal = readJson(path.join(MEMORY_DIR, 'signal.json')) || null;
 
   // Strip history arrays — analyst needs current values only, not 24mo of data
   const fredSummary = {};
@@ -120,7 +121,10 @@ async function runAnalyst(fredData, marketData, newsItems, voicesData, influence
     })),
     previous_baseline: baseline.key_levels || {},
     dominant_narrative: baseline.dominant_narrative || null,
-    influencer_content: (influencerData || []).slice(0, 30)
+    influencer_content: (influencerData || []).slice(0, 30),
+    previous_signal: previousSignal
+      ? { score: previousSignal.score, stance: previousSignal.stance, generated_at: previousSignal.generated_at }
+      : null
   };
 
   console.log('[Analyst] Calling Claude API...');
@@ -194,6 +198,17 @@ async function main() {
         path.join(MEMORY_DIR, 'influencer_sentiment.json'),
         { ...analysis.influencer_pulse, generated_at: new Date().toISOString() }
       );
+    }
+
+    // Store signal
+    if (analysis.signal) {
+      const signalRecord = { ...analysis.signal, generated_at: new Date().toISOString() };
+      writeJson(path.join(MEMORY_DIR, 'signal.json'), signalRecord);
+      fs.appendFileSync(
+        path.join(MEMORY_DIR, 'signal_history.jsonl'),
+        JSON.stringify(signalRecord) + '\n'
+      );
+      console.log(`[Analyst] Signal: ${analysis.signal.score} / ${analysis.signal.stance}`);
     }
 
     // Update analyst baseline
