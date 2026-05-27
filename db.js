@@ -34,6 +34,14 @@ db.exec(`
     PRIMARY KEY (symbol)
   );
 
+  CREATE TABLE IF NOT EXISTS market_history (
+    symbol TEXT NOT NULL,
+    value REAL NOT NULL,
+    change_pct REAL,
+    fetched_at TEXT NOT NULL,
+    PRIMARY KEY (symbol, fetched_at)
+  );
+
   CREATE TABLE IF NOT EXISTS news_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     source TEXT NOT NULL,
@@ -144,6 +152,7 @@ module.exports = {
   },
 
   upsertMarket(symbol, name, value, changePct) {
+    const now = new Date().toISOString();
     db.prepare(`
       INSERT INTO market_data (symbol, name, value, change_pct, fetched_at)
       VALUES (?, ?, ?, ?, ?)
@@ -151,7 +160,22 @@ module.exports = {
         value = excluded.value,
         change_pct = excluded.change_pct,
         fetched_at = excluded.fetched_at
-    `).run(symbol, name, value, changePct ?? null, new Date().toISOString());
+    `).run(symbol, name, value, changePct ?? null, now);
+    // Append one row per calendar day — avoids flooding history with every cycle
+    const today = now.slice(0, 10);
+    db.prepare(`
+      INSERT OR IGNORE INTO market_history (symbol, value, change_pct, fetched_at)
+      VALUES (?, ?, ?, ?)
+    `).run(symbol, value, changePct ?? null, today);
+  },
+
+  getMarketHistory(symbol, limit = 60) {
+    return db.prepare(`
+      SELECT value, change_pct, fetched_at FROM market_history
+      WHERE symbol = ?
+      ORDER BY fetched_at ASC
+      LIMIT ?
+    `).all(symbol, limit);
   },
 
   replaceNewsItems(items) {
@@ -256,6 +280,17 @@ module.exports = {
       indicators,
       history,
       market: db.prepare('SELECT * FROM market_data ORDER BY symbol').all(),
+      market_history: (() => {
+        const symbols = db.prepare('SELECT DISTINCT symbol FROM market_data').all().map(r => r.symbol);
+        const out = {};
+        for (const sym of symbols) {
+          out[sym] = db.prepare(`
+            SELECT value, change_pct, fetched_at FROM market_history
+            WHERE symbol = ? ORDER BY fetched_at ASC LIMIT 60
+          `).all(sym);
+        }
+        return out;
+      })(),
 
       news: db.prepare('SELECT * FROM news_items ORDER BY published_at DESC LIMIT 20').all(),
       panels: db.prepare('SELECT * FROM commentary_panels ORDER BY panel_id').all(),

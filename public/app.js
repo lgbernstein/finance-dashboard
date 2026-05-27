@@ -367,28 +367,101 @@ const SNAPSHOT_NAMES = {
   'CL=F':'WTI Crude', '^VIX':'VIX', '^TNX':'10-Yr Yield'
 };
 
-function renderMarketSnapshot(market) {
+const MARKET_META = {
+  '^GSPC': { name: 'S&P 500',       dec: 0, color: '#2563eb', unit: '',  levels: [
+    { value: 4500,  color: 'green', label: '4,500 — fair value lower bound' },
+    { value: 5500,  color: 'amber', label: '5,500 — elevated; requires strong earnings' },
+    { value: 6200,  color: 'red',   label: '6,200 — historically stretched' },
+  ]},
+  '^DJI':  { name: 'Dow Jones',     dec: 0, color: '#7c3aed', unit: '',  levels: [
+    { value: 38000, color: 'green', label: '38,000 — fair value range' },
+    { value: 42000, color: 'amber', label: '42,000 — elevated; needs earnings growth' },
+    { value: 45000, color: 'red',   label: '45,000 — historically stretched' },
+  ]},
+  '^IXIC': { name: 'NASDAQ',        dec: 0, color: '#0891b2', unit: '',  levels: [
+    { value: 15000, color: 'green', label: '15,000 — fair value range' },
+    { value: 18000, color: 'amber', label: '18,000 — elevated tech valuations' },
+    { value: 20000, color: 'red',   label: '20,000 — stretched; rate-sensitive' },
+  ]},
+  'CL=F':  { name: 'WTI Crude',     dec: 2, color: '#d97706', unit: '$', levels: [
+    { value: 60,  color: 'green', label: '$60 — affordable; growth-friendly' },
+    { value: 80,  color: 'amber', label: '$80 — elevated; inflation risk rising' },
+    { value: 100, color: 'red',   label: '$100 — major inflation pressure' },
+  ]},
+  '^VIX':  { name: 'VIX Fear Index',dec: 1, color: '#dc2626', unit: '',  levels: [
+    { value: 15, color: 'green', label: '15 — calm markets' },
+    { value: 25, color: 'amber', label: '25 — fear elevated; watch for selling' },
+    { value: 35, color: 'red',   label: '35 — high stress; forced deleveraging' },
+  ]},
+  '^TNX':  { name: '10-Yr Yield',   dec: 2, color: '#16a34a', unit: '%', levels: [
+    { value: 3.0, color: 'green', label: '3% — historically normal' },
+    { value: 4.5, color: 'amber', label: '4.5% — elevated; 30-yr mortgage ~7%' },
+    { value: 5.0, color: 'red',   label: '5% — very restrictive; last seen 2007' },
+  ]},
+};
+
+function renderMarketSnapshot(market, marketHistory) {
   const el = document.getElementById('market-snapshot');
   if (!el) return;
   const by = Object.fromEntries((market || []).map(m => [m.symbol, m]));
+  const byHist = marketHistory || {};
   const items = SNAPSHOT_SYMS.filter(s => by[s]);
   if (!items.length) return;
+
+  el.className = 'indicators-grid';
   el.innerHTML = items.map(sym => {
     const m = by[sym];
+    const meta = MARKET_META[sym] || { name: SNAPSHOT_NAMES[sym] || sym, dec: 2, color: '#64748b', unit: '', levels: [] };
     const chg = m.change_pct;
     const cls = chg == null ? 'flat' : chg > 0 ? 'up' : 'down';
     const arrow = chg > 0 ? '▲' : chg < 0 ? '▼' : '';
-    const isIdx = ['^GSPC','^DJI','^IXIC'].includes(sym);
-    const isYld = sym === '^TNX';
-    const val = isIdx ? fmt(m.value, 0) : isYld ? m.value.toFixed(2) + '%' : '$' + m.value.toFixed(2);
-    return `<div class="snapshot-card ${cls} clickable" onclick="openSnapshotDrawer('${sym}')">
-      ${ageDot(m.fetched_at)}
-      <div class="snapshot-label">${SNAPSHOT_NAMES[sym]}</div>
-      <div class="snapshot-value ${cls}">${val}</div>
-      ${chg != null ? `<div class="snapshot-change ${cls}">${arrow} ${Math.abs(chg).toFixed(2)}%</div>` : ''}
-      <div class="snapshot-hint">↗ learn more</div>
-    </div>`;
+    const hist = (byHist[sym] || []).map(h => ({ observation_date: h.fetched_at, value: h.value }));
+    const canvasId = `chart-mkt-${sym.replace(/[^a-z0-9]/gi, '_')}`;
+
+    let delta = '';
+    if (hist.length >= 2) {
+      const prev = hist[Math.max(0, hist.length - 30)]?.value;
+      if (prev != null) {
+        const diff = m.value - prev;
+        const pct = ((diff / prev) * 100).toFixed(1);
+        const dcls = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+        const darrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '—';
+        delta = `<div class="ind-delta ${dcls}">${darrow} ${Math.abs(pct)}% vs 30 days ago</div>`;
+      }
+    }
+
+    const valStr = meta.unit === '$' ? '$' + m.value.toFixed(meta.dec)
+                 : meta.unit === '%' ? m.value.toFixed(meta.dec) + '%'
+                 : fmt(m.value, meta.dec);
+
+    return `
+      <div class="ind-card clickable" onclick="openSnapshotDrawer('${sym}')">
+        ${ageDot(m.fetched_at)}
+        <div class="ind-name">${meta.name}</div>
+        <div class="ind-click-hint">↗ click for details &amp; context</div>
+        <div class="ind-row">
+          <div class="ind-value">${valStr}</div>
+          ${chg != null ? `<div class="ind-unit ${cls}">${arrow} ${Math.abs(chg).toFixed(2)}%</div>` : ''}
+        </div>
+        <div class="ind-date">${m.fetched_at ? m.fetched_at.slice(0, 10) : ''}</div>
+        ${hist.length > 1 ? `<div class="ind-chart"><canvas id="${canvasId}"></canvas></div>` : ''}
+        ${delta}
+        ${(meta.levels||[]).length ? `<div class="ind-levels">${meta.levels.map(l =>
+          `<div class="ind-level ind-level-${l.color}"><span class="ind-level-val">${l.value}${meta.unit}</span><span class="ind-level-txt">${l.label}</span></div>`
+        ).join('')}</div>` : ''}
+      </div>`;
   }).join('');
+
+  requestAnimationFrame(() => {
+    for (const sym of items) {
+      const hist = (byHist[sym] || []).map(h => ({ observation_date: h.fetched_at, value: h.value }));
+      const meta = MARKET_META[sym];
+      if (hist.length > 1) {
+        const canvasId = `chart-mkt-${sym.replace(/[^a-z0-9]/gi, '_')}`;
+        renderSparkline(canvasId, hist, meta?.color || '#64748b', meta?.levels);
+      }
+    }
+  });
 }
 
 // ── Key levels (overview sidebar) ────────────────────────────
@@ -651,6 +724,78 @@ function renderInfluencerPulse(pulse) {
       ${c.notable ? `<div class="voice-view" style="margin-top:6px">${c.notable}</div>` : ''}
     </div>`;
   }).join('');
+}
+
+// ── People tab (Voices + Influencer creators, fresh only) ─────
+function renderPeople(voices, pulse) {
+  const el = document.getElementById('people-list');
+  if (!el) return;
+
+  const sections = [];
+
+  // ── Voices section ──
+  if (voices?.length) {
+    const cards = voices.map(v => {
+      const date = fmtDate(v.published);
+      return `
+      <div class="voice-card">
+        <div class="voice-header">
+          <div>
+            <div class="voice-name">${v.name}</div>
+            <div class="voice-title">${v.title}</div>
+          </div>
+          <div class="voice-meta">
+            ${date ? `<span class="voice-date">${date}</span>` : ''}
+            ${v.url ? `<a class="voice-src-link" href="${v.url}" target="_blank" rel="noopener">Source ↗</a>` : ''}
+            <button class="ask-webb-btn" onclick="webbOpen('${v.name.replace(/'/g,"\\'")} says: ${(v.current_view||'').replace(/'/g,"\\'")}')">Ask Dr. Webb</button>
+          </div>
+        </div>
+        ${v.current_view ? `<div class="voice-view">${v.current_view}</div>` : ''}
+        ${v.plain_english ? `<div class="voice-plain"><span class="voice-plain-label">What this means for you:</span> ${v.plain_english}</div>` : ''}
+      </div>`;
+    }).join('');
+    sections.push(`
+      <div class="people-section-label">Analysts &amp; Economists</div>
+      ${cards}`);
+  }
+
+  // ── Influencer creators section — fresh only ──
+  const freshCreators = (pulse?.creators || []).filter(c => c.sentiment !== 'no_recent_content');
+  if (freshCreators.length) {
+    const sharedThemes = pulse?.shared_themes?.length
+      ? `<div class="inf-themes-row">${pulse.shared_themes.map(t =>
+          `<span class="inf-theme-chip">${t}</span>`).join('')}</div>`
+      : '';
+    const cards = freshCreators.map(c => {
+      const style = SENTIMENT_STYLE[c.sentiment] || SENTIMENT_STYLE.neutral;
+      return `
+      <div class="voice-card" style="border-left:3px solid ${style.color}">
+        <div class="voice-header">
+          <div>
+            <div class="voice-name">${c.name}</div>
+            ${c.key_theme ? `<div class="voice-title">${c.key_theme}</div>` : ''}
+          </div>
+          <span style="background:${style.bg};color:${style.color};border-radius:9999px;padding:3px 12px;font-size:0.78rem;font-weight:600;white-space:nowrap">
+            ${style.label}
+          </span>
+        </div>
+        ${c.notable ? `<div class="voice-view" style="margin-top:6px">${c.notable}</div>` : ''}
+      </div>`;
+    }).join('');
+    sections.push(`
+      <div class="people-section-label" style="margin-top:20px">Creators &amp; Commentators</div>
+      ${sharedThemes}
+      ${cards}`);
+  } else if (pulse) {
+    sections.push(`<div class="people-section-label" style="margin-top:20px">Creators &amp; Commentators</div>
+      <div class="panel-empty">No new content from creators this cycle.</div>`);
+  }
+
+  if (!sections.length) {
+    el.innerHTML = '<div class="panel-empty">Run a cycle to load people data.</div>';
+    return;
+  }
+  el.innerHTML = sections.join('');
 }
 
 // ── Signal Banner ─────────────────────────────────────────────
@@ -1151,12 +1296,10 @@ async function load() {
     renderSignalBanner(d.latestSignal || null);
     renderAlerts(d.alerts || []);
     renderPanels(d.panels || []);
-    renderVoices(d.voices || []);
-    renderInfluencerPulse(d.influencer_pulse || null);
-    renderInfluencerPulseMini(d.influencer_pulse || null);
+    renderPeople(d.voices || [], d.influencer_pulse || null);
     renderCuratedNews(d.curated_news || []);
     renderMarkets(d.market || []);
-    renderMarketSnapshot(d.market || []);
+    renderMarketSnapshot(d.market || [], d.market_history || {});
     renderKeyLevels(d.market || []);
     renderIndicators(d.indicators || [], d.history || {});
 
@@ -1177,7 +1320,7 @@ async function liveMarketPoll() {
     if (!r.ok) return;
     const data = await r.json();
     if (data.length) {
-      renderMarketSnapshot(data);
+      renderMarketSnapshot(data, null);
       renderKeyLevels(data);
     }
   } catch {}
