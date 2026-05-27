@@ -70,9 +70,6 @@ function switchTab(tabId) {
   window.scrollTo(0, 0);
 }
 
-// Load brief immediately on page open
-document.addEventListener('DOMContentLoaded', loadDailyBrief);
-
 document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
