@@ -1,3 +1,53 @@
+// ── Manual cycle trigger ──────────────────────────────────────
+async function runCycle() {
+  const btn = document.getElementById('run-cycle-btn');
+  const status = document.getElementById('cycle-status');
+  if (!btn) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  btn.style.opacity = '0.6';
+  if (status) status.textContent = 'Starting cycle...';
+
+  try {
+    const res = await fetch('/api/run-cycle', { method: 'POST' });
+    if (res.status === 409) {
+      if (status) status.textContent = 'Already running...';
+      btn.textContent = 'Running...';
+      pollCycleStatus();
+      return;
+    }
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    if (status) status.textContent = 'Running — takes ~2 min';
+    pollCycleStatus();
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Run Cycle';
+    btn.style.opacity = '1';
+    if (status) status.textContent = 'Error: ' + err.message;
+  }
+}
+
+function pollCycleStatus() {
+  const btn = document.getElementById('run-cycle-btn');
+  const status = document.getElementById('cycle-status');
+  const interval = setInterval(async () => {
+    try {
+      const res = await fetch('/api/cycle-status');
+      const data = await res.json();
+      if (!data.running) {
+        clearInterval(interval);
+        if (btn) { btn.disabled = false; btn.textContent = 'Run Cycle'; btn.style.opacity = '1'; }
+        if (status) status.textContent = 'Done — reloading...';
+        setTimeout(() => {
+          if (status) status.textContent = '';
+          load();
+        }, 1500);
+      }
+    } catch { clearInterval(interval); }
+  }, 5000);
+}
+
 // ── Tab routing ───────────────────────────────────────────────
 let energyChartsReady = false;
 let explorerReady = false;

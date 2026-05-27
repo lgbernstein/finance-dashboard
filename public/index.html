@@ -53,6 +53,14 @@
     <div class="sidebar-brand">
       <div class="brand-name">Economic<br>Dashboard</div>
       <div id="last-updated" class="brand-updated">Loading...</div>
+      <button id="run-cycle-btn" onclick="runCycle()" style="
+        margin-top:8px;width:100%;padding:6px 0;
+        background:rgba(99,102,241,0.15);color:#a5b4fc;
+        border:1px solid rgba(99,102,241,0.3);border-radius:6px;
+        font-size:0.75rem;font-weight:600;cursor:pointer;letter-spacing:.04em;
+        transition:background 0.15s,color 0.15s;
+      ">Run Cycle</button>
+      <div id="cycle-status" style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;min-height:14px;text-align:center;"></div>
     </div>
 
     <nav class="sidebar-nav">

@@ -3,7 +3,12 @@ const express = require('express');
 const https = require('https');
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
 const db = require('./db');
+
+// ── Cycle state (prevent double-runs) ────────────────────────
+let cycleRunning = false;
+let cycleStartedAt = null;
 
 // ── Live market quote helper (Yahoo Finance) ──────────────────
 const LIVE_SYMS = ['^GSPC', '^DJI', '^IXIC', 'CL=F', '^VIX', '^TNX'];
@@ -75,6 +80,50 @@ app.get('/api/dashboard', (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── Manual cycle trigger ──────────────────────────────────────
+app.get('/api/cycle-status', (req, res) => {
+  res.json({ running: cycleRunning, startedAt: cycleStartedAt });
+});
+
+app.post('/api/run-cycle', (req, res) => {
+  if (cycleRunning) {
+    return res.status(409).json({ error: 'Cycle already running', startedAt: cycleStartedAt });
+  }
+
+  cycleRunning = true;
+  cycleStartedAt = new Date().toISOString();
+
+  const scriptPath = path.join(__dirname, 'scripts', 'run_cycle.js');
+  const proc = spawn('node', [scriptPath], {
+    cwd: __dirname,
+    env: { ...process.env },
+    stdio: 'pipe',
+  });
+
+  let output = '';
+  proc.stdout.on('data', d => { output += d.toString(); });
+  proc.stderr.on('data', d => { output += d.toString(); });
+
+  proc.on('close', (code) => {
+    cycleRunning = false;
+    cycleStartedAt = null;
+    if (code !== 0) {
+      console.error(`[run-cycle] exited with code ${code}\n${output}`);
+    } else {
+      console.log(`[run-cycle] completed successfully`);
+    }
+  });
+
+  proc.on('error', (err) => {
+    cycleRunning = false;
+    cycleStartedAt = null;
+    console.error(`[run-cycle] spawn error: ${err.message}`);
+  });
+
+  // Respond immediately — cycle runs in background
+  res.json({ ok: true, startedAt: cycleStartedAt });
 });
 
 app.get('/api/approvals', (req, res) => {
