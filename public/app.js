@@ -146,11 +146,13 @@ function relativeTime(iso) {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
-function ageDot(isoStr) {
+function ageDot(isoStr, maxFreshHrs = 1, maxStaleHrs = 4) {
   if (!isoStr) return '<span class="age-dot fresh" title="Live data"></span>';
   const hrs = (Date.now() - new Date(isoStr)) / 3600000;
-  const cls = hrs < 1 ? 'fresh' : hrs < 4 ? 'stale' : 'old';
-  const lbl = hrs < 1 ? 'Data < 1h old' : hrs < 4 ? `Data ${Math.floor(hrs)}h old` : `Data ${Math.floor(hrs)}h old — may be stale`;
+  const cls = hrs < maxFreshHrs ? 'fresh' : hrs < maxStaleHrs ? 'stale' : 'old';
+  const lbl = hrs < maxFreshHrs ? 'Data < 1h old'
+    : hrs < 24 ? `Data ${Math.floor(hrs)}h old`
+    : `Data ${Math.floor(hrs / 24)}d old`;
   return `<span class="age-dot ${cls}" title="${lbl}"></span>`;
 }
 function fmt(v, d = 2) {
@@ -703,6 +705,7 @@ function renderMarkets(market) {
     const isIndex = ['^GSPC','^DJI','^IXIC','^RUT'].includes(sym);
     return `
       <div class="market-card">
+        ${ageDot(m.fetched_at)}
         <div class="market-name">${MARKET_NAMES[sym] || m.name}</div>
         <div class="market-val ${cls}">${fmt(m.value, isIndex ? 0 : 2)}</div>
         <div class="market-chg ${cls}">${chg != null ? arrow + Math.abs(chg).toFixed(2) + '%' : '—'}</div>
@@ -1034,6 +1037,7 @@ function renderIndicators(indicators, history) {
 
     return `
       <div class="ind-card${hasContext ? ' clickable' : ''}" data-series="${id}"${hasContext ? ` onclick="openDrawer('${id}')"` : ''}>
+        ${ageDot(ind.fetched_at, 24, 72)}
         <div class="ind-name">${meta.name}</div>
         ${hasContext ? '<div class="ind-click-hint">↗ click for details &amp; context</div>' : ''}
         <div class="ind-row">
