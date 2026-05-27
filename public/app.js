@@ -51,39 +51,6 @@ function pollCycleStatus() {
 // ── Tab routing ───────────────────────────────────────────────
 let energyChartsReady = false;
 let explorerReady = false;
-let dailyBriefLoaded = false;
-
-function loadDailyBrief() {
-  if (dailyBriefLoaded) return;
-  const container = document.getElementById('daily-brief-content');
-  if (!container) return;
-  fetch('/api/daily-snapshot')
-    .then(r => {
-      if (!r.ok) throw new Error('Snapshot not available');
-      return r.text();
-    })
-    .then(html => {
-      // Extract and scope the style block, then inject body content
-      const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
-      const bodyMatch  = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-      const rawCSS     = styleMatch ? styleMatch[1] : '';
-      const bodyHTML   = bodyMatch  ? bodyMatch[1]  : html;
-      // Scope all CSS rules to .dbw so they don't leak into the dashboard
-      const scopedCSS  = rawCSS.replace(/([^\r\n,{}]+)(,(?=[^}]*\{)|\s*\{)/g, (m, sel, end) => {
-        const s = sel.trim();
-        if (!s || s.startsWith('@') || s.startsWith('//')) return m;
-        const scoped = s.split(',').map(p => `.dbw ${p.trim()}`).join(', ');
-        return scoped + end;
-      });
-      container.innerHTML = `<style>${scopedCSS}</style><div class="dbw">${bodyHTML}</div>`;
-      dailyBriefLoaded = true;
-    })
-    .catch(err => {
-      container.innerHTML = `<div style="padding:40px;text-align:center;color:#a0aec0;">
-        Briefing not available yet — runs each morning at 6 AM.<br><small>${err.message}</small>
-      </div>`;
-    });
-}
 
 function switchTab(tabId) {
   document.querySelectorAll('.nav-item, .mobile-nav-item').forEach(b => {
@@ -92,7 +59,6 @@ function switchTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + tabId)?.classList.add('active');
 
-  if (tabId === 'daily-brief') loadDailyBrief();
   if (tabId === 'energy' && !energyChartsReady) {
     energyChartsReady = true;
     requestAnimationFrame(initEnergyCharts);
@@ -726,76 +692,62 @@ function renderInfluencerPulse(pulse) {
   }).join('');
 }
 
-// ── People tab (Voices + Influencer creators, fresh only) ─────
+// ── People tab — compact 4-across grid ───────────────────────
 function renderPeople(voices, pulse) {
   const el = document.getElementById('people-list');
   if (!el) return;
 
-  const sections = [];
+  let html = '';
 
-  // ── Voices section ──
+  // ── Analysts & Economists ──
   if (voices?.length) {
     const cards = voices.map(v => {
       const date = fmtDate(v.published);
+      const safeView  = (v.current_view  || '').replace(/'/g, "\\'");
+      const safeName  = (v.name          || '').replace(/'/g, "\\'");
       return `
-      <div class="voice-card">
-        <div class="voice-header">
-          <div>
-            <div class="voice-name">${v.name}</div>
-            <div class="voice-title">${v.title}</div>
-          </div>
-          <div class="voice-meta">
-            ${date ? `<span class="voice-date">${date}</span>` : ''}
-            ${v.url ? `<a class="voice-src-link" href="${v.url}" target="_blank" rel="noopener">Source ↗</a>` : ''}
-            <button class="ask-webb-btn" onclick="webbOpen('${v.name.replace(/'/g,"\\'")} says: ${(v.current_view||'').replace(/'/g,"\\'")}')">Ask Dr. Webb</button>
-          </div>
+      <div class="pcard">
+        <div class="pcard-name">${v.name}</div>
+        <div class="pcard-role">${v.title}</div>
+        ${v.current_view ? `<div class="pcard-view">${v.current_view}</div>` : ''}
+        <div class="pcard-footer">
+          ${date ? `<span class="pcard-date">${date}</span>` : ''}
+          ${v.url ? `<a class="voice-src-link" href="${v.url}" target="_blank" rel="noopener">↗</a>` : ''}
+          <button class="ask-webb-btn" onclick="webbOpen('${safeName} says: ${safeView}')">Ask Dr. Webb</button>
         </div>
-        ${v.current_view ? `<div class="voice-view">${v.current_view}</div>` : ''}
-        ${v.plain_english ? `<div class="voice-plain"><span class="voice-plain-label">What this means for you:</span> ${v.plain_english}</div>` : ''}
       </div>`;
     }).join('');
-    sections.push(`
-      <div class="people-section-label">Analysts &amp; Economists</div>
-      ${cards}`);
+    html += `<div class="people-section-hdr">Analysts &amp; Economists</div>
+    <div class="people-grid">${cards}</div>`;
   }
 
-  // ── Influencer creators section — fresh only ──
+  // ── Creators — fresh only ──
   const freshCreators = (pulse?.creators || []).filter(c => c.sentiment !== 'no_recent_content');
   if (freshCreators.length) {
-    const sharedThemes = pulse?.shared_themes?.length
-      ? `<div class="inf-themes-row">${pulse.shared_themes.map(t =>
-          `<span class="inf-theme-chip">${t}</span>`).join('')}</div>`
-      : '';
+    const themes = pulse?.shared_themes?.length
+      ? `<div class="people-themes">${pulse.shared_themes.map(t =>
+          `<span class="inf-theme-chip">${t}</span>`).join('')}</div>` : '';
     const cards = freshCreators.map(c => {
-      const style = SENTIMENT_STYLE[c.sentiment] || SENTIMENT_STYLE.neutral;
+      const st = SENTIMENT_STYLE[c.sentiment] || SENTIMENT_STYLE.neutral;
       return `
-      <div class="voice-card" style="border-left:3px solid ${style.color}">
-        <div class="voice-header">
-          <div>
-            <div class="voice-name">${c.name}</div>
-            ${c.key_theme ? `<div class="voice-title">${c.key_theme}</div>` : ''}
-          </div>
-          <span style="background:${style.bg};color:${style.color};border-radius:9999px;padding:3px 12px;font-size:0.78rem;font-weight:600;white-space:nowrap">
-            ${style.label}
-          </span>
+      <div class="pcard" style="border-top:2px solid ${st.color}">
+        <div class="pcard-hrow">
+          <div class="pcard-name">${c.name}</div>
+          <span class="pcard-badge" style="color:${st.color};background:${st.bg}">${st.label}</span>
         </div>
-        ${c.notable ? `<div class="voice-view" style="margin-top:6px">${c.notable}</div>` : ''}
+        ${c.key_theme ? `<div class="pcard-role">${c.key_theme}</div>` : ''}
+        ${c.notable  ? `<div class="pcard-view">${c.notable}</div>` : ''}
       </div>`;
     }).join('');
-    sections.push(`
-      <div class="people-section-label" style="margin-top:20px">Creators &amp; Commentators</div>
-      ${sharedThemes}
-      ${cards}`);
+    html += `<div class="people-section-hdr people-section-hdr--gap">Creators &amp; Commentators</div>
+    ${themes}
+    <div class="people-grid">${cards}</div>`;
   } else if (pulse) {
-    sections.push(`<div class="people-section-label" style="margin-top:20px">Creators &amp; Commentators</div>
-      <div class="panel-empty">No new content from creators this cycle.</div>`);
+    html += `<div class="people-section-hdr people-section-hdr--gap">Creators &amp; Commentators</div>
+    <div class="panel-empty">No new content from creators this cycle.</div>`;
   }
 
-  if (!sections.length) {
-    el.innerHTML = '<div class="panel-empty">Run a cycle to load people data.</div>';
-    return;
-  }
-  el.innerHTML = sections.join('');
+  el.innerHTML = html || '<div class="panel-empty">Run a cycle to load people data.</div>';
 }
 
 // ── Signal Banner ─────────────────────────────────────────────

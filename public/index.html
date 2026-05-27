@@ -19,10 +19,6 @@
 
   <!-- Mobile bottom nav -->
   <nav class="mobile-nav">
-    <button class="mobile-nav-item" data-tab="daily-brief">
-      <span class="mobile-nav-icon">📋</span>
-      <span class="mobile-nav-label">Brief</span>
-    </button>
     <button class="mobile-nav-item active" data-tab="overview">
       <span class="mobile-nav-icon">🗞</span>
       <span class="mobile-nav-label">Overview</span>
@@ -65,9 +61,6 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item" data-tab="daily-brief">
-        <span class="nav-icon">📋</span> Daily Brief
-      </button>
       <button class="nav-item active" data-tab="overview">
         <span class="nav-icon">🗞</span> Overview
       </button>
@@ -109,17 +102,6 @@
       <div class="signal-age" id="signal-age"></div>
     </div>
 
-    <!-- DAILY BRIEF -->
-    <section class="tab-content" id="tab-daily-brief">
-      <div class="page-header">
-        <h2>Daily Brief</h2>
-        <p class="page-sub">Today's market briefing — generated fresh each morning</p>
-      </div>
-      <div id="daily-brief-content" style="min-height:300px;">
-        <div class="skeleton" style="padding:40px;text-align:center;color:#a0aec0;">Loading briefing...</div>
-      </div>
-    </section>
-
     <!-- OVERVIEW -->
     <section class="tab-content active" id="tab-overview">
       <div class="page-header">
@@ -135,47 +117,15 @@
 
       <!-- BRIEFING -->
       <div class="inner-tab-pane active" id="inner-overview-briefing">
-        <div class="overview-grid">
-          <div id="market-snapshot" class="snapshot-row">
-            <div class="snapshot-card flat"><div class="skeleton">Loading markets...</div></div>
-          </div>
-          <div class="three-col-cards">
-            <div class="card" id="panel-daily_summary" data-accent="green">
-              <div class="card-header"><div class="card-label green">Today's Situation</div></div>
-              <div class="skeleton">Loading...</div>
-            </div>
-            <div class="card" id="panel-macro_overview" data-accent="green">
-              <div class="card-header"><div class="card-label green">Macro Overview</div></div>
-              <div class="skeleton">Loading...</div>
-            </div>
-            <div class="card" id="panel-risk_watch" data-accent="red">
-              <div class="card-header"><div class="card-label red">Risk Watch</div></div>
-              <div class="skeleton">Loading...</div>
-            </div>
-          </div>
-          <div class="two-col-cards">
-            <div class="card" id="panel-what_to_watch" data-accent="blue">
-              <div class="card-header"><div class="card-label blue">What to Watch — Next 7 Days</div></div>
-              <div class="skeleton">Loading...</div>
-            </div>
-            <div class="card" id="key-levels-card" data-accent="amber">
-              <div class="card-header"><div class="card-label amber">Key Levels</div></div>
-              <div id="key-levels-content"><div class="skeleton">Loading...</div></div>
-            </div>
-          </div>
+        <div id="market-snapshot" class="snapshot-row">
+          <div class="snapshot-card flat"><div class="skeleton">Loading markets...</div></div>
         </div>
       </div>
 
       <!-- PEOPLE (Voices + Influencer creators) -->
       <div class="inner-tab-pane" id="inner-overview-voices">
-        <div class="card" id="people-card" data-accent="purple">
-          <div class="card-header">
-            <div>
-              <div class="card-label purple">People</div>
-              <p class="voices-sub" style="margin:4px 0 0">Analysts, economists &amp; creators — what they're saying now</p>
-            </div>
-          </div>
-          <div id="people-list"><div class="skeleton">Loading...</div></div>
+        <div id="people-list" class="people-container">
+          <div class="skeleton">Loading...</div>
         </div>
       </div>
 
