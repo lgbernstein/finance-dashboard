@@ -6,3 +6,11 @@ shared_memory/observations.json
 shared_memory/context_window_tracker.json
 *.sqlite
 *.db
+
+# Local agent state
+.claude/settings.local.json
+.claude/.plugin_*_state.json
+.claude/worktrees/
+.playwright-cli/
+.playwright-mcp/
+.DS_Store

@@ -1,45 +1,31 @@
-# Mr. Global Update — 2026-05-19
+# Mr. Global Update — 2026-07-13
 
-## Note on Data Access
-YouTube RSS feed and channel pages returned empty (bot protection). This is the first run — no prior tracking file. The 3 most recent findable videos/appearances are treated as new. Key indicators are cross-referenced from corroborating sources (CNBC, NPR, Wikipedia 2026 Iran War Fuel Crisis, Ninepoint Partners).
+## New Videos
+15 videos since last check (prior ID l3-DR97rGf8 aged off the feed). Energy/geopolitics-relevant ones:
 
-## Recent Videos / Appearances
-1. **"Iran Is Winning The Oil War"** — Mar 12, 2026 (Hawk's Podcasts channel, featuring Mr. Global)
-   https://www.youtube.com/watch?v=6mbPaDGDxbA
+- The Middle East Target That Would Kill More People Than Any Bomb — Jul 13 — https://www.youtube.com/watch?v=kS1mwStBjW4
+- Totally Destroyed Iran Just Bombed Five Countries At Once — Jul 12 — https://www.youtube.com/watch?v=VjWPwO6z1sg
+- Iran Can't Win, But That Was Never The Plan Anyway — Jul 12 — https://www.youtube.com/watch?v=NmkKZz8bzW0
+- The Clause In The Pause The U.S. Totally Whiffed On — Jul 10 — https://www.youtube.com/watch?v=VaBgNk5jSko
+- The Day The War Changed - It's No Longer U.S. Versus Iran — Jul 9 — https://www.youtube.com/watch?v=PimBWoGHEOM
+- Weeks To Destroy Iran's Oil Infrastructure - Decades To Rebuild It — Jul 9 — https://www.youtube.com/watch?v=rTQxMFx2dj8
+- It's Not Oil Prices, It's Gas and Diesel Prices Skyrocketing — Jul 8 — https://www.youtube.com/watch?v=XqiDEUHs9nY
+- The First War Was The Warning. This IS The Test. — Jul 8 — https://www.youtube.com/watch?v=skj_B_RJbYk
 
-2. **"Hawk and Mr. Global Discuss Oil and Gas Prices and What is to Come"** — Mar 11, 2026
-   https://www.youtube.com/watch?v=AodwDQ3h9A8
-
-3. **"Too Cheap to Drill? Why Low Oil Prices HURT American Energy Workers"** — date unconfirmed
-   https://www.youtube.com/watch?v=oQj51X2rzEE
-
-No confirmed new videos on @MrGlobalYouTube after March 2026. No videos found from April or May 2026.
+Remaining 7 videos were MAGA/politics/farmer-education shorts, lower dashboard relevance.
 
 ## Key Indicator Updates
-
-- **WTI Crude**: ~$103-106/barrel as of early May 2026. Up sharply from $60-70 throughout 2025. Driven by Hormuz supply shock. Above Mr. Global's $70 new-well threshold, but major US companies still not ramping drilling (Wall Street "discipline" remains).
-
-- **Rig Count**: US total ~547 rigs as of May 1, 2026 (408 oil, 130 gas). Flat vs. prior weeks. Despite prices above $100, Chevron, ExxonMobil, ConocoPhillips, and Occidental all signaling no major production increases. Dallas Fed survey: US output likely up only 250K b/d in all of 2026 — far short of what's needed to offset Hormuz losses.
-
-- **Strait of Hormuz**: Near-standstill since early March 2026 Iran war. 12-13M b/d still disrupted per Ninepoint Partners (Apr 24). IEA April report: over 10M b/d missing from global markets. Ceasefire announced April 8 but traffic still "far below pre-war levels" (Wikipedia). Baker Hughes (Apr 24): strait may not fully reopen until H2 2026.
-
-- **SPR**: IEA directed member nations to release 400M barrels collectively (March 12). Japan released 80M barrels. New Zealand released 6 days' supply. US SPR release details not confirmed in sources.
-
-- **Natural Gas / LNG**: European TTF nearly doubled to >€60/MWh by mid-March. Qatari LNG exports disrupted. Algeria fielding inquiries from EU nations. US exports benefiting — US crude/petroleum product exports hit 12.9M b/d in April 2026.
-
-- **Food Prices**: UK Food Policy Institute warned of long-term food price increases from fuel/fertilizer market disruption. No specific figures found.
-
-- **Bab-el-Mandeb**: No specific update found.
-
-- **Scenarios**: Oil above $100 active now. Global recession risk being discussed. Wikipedia article cites adverse GDP impact expected across most economies. Baker Hughes CEO: "persistent risk premiums" on oil and LNG prices.
+- WTI Crude: ~$74.60/bbl Jul 13, up ~4% on renewed US-Iran strikes. Brent ~$78.82, highest since June 22. Both climbing after dipping toward $70 earlier this month.
+- Hormuz: Ceasefire MOU signed last month is fragile and unraveling. Traffic fell to ~6 vessels/12hrs vs. 18-22 daily crossings earlier this month. Mr. Global argues the MOU's text was poorly negotiated, leaving Iran practical control over transit — a step worse than the prior "mixed reopening" read.
+- Rig Count: Baker Hughes crude rigs flat at 445 (Jul 10), unchanged from the prior week, still well under the 550-600 needed to hold production flat.
+- Natural Gas/Diesel: Mr. Global's focus has shifted to diesel as the bigger inflation driver, citing a Russian diesel export ban tightening supply independent of crude moves.
+- Oil Infrastructure: Iran's oil infrastructure has taken sustained damage this week; Mr. Global says rebuild takes "decades." Gulf states have now been drawn into direct strikes, widening the conflict beyond US-Iran.
+- Scenarios: The underlying war began February 2026 (per outside sourcing), not a future hypothetical. A ceasefire MOU followed, and this week's multi-country strikes mark a real escalation back toward the dashboard's worst-case path.
 
 ## Dashboard Update Needed?
-**YES.** Significant changes:
-- WTI price card: update from ~$65 to ~$103-106/barrel
-- Hormuz status card: update from ~12-13M b/d to ongoing disruption, ceasefire but not restored
-- Rig count context: US rigs ~547, companies refusing to drill more despite high prices
-- SPR: IEA coordinated release underway
-- Worst-case scenario card: $200 oil not reached but $100+ is active; recession risk elevated
+YES. This is the most consequential update since tracking began. Update the Hormuz card to reflect the collapsing MOU and falling vessel traffic (not a stable reopening). Update WTI to the ~$74-79 range. The "both straits close" worst-case scenario should be reframed as an active escalation risk, not a tail case, given Gulf states are now directly involved.
 
 ## Action for Larry
-Mr. Global's March 12 analysis said a 3-week Hormuz closure would tip the global economy into deep recession — we are now well past 10 weeks of disruption with traffic still far below normal post-ceasefire. His core thesis (supply gap is structural, US can't ramp fast enough) is being validated by actual Q1 2026 earnings calls. The dashboard's Hormuz and WTI cards need updating; this is the most significant energy disruption since 2022 and directly affects energy sector holdings.
+An active US-Iran war with a fragile, unraveling ceasefire is now pushing oil to $74-79 and cutting Hormuz traffic sharply, a real escalation rather than routine commentary. Worth reviewing the dashboard's Hormuz and scenario cards against this and checking any energy-sector exposure in the portfolio.
+
+Sources: YouTube feed; [Al Jazeera - oil prices jump](https://www.aljazeera.com/economy/2026/7/13/oil-prices-jump-as-us-and-iran-trade-attacks-over-strait-of-hormuz), [Wikipedia - 2026 Strait of Hormuz crisis](https://en.wikipedia.org/wiki/2026_Strait_of_Hormuz_crisis), [Al Jazeera - oil surges as US strikes Iran](https://www.aljazeera.com/news/2026/7/8/oil-prices-surge-as-us-strikes-iran-reversing-fall-to-pre-war-levels), [CNBC - Hormuz tanker attacks](https://www.cnbc.com/2026/07/07/oil-prices-iran-strait-hormuz.html), [Baker Hughes rig count](https://rigcount.bakerhughes.com/).
